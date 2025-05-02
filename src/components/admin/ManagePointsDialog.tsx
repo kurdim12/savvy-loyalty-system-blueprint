@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { incrementPoints, decrementPoints } from '@/integrations/supabase/functions';
 import {
   Dialog,
   DialogContent,
@@ -64,29 +65,14 @@ const ManagePointsDialog = ({
       if (transactionError) throw transactionError;
       
       // Step 2: Update the user's point balance
-      // Note: Now using direct queries instead of rpc
+      let updateResult;
       if (transactionType === 'earn') {
-        // Equivalent to increment_points function
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            current_points: supabase.rpc('get_user_points', { user_id: customerId }) + points,
-            visits: supabase.rpc('get_user_visits', { user_id: customerId }) + 1,
-          })
-          .eq('id', customerId);
-        
-        if (profileError) throw profileError;
+        updateResult = await incrementPoints(customerId, points);
       } else {
-        // Equivalent to decrement_points function
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            current_points: supabase.raw(`GREATEST(0, current_points - ${points})`),
-          })
-          .eq('id', customerId);
-        
-        if (profileError) throw profileError;
+        updateResult = await decrementPoints(customerId, points);
       }
+      
+      if (updateResult.error) throw updateResult.error;
       
       return transaction;
     },

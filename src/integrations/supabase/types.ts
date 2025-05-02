@@ -261,6 +261,14 @@ export type Database = {
         Args: { user_id: string; point_amount: number }
         Returns: undefined
       }
+      get_user_points: {
+        Args: { user_id: string }
+        Returns: number
+      }
+      get_user_visits: {
+        Args: { user_id: string }
+        Returns: number
+      }
       increment_points: {
         Args: { user_id: string; point_amount: number }
         Returns: undefined

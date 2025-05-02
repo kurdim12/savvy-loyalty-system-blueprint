@@ -6,22 +6,5 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://egeufofnkpvwbmffgoxw.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnZXVmb2Zua3B2d2JtZmZnb3h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxODE3NDUsImV4cCI6MjA2MTc1Nzc0NX0.rQbKbndK2BB-oDfp0_v4xrpYAXizNgpFOQMfxbzhQ-A";
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
-
-// Add helper functions for get_user_points and get_user_visits
-const supabaseClient = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-
-// Extend the client with custom functions
-export const supabase = {
-  ...supabaseClient,
-  rpc: (functionName: string, params?: Record<string, any>) => {
-    if (functionName === 'get_user_points' && params?.user_id) {
-      return 0; // Placeholder - this will be replaced by the real implementation
-    }
-    if (functionName === 'get_user_visits' && params?.user_id) {
-      return 0; // Placeholder - this will be replaced by the real implementation
-    }
-    return supabaseClient.rpc(functionName as any, params);
-  },
-};
+// Create the Supabase client
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);

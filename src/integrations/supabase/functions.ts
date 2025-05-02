@@ -5,35 +5,40 @@ import { supabase } from './client';
 
 // User Points & Visits
 export async function getUserPoints(userId: string): Promise<number> {
-  const { data } = await supabase
-    .from('profiles')
-    .select('current_points')
-    .eq('id', userId)
-    .single();
-    
-  return data?.current_points || 0;
+  const { data, error } = await supabase.rpc('get_user_points', { user_id: userId });
+  
+  if (error) {
+    console.error('Error getting user points:', error);
+    return 0;
+  }
+  
+  return data || 0;
 }
 
 export async function getUserVisits(userId: string): Promise<number> {
-  const { data } = await supabase
-    .from('profiles')
-    .select('visits')
-    .eq('id', userId)
-    .single();
-    
-  return data?.visits || 0;
+  const { data, error } = await supabase.rpc('get_user_visits', { user_id: userId });
+  
+  if (error) {
+    console.error('Error getting user visits:', error);
+    return 0;
+  }
+  
+  return data || 0;
 }
 
 // Create helper functions to match the SQL functions we created
 export async function incrementPoints(userId: string, pointAmount: number) {
   // Get current profile data
-  const { data: profile } = await supabase
+  const { data: profile, error: fetchError } = await supabase
     .from('profiles')
     .select('current_points, visits')
     .eq('id', userId)
     .single();
   
-  if (!profile) return { error: 'User not found' };
+  if (fetchError || !profile) {
+    console.error('Error fetching profile:', fetchError);
+    return { error: fetchError || new Error('User not found') };
+  }
   
   // Calculate new values
   const newPoints = profile.current_points + pointAmount;
@@ -48,7 +53,7 @@ export async function incrementPoints(userId: string, pointAmount: number) {
   }
   
   // Update profile
-  const { error } = await supabase
+  const { error: updateError } = await supabase
     .from('profiles')
     .update({
       current_points: newPoints,
@@ -58,24 +63,27 @@ export async function incrementPoints(userId: string, pointAmount: number) {
     })
     .eq('id', userId);
     
-  return { error };
+  return { error: updateError };
 }
 
 export async function decrementPoints(userId: string, pointAmount: number) {
   // Get current profile data
-  const { data: profile } = await supabase
+  const { data: profile, error: fetchError } = await supabase
     .from('profiles')
     .select('current_points')
     .eq('id', userId)
     .single();
   
-  if (!profile) return { error: 'User not found' };
+  if (fetchError || !profile) {
+    console.error('Error fetching profile:', fetchError);
+    return { error: fetchError || new Error('User not found') };
+  }
   
   // Calculate new points (never below 0)
   const newPoints = Math.max(0, profile.current_points - pointAmount);
   
   // Update profile
-  const { error } = await supabase
+  const { error: updateError } = await supabase
     .from('profiles')
     .update({
       current_points: newPoints,
@@ -83,5 +91,5 @@ export async function decrementPoints(userId: string, pointAmount: number) {
     })
     .eq('id', userId);
     
-  return { error };
+  return { error: updateError };
 }
