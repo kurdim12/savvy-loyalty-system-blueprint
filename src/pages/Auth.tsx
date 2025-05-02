@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -110,7 +110,7 @@ const Auth = () => {
                   />
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex-col space-y-4">
                 <Button 
                   type="submit" 
                   className="w-full bg-amber-700 hover:bg-amber-800"
@@ -118,6 +118,15 @@ const Auth = () => {
                 >
                   {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
+                
+                <div className="flex w-full justify-center">
+                  <Link 
+                    to="/admin-login" 
+                    className="text-sm text-amber-700 hover:text-amber-900 hover:underline"
+                  >
+                    Admin Login
+                  </Link>
+                </div>
               </CardFooter>
             </form>
           </TabsContent>
@@ -169,7 +178,7 @@ const Auth = () => {
                   />
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex-col space-y-4">
                 <Button 
                   type="submit" 
                   className="w-full bg-amber-700 hover:bg-amber-800"
@@ -177,6 +186,15 @@ const Auth = () => {
                 >
                   {loading ? 'Creating Account...' : 'Create Account'}
                 </Button>
+                
+                <div className="flex w-full justify-center">
+                  <Link 
+                    to="/admin-login" 
+                    className="text-sm text-amber-700 hover:text-amber-900 hover:underline"
+                  >
+                    Admin Login
+                  </Link>
+                </div>
               </CardFooter>
             </form>
           </TabsContent>
