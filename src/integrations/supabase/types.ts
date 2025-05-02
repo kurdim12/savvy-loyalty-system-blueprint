@@ -9,16 +9,263 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          birthday: string | null
+          created_at: string
+          current_points: number
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          membership_tier: Database["public"]["Enums"]["membership_tier"]
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          visits: number
+        }
+        Insert: {
+          birthday?: string | null
+          created_at?: string
+          current_points?: number
+          email: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          membership_tier?: Database["public"]["Enums"]["membership_tier"]
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          visits?: number
+        }
+        Update: {
+          birthday?: string | null
+          created_at?: string
+          current_points?: number
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          membership_tier?: Database["public"]["Enums"]["membership_tier"]
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          visits?: number
+        }
+        Relationships: []
+      }
+      redemptions: {
+        Row: {
+          created_at: string
+          fulfilled_at: string | null
+          id: string
+          points_spent: number
+          reward_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fulfilled_at?: string | null
+          id?: string
+          points_spent: number
+          reward_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fulfilled_at?: string | null
+          id?: string
+          points_spent?: number
+          reward_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "redemptions_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "rewards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "redemptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          bonus_points: number
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          id: string
+          referee_id: string
+          referrer_id: string
+        }
+        Insert: {
+          bonus_points?: number
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referee_id: string
+          referrer_id: string
+        }
+        Update: {
+          bonus_points?: number
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referee_id?: string
+          referrer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referee_id_fkey"
+            columns: ["referee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rewards: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          inventory: number | null
+          membership_required:
+            | Database["public"]["Enums"]["membership_tier"]
+            | null
+          name: string
+          points_required: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          inventory?: number | null
+          membership_required?:
+            | Database["public"]["Enums"]["membership_tier"]
+            | null
+          name: string
+          points_required: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          inventory?: number | null
+          membership_required?:
+            | Database["public"]["Enums"]["membership_tier"]
+            | null
+          name?: string
+          points_required?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          id: string
+          setting_name: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          setting_name: string
+          setting_value: Json
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          setting_name?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          points: number
+          reward_id: string | null
+          transaction_type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          points: number
+          reward_id?: string | null
+          transaction_type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          points?: number
+          reward_id?: string | null
+          transaction_type?: Database["public"]["Enums"]["transaction_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "rewards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: { uid: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      membership_tier: "bronze" | "silver" | "gold"
+      transaction_type: "earn" | "redeem" | "adjustment"
+      user_role: "admin" | "customer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +380,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      membership_tier: ["bronze", "silver", "gold"],
+      transaction_type: ["earn", "redeem", "adjustment"],
+      user_role: ["admin", "customer"],
+    },
   },
 } as const
