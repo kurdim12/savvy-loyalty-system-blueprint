@@ -3,12 +3,25 @@ import { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { UsersIcon, Coffee, Award, PieChart, BarChart, Clock } from 'lucide-react';
+import { UsersIcon, Coffee, Award, PieChart, BarChart, Clock, Plus } from 'lucide-react';
+
+// Admin Components
+import CustomersList from '@/components/admin/CustomersList';
+import CustomerTransactionsList from '@/components/admin/CustomerTransactionsList';
+import RewardsList from '@/components/admin/RewardsList';
+import TransactionsList from '@/components/admin/TransactionsList';
+import ManagePointsDialog from '@/components/admin/ManagePointsDialog';
+import AddTransactionDialog from '@/components/admin/AddTransactionDialog';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [selectedCustomerName, setSelectedCustomerName] = useState<string | null>(null);
+  const [isManagePointsOpen, setIsManagePointsOpen] = useState(false);
+  const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
 
   const { data: usersCount } = useQuery({
     queryKey: ['admin', 'usersCount'],
@@ -35,6 +48,37 @@ const Admin = () => {
     }
   });
 
+  const { data: pointsStats } = useQuery({
+    queryKey: ['admin', 'pointsStats'],
+    queryFn: async () => {
+      // Get total points issued (sum of all earn transactions)
+      const { data: earnData, error: earnError } = await supabase
+        .from('transactions')
+        .select('points')
+        .eq('transaction_type', 'earn');
+      
+      if (earnError) throw earnError;
+      
+      // Get total points redeemed (sum of all redeem transactions)
+      const { data: redeemData, error: redeemError } = await supabase
+        .from('transactions')
+        .select('points')
+        .eq('transaction_type', 'redeem');
+      
+      if (redeemError) throw redeemError;
+      
+      const pointsIssued = earnData.reduce((sum, tx) => sum + tx.points, 0);
+      const pointsRedeemed = redeemData.reduce((sum, tx) => sum + tx.points, 0);
+      const redemptionRate = pointsIssued > 0 ? ((pointsRedeemed / pointsIssued) * 100).toFixed(1) : '0';
+      
+      return {
+        pointsIssued,
+        pointsRedeemed,
+        redemptionRate
+      };
+    }
+  });
+
   const { data: recentTransactions } = useQuery({
     queryKey: ['admin', 'recentTransactions'],
     queryFn: async () => {
@@ -49,11 +93,28 @@ const Admin = () => {
     }
   });
   
+  // Handle customer selection for point management
+  const handleManagePoints = (customerId: string, customerName: string) => {
+    setSelectedCustomerId(customerId);
+    setSelectedCustomerName(customerName);
+    setIsManagePointsOpen(true);
+  };
+  
   return (
     <Layout adminOnly>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-amber-900">Admin Dashboard</h1>
+          
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => setIsAddTransactionOpen(true)} 
+              className="bg-amber-700 hover:bg-amber-800"
+            >
+              <Plus className="h-4 w-4 mr-2" /> 
+              Add Transaction
+            </Button>
+          </div>
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
@@ -95,7 +156,7 @@ const Admin = () => {
                   <PieChart className="h-4 w-4 text-amber-700" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">--</div>
+                  <div className="text-2xl font-bold">{pointsStats?.pointsIssued || 0}</div>
                   <p className="text-xs text-muted-foreground mt-1">Total points in circulation</p>
                 </CardContent>
               </Card>
@@ -106,7 +167,7 @@ const Admin = () => {
                   <BarChart className="h-4 w-4 text-amber-700" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">--</div>
+                  <div className="text-2xl font-bold">{pointsStats?.redemptionRate || 0}%</div>
                   <p className="text-xs text-muted-foreground mt-1">Points redeemed vs. issued</p>
                 </CardContent>
               </Card>
@@ -160,45 +221,24 @@ const Admin = () => {
           </TabsContent>
           
           <TabsContent value="customers">
-            <Card>
-              <CardHeader>
-                <CardTitle>Customer Management</CardTitle>
-                <CardDescription>
-                  View and manage customer accounts, profiles, and point balances.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p>Customer management functionality will be implemented here.</p>
-              </CardContent>
-            </Card>
+            <div className="grid gap-6">
+              <CustomersList 
+                onManagePoints={handleManagePoints}
+                onSelectCustomer={(customerId) => setSelectedCustomerId(customerId)}
+              />
+              
+              {selectedCustomerId && (
+                <CustomerTransactionsList customerId={selectedCustomerId} />
+              )}
+            </div>
           </TabsContent>
           
           <TabsContent value="rewards">
-            <Card>
-              <CardHeader>
-                <CardTitle>Rewards Management</CardTitle>
-                <CardDescription>
-                  Create, edit, and manage rewards available to customers.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p>Rewards management functionality will be implemented here.</p>
-              </CardContent>
-            </Card>
+            <RewardsList />
           </TabsContent>
           
           <TabsContent value="transactions">
-            <Card>
-              <CardHeader>
-                <CardTitle>Transaction History</CardTitle>
-                <CardDescription>
-                  View and manage all transactions in the system.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p>Transaction management functionality will be implemented here.</p>
-              </CardContent>
-            </Card>
+            <TransactionsList />
           </TabsContent>
           
           <TabsContent value="settings">
@@ -216,6 +256,20 @@ const Admin = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Manage Points Dialog */}
+      <ManagePointsDialog 
+        open={isManagePointsOpen}
+        onOpenChange={setIsManagePointsOpen}
+        customerId={selectedCustomerId}
+        customerName={selectedCustomerName}
+      />
+
+      {/* Add Transaction Dialog */}
+      <AddTransactionDialog
+        open={isAddTransactionOpen}
+        onOpenChange={setIsAddTransactionOpen}
+      />
     </Layout>
   );
 };
