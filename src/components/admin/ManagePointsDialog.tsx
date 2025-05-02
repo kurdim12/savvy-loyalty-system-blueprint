@@ -64,12 +64,29 @@ const ManagePointsDialog = ({
       if (transactionError) throw transactionError;
       
       // Step 2: Update the user's point balance
-      const { error: profileError } = await supabase.rpc(
-        transactionType === 'earn' ? 'increment_points' : 'decrement_points',
-        { user_id: customerId, point_amount: points }
-      );
-      
-      if (profileError) throw profileError;
+      // Note: Now using direct queries instead of rpc
+      if (transactionType === 'earn') {
+        // Equivalent to increment_points function
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            current_points: supabase.rpc('get_user_points', { user_id: customerId }) + points,
+            visits: supabase.rpc('get_user_visits', { user_id: customerId }) + 1,
+          })
+          .eq('id', customerId);
+        
+        if (profileError) throw profileError;
+      } else {
+        // Equivalent to decrement_points function
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            current_points: supabase.raw(`GREATEST(0, current_points - ${points})`),
+          })
+          .eq('id', customerId);
+        
+        if (profileError) throw profileError;
+      }
       
       return transaction;
     },

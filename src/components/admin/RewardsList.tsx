@@ -16,92 +16,91 @@ import {
   TableBody, 
   TableCell 
 } from '@/components/ui/table';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle,
-  DialogTrigger
-} from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { 
   Form, 
   FormControl, 
+  FormDescription, 
   FormField, 
   FormItem, 
   FormLabel, 
   FormMessage 
 } from '@/components/ui/form';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
+import { Plus, Edit, ArchiveX, Archive, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
-import { Edit, Plus, Trash } from 'lucide-react';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+// Define the reward schema for validation
+const rewardSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  points_required: z.number().min(1, "Points must be at least 1"),
+  membership_required: z.enum(["bronze", "silver", "gold"]).optional(),
+  inventory: z.number().int().optional(),
+  active: z.boolean().default(true),
+});
+
+type RewardFormData = z.infer<typeof rewardSchema>;
 
 interface Reward {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   points_required: number;
-  membership_required: 'bronze' | 'silver' | 'gold' | null;
-  inventory: number | null;
+  membership_required?: 'bronze' | 'silver' | 'gold';
+  inventory?: number;
   active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-const formSchema = z.object({
-  name: z.string().min(1, { message: "Name is required" }),
-  description: z.string().min(1, { message: "Description is required" }),
-  points_required: z.coerce.number().min(1, { message: "Points must be at least 1" }),
-  membership_required: z.enum(['bronze', 'silver', 'gold']).nullable(),
-  inventory: z.coerce.number().nullable(),
-  active: z.boolean().default(true)
-});
-
 const RewardsList = () => {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
+  
   const queryClient = useQueryClient();
   
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  // Form for creating new rewards
+  const createForm = useForm<RewardFormData>({
+    resolver: zodResolver(rewardSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      points_required: 100,
-      membership_required: null,
-      inventory: null,
-      active: true
-    }
-  });
-
-  const editForm = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      points_required: 100,
-      membership_required: null,
-      inventory: null,
-      active: true
+      name: '',
+      description: '',
+      points_required: 10,
+      active: true,
     }
   });
   
-  // Fetch rewards
+  // Form for editing rewards
+  const editForm = useForm<RewardFormData>({
+    resolver: zodResolver(rewardSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      points_required: 10,
+      active: true,
+    }
+  });
+  
+  // Fetch all rewards
   const { data: rewards, isLoading } = useQuery({
     queryKey: ['admin', 'rewards'],
     queryFn: async () => {
@@ -115,84 +114,125 @@ const RewardsList = () => {
     }
   });
   
-  // Create reward mutation
-  const addRewardMutation = useMutation({
-    mutationFn: async (values: z.infer<typeof formSchema>) => {
-      const { data, error } = await supabase
+  // Create a new reward
+  const createReward = useMutation({
+    mutationFn: async (data: RewardFormData) => {
+      const { error } = await supabase
         .from('rewards')
-        .insert([values])
-        .select();
-        
+        .insert({
+          name: data.name,
+          description: data.description || null,
+          points_required: data.points_required,
+          membership_required: data.membership_required || null,
+          inventory: data.inventory || null,
+          active: data.active,
+        });
+      
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'rewards'] });
       toast.success('Reward created successfully');
-      setIsAddDialogOpen(false);
-      form.reset();
-      queryClient.invalidateQueries({ queryKey: ['admin', 'rewards'] });
+      setIsCreateModalOpen(false);
+      createForm.reset();
     },
     onError: (error) => {
-      toast.error('Failed to create reward');
-      console.error('Error creating reward:', error);
+      toast.error(`Failed to create reward: ${error.message}`);
     }
   });
   
-  // Update reward mutation
-  const updateRewardMutation = useMutation({
-    mutationFn: async ({ id, values }: { id: string, values: z.infer<typeof formSchema> }) => {
-      const { data, error } = await supabase
+  // Update an existing reward
+  const updateReward = useMutation({
+    mutationFn: async (data: RewardFormData & { id: string }) => {
+      const { id, ...rewardData } = data;
+      
+      const { error } = await supabase
         .from('rewards')
-        .update(values)
-        .eq('id', id)
-        .select();
-        
+        .update({
+          name: rewardData.name,
+          description: rewardData.description || null,
+          points_required: rewardData.points_required,
+          membership_required: rewardData.membership_required || null,
+          inventory: rewardData.inventory || null,
+          active: rewardData.active,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+      
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
-      toast.success('Reward updated successfully');
-      setIsEditDialogOpen(false);
-      editForm.reset();
       queryClient.invalidateQueries({ queryKey: ['admin', 'rewards'] });
+      toast.success('Reward updated successfully');
+      setIsEditModalOpen(false);
+      setSelectedReward(null);
+      editForm.reset();
     },
     onError: (error) => {
-      toast.error('Failed to update reward');
-      console.error('Error updating reward:', error);
+      toast.error(`Failed to update reward: ${error.message}`);
     }
   });
   
-  // Delete reward mutation
-  const deleteRewardMutation = useMutation({
+  // Delete a reward
+  const deleteReward = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('rewards')
         .delete()
         .eq('id', id);
-        
+      
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Reward deleted successfully');
       queryClient.invalidateQueries({ queryKey: ['admin', 'rewards'] });
+      toast.success('Reward deleted successfully');
+      setIsDeleteModalOpen(false);
+      setSelectedReward(null);
     },
     onError: (error) => {
-      toast.error('Failed to delete reward');
-      console.error('Error deleting reward:', error);
+      toast.error(`Failed to delete reward: ${error.message}`);
     }
   });
   
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    addRewardMutation.mutate(values);
-  };
-  
-  const onEditSubmit = (values: z.infer<typeof formSchema>) => {
-    if (selectedReward) {
-      updateRewardMutation.mutate({ id: selectedReward.id, values });
+  // Toggle reward active status
+  const toggleRewardStatus = useMutation({
+    mutationFn: async ({ id, active }: { id: string, active: boolean }) => {
+      const { error } = await supabase
+        .from('rewards')
+        .update({ 
+          active, 
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'rewards'] });
+      toast.success(`Reward ${variables.active ? 'activated' : 'deactivated'} successfully`);
+    },
+    onError: (error) => {
+      toast.error(`Failed to update reward status: ${error.message}`);
     }
+  });
+  
+  // Handle form submissions
+  const handleCreateSubmit = (data: RewardFormData) => {
+    createReward.mutate(data);
   };
   
-  const handleEditReward = (reward: Reward) => {
+  const handleEditSubmit = (data: RewardFormData) => {
+    if (!selectedReward) return;
+    updateReward.mutate({ ...data, id: selectedReward.id });
+  };
+  
+  const handleDeleteConfirm = () => {
+    if (!selectedReward) return;
+    deleteReward.mutate(selectedReward.id);
+  };
+  
+  // Modal handlers
+  const openEditModal = (reward: Reward) => {
     setSelectedReward(reward);
     editForm.reset({
       name: reward.name,
@@ -202,118 +242,137 @@ const RewardsList = () => {
       inventory: reward.inventory,
       active: reward.active
     });
-    setIsEditDialogOpen(true);
+    setIsEditModalOpen(true);
   };
   
-  const handleDeleteReward = (id: string) => {
-    if (confirm('Are you sure you want to delete this reward?')) {
-      deleteRewardMutation.mutate(id);
-    }
+  const openDeleteModal = (reward: Reward) => {
+    setSelectedReward(reward);
+    setIsDeleteModalOpen(true);
+  };
+  
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
   
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Rewards Management</CardTitle>
-          <CardDescription>Create and manage rewards for the loyalty program.</CardDescription>
-        </div>
-        <DialogTrigger asChild onClick={() => setIsAddDialogOpen(true)}>
-          <Button className="bg-amber-700 hover:bg-amber-800">
-            <Plus className="h-4 w-4 mr-2" /> Add Reward
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Rewards</CardTitle>
+            <CardDescription>Manage rewards that customers can redeem with their points.</CardDescription>
+          </div>
+          <Button 
+            onClick={() => setIsCreateModalOpen(true)} 
+            className="bg-amber-700 hover:bg-amber-800"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Reward
           </Button>
-        </DialogTrigger>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Points</TableHead>
-                <TableHead>Tier</TableHead>
-                <TableHead>Inventory</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-4">Loading rewards...</TableCell>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Points</TableHead>
+                  <TableHead>Membership</TableHead>
+                  <TableHead>Inventory</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : rewards?.length ? (
-                rewards.map((reward) => (
-                  <TableRow key={reward.id}>
-                    <TableCell className="font-medium">{reward.name}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">{reward.description}</TableCell>
-                    <TableCell>{reward.points_required}</TableCell>
-                    <TableCell>
-                      {reward.membership_required ? (
-                        <Badge className="capitalize" variant={
-                          reward.membership_required === 'gold' ? 'default' :
-                          reward.membership_required === 'silver' ? 'outline' : 'secondary'
-                        }>
-                          {reward.membership_required}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">All</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {reward.inventory === null ? 'Unlimited' : reward.inventory}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={reward.active ? 'outline' : 'secondary'}>
-                        {reward.active ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleEditReward(reward)}
-                        className="mr-1"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleDeleteReward(reward.id)}
-                      >
-                        <Trash className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </TableCell>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-4">Loading rewards...</TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-4">
-                    No rewards found. Add your first reward to get started.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-
-      {/* Add Reward Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
+                ) : rewards?.length ? (
+                  rewards.map((reward) => (
+                    <TableRow key={reward.id} className={!reward.active ? 'opacity-60' : ''}>
+                      <TableCell className="font-medium">
+                        {reward.name}
+                        {reward.description && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{reward.description}</p>}
+                      </TableCell>
+                      <TableCell>{reward.points_required}</TableCell>
+                      <TableCell>
+                        {reward.membership_required ? (
+                          <Badge variant="secondary" className="capitalize">
+                            {reward.membership_required}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">Any</span>
+                        )}
+                      </TableCell>
+                      <TableCell>{reward.inventory ?? 'Unlimited'}</TableCell>
+                      <TableCell>
+                        <Badge variant={reward.active ? 'default' : 'outline'} className="capitalize">
+                          {reward.active ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{formatDate(reward.created_at)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => openEditModal(reward)}
+                            title="Edit"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="icon"
+                            onClick={() => toggleRewardStatus.mutate({ id: reward.id, active: !reward.active })}
+                            title={reward.active ? 'Deactivate' : 'Activate'}
+                          >
+                            {reward.active ? <Archive className="h-4 w-4" /> : <ArchiveX className="h-4 w-4" />}
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="text-red-500 hover:text-red-600"
+                            onClick={() => openDeleteModal(reward)}
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-4">No rewards found.</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Create Reward Modal */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
-            <DialogTitle>Add New Reward</DialogTitle>
+            <DialogTitle>Create New Reward</DialogTitle>
             <DialogDescription>
-              Create a new reward for loyalty program members.
+              Add a new reward for customers to redeem with their points.
             </DialogDescription>
           </DialogHeader>
           
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <Form {...createForm}>
+            <form onSubmit={createForm.handleSubmit(handleCreateSubmit)} className="space-y-4">
               <FormField
-                control={form.control}
+                control={createForm.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
@@ -321,84 +380,49 @@ const RewardsList = () => {
                     <FormControl>
                       <Input placeholder="Free Coffee" {...field} />
                     </FormControl>
+                    <FormDescription>
+                      The name of the reward as it will appear to customers.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
               <FormField
-                control={form.control}
+                control={createForm.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Redeem for a free coffee of your choice" {...field} />
+                      <Textarea 
+                        placeholder="Enjoy a free coffee of your choice..." 
+                        {...field} 
+                        value={field.value || ''}
+                      />
                     </FormControl>
+                    <FormDescription>
+                      Optional detailed description of the reward.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
-                  control={form.control}
+                  control={createForm.control}
                   name="points_required"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Points Required</FormLabel>
                       <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="membership_required"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tier Requirement</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value || undefined}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Available to all tiers" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="">Available to all tiers</SelectItem>
-                          <SelectItem value="bronze">Bronze tier & above</SelectItem>
-                          <SelectItem value="silver">Silver tier & above</SelectItem>
-                          <SelectItem value="gold">Gold tier only</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="inventory"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Inventory (optional)</FormLabel>
-                      <FormControl>
                         <Input 
                           type="number" 
-                          placeholder="Leave empty for unlimited" 
-                          value={field.value === null ? '' : field.value}
-                          onChange={e => {
-                            const val = e.target.value;
-                            field.onChange(val === '' ? null : Number(val));
-                          }}
+                          min={1} 
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          value={field.value}
                         />
                       </FormControl>
                       <FormMessage />
@@ -407,14 +431,72 @@ const RewardsList = () => {
                 />
                 
                 <FormField
-                  control={form.control}
+                  control={createForm.control}
+                  name="membership_required"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Membership Required</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Any membership tier" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="bronze">Bronze</SelectItem>
+                          <SelectItem value="silver">Silver</SelectItem>
+                          <SelectItem value="gold">Gold</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Optional membership tier requirement.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={createForm.control}
+                  name="inventory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Inventory</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          min={0} 
+                          placeholder="Leave empty for unlimited"
+                          {...field}
+                          onChange={(e) => {
+                            const val = e.target.value ? parseInt(e.target.value) : undefined;
+                            field.onChange(val);
+                          }}
+                          value={field.value === undefined ? '' : field.value}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Optional inventory limit. Leave empty for unlimited.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={createForm.control}
                   name="active"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <FormItem className="flex flex-row items-center justify-between space-y-0 rounded-md border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel>Active</FormLabel>
+                        <FormLabel className="text-base">Active Status</FormLabel>
                         <FormDescription>
-                          Make reward available for redemption
+                          Make this reward available immediately?
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -423,6 +505,7 @@ const RewardsList = () => {
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -432,36 +515,35 @@ const RewardsList = () => {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => setIsAddDialogOpen(false)}
+                  onClick={() => setIsCreateModalOpen(false)}
                 >
                   Cancel
                 </Button>
                 <Button 
                   type="submit" 
                   className="bg-amber-700 hover:bg-amber-800"
-                  disabled={addRewardMutation.isPending}
+                  disabled={createReward.isPending}
                 >
-                  {addRewardMutation.isPending ? 'Creating...' : 'Create Reward'}
+                  {createReward.isPending ? 'Creating...' : 'Create Reward'}
                 </Button>
               </DialogFooter>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
-
-      {/* Edit Reward Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+      
+      {/* Edit Reward Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
             <DialogTitle>Edit Reward</DialogTitle>
             <DialogDescription>
-              Modify the details of this reward.
+              Update the details for this reward.
             </DialogDescription>
           </DialogHeader>
           
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
-              {/* Same form fields as Add Reward Dialog */}
+            <form onSubmit={editForm.handleSubmit(handleEditSubmit)} className="space-y-4">
               <FormField
                 control={editForm.control}
                 name="name"
@@ -471,6 +553,9 @@ const RewardsList = () => {
                     <FormControl>
                       <Input placeholder="Free Coffee" {...field} />
                     </FormControl>
+                    <FormDescription>
+                      The name of the reward as it will appear to customers.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -483,14 +568,21 @@ const RewardsList = () => {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Redeem for a free coffee of your choice" {...field} />
+                      <Textarea 
+                        placeholder="Enjoy a free coffee of your choice..." 
+                        {...field} 
+                        value={field.value || ''}
+                      />
                     </FormControl>
+                    <FormDescription>
+                      Optional detailed description of the reward.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={editForm.control}
                   name="points_required"
@@ -498,7 +590,13 @@ const RewardsList = () => {
                     <FormItem>
                       <FormLabel>Points Required</FormLabel>
                       <FormControl>
-                        <Input type="number" {...field} />
+                        <Input 
+                          type="number" 
+                          min={1} 
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          value={field.value}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -510,47 +608,55 @@ const RewardsList = () => {
                   name="membership_required"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tier Requirement</FormLabel>
+                      <FormLabel>Membership Required</FormLabel>
                       <Select 
                         onValueChange={field.onChange} 
                         value={field.value || ''}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Available to all tiers" />
+                            <SelectValue placeholder="Any membership tier" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Available to all tiers</SelectItem>
-                          <SelectItem value="bronze">Bronze tier & above</SelectItem>
-                          <SelectItem value="silver">Silver tier & above</SelectItem>
-                          <SelectItem value="gold">Gold tier only</SelectItem>
+                          <SelectItem value="">Any</SelectItem>
+                          <SelectItem value="bronze">Bronze</SelectItem>
+                          <SelectItem value="silver">Silver</SelectItem>
+                          <SelectItem value="gold">Gold</SelectItem>
                         </SelectContent>
                       </Select>
+                      <FormDescription>
+                        Optional membership tier requirement.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={editForm.control}
                   name="inventory"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Inventory (optional)</FormLabel>
+                      <FormLabel>Inventory</FormLabel>
                       <FormControl>
                         <Input 
                           type="number" 
-                          placeholder="Leave empty for unlimited" 
-                          value={field.value === null ? '' : field.value}
-                          onChange={e => {
-                            const val = e.target.value;
-                            field.onChange(val === '' ? null : Number(val));
+                          min={0} 
+                          placeholder="Leave empty for unlimited"
+                          {...field}
+                          onChange={(e) => {
+                            const val = e.target.value ? parseInt(e.target.value) : undefined;
+                            field.onChange(val);
                           }}
+                          value={field.value === undefined ? '' : field.value}
                         />
                       </FormControl>
+                      <FormDescription>
+                        Optional inventory limit. Leave empty for unlimited.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -560,11 +666,11 @@ const RewardsList = () => {
                   control={editForm.control}
                   name="active"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <FormItem className="flex flex-row items-center justify-between space-y-0 rounded-md border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel>Active</FormLabel>
+                        <FormLabel className="text-base">Active Status</FormLabel>
                         <FormDescription>
-                          Make reward available for redemption
+                          Make this reward available for redemption?
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -573,6 +679,7 @@ const RewardsList = () => {
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -582,23 +689,47 @@ const RewardsList = () => {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => setIsEditDialogOpen(false)}
+                  onClick={() => setIsEditModalOpen(false)}
                 >
                   Cancel
                 </Button>
                 <Button 
                   type="submit" 
                   className="bg-amber-700 hover:bg-amber-800"
-                  disabled={updateRewardMutation.isPending}
+                  disabled={updateReward.isPending}
                 >
-                  {updateRewardMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  {updateReward.isPending ? 'Saving...' : 'Save Changes'}
                 </Button>
               </DialogFooter>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
-    </Card>
+      
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the reward "{selectedReward?.name}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteConfirm}
+              disabled={deleteReward.isPending}
+            >
+              {deleteReward.isPending ? 'Deleting...' : 'Delete Reward'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 

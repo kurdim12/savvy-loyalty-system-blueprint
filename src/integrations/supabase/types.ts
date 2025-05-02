@@ -257,6 +257,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      decrement_points: {
+        Args: { user_id: string; point_amount: number }
+        Returns: undefined
+      }
+      increment_points: {
+        Args: { user_id: string; point_amount: number }
+        Returns: undefined
+      }
       is_admin: {
         Args: { uid: string }
         Returns: boolean
