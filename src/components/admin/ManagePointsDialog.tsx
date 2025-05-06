@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { Database } from '@/integrations/supabase/types';
 
 interface ManagePointsDialogProps {
   open: boolean;
@@ -56,7 +57,7 @@ const ManagePointsDialog = ({
         .from('transactions')
         .insert({
           user_id: customerId,
-          transaction_type: transactionType,
+          transaction_type: transactionType as Database['public']['Enums']['transaction_type'],
           points: points,
           notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} points manually by admin`,
         })
@@ -84,7 +85,7 @@ const ManagePointsDialog = ({
       onOpenChange(false);
       resetForm();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(`Failed to update points: ${error.message}`);
     },
   });

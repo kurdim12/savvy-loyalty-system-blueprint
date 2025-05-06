@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/dialog';
 import { Search, Eye, CreditCard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 
 export interface Customer {
   id: string;
@@ -56,11 +57,11 @@ const CustomersList = ({ onManagePoints, onSelectCustomer }: CustomersListProps)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('role', 'customer')
+        .eq('role', 'customer' as Database['public']['Enums']['user_role'])
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Customer[];
+      return data as unknown as Customer[];
     }
   });
 

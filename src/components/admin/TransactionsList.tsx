@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -19,11 +20,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 
 interface Transaction {
   id: string;
   user_id: string;
-  transaction_type: 'earn' | 'redeem';
+  transaction_type: Database['public']['Enums']['transaction_type'];
   points: number;
   created_at: string;
   notes?: string;
@@ -54,7 +56,7 @@ const TransactionsList = () => {
         .limit(100);
       
       if (error) throw error;
-      return data as Transaction[];
+      return data as unknown as Transaction[];
     }
   });
 
@@ -66,7 +68,7 @@ const TransactionsList = () => {
       transaction.profiles?.email?.toLowerCase().includes(searchLower) ||
       `${transaction.profiles?.first_name} ${transaction.profiles?.last_name}`.toLowerCase().includes(searchLower) ||
       (transaction.notes && transaction.notes.toLowerCase().includes(searchLower)) ||
-      transaction.transaction_type.includes(searchLower)
+      String(transaction.transaction_type).includes(searchLower)
     );
   });
 
