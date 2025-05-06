@@ -118,7 +118,7 @@ export async function getCommunityGoalProgress(goalId: string): Promise<{current
   };
 
   const { data, error } = await supabase
-    .from('community_goals' as any)
+    .from('community_goals')
     .select('current_points, target_points')
     .eq('id', goalId)
     .single();
@@ -168,7 +168,7 @@ export async function contributeToGoal(userId: string, goalId: string, pointAmou
     
     // First get current points
     const { data: goalData, error: goalError } = await supabase
-      .from('community_goals' as any)
+      .from('community_goals')
       .select('current_points')
       .eq('id', goalId)
       .single();
@@ -184,7 +184,7 @@ export async function contributeToGoal(userId: string, goalId: string, pointAmou
     const newPoints = currentPoints + pointAmount;
     
     const { error: updateGoalError } = await supabase
-      .from('community_goals' as any)
+      .from('community_goals')
       .update({ current_points: newPoints })
       .eq('id', goalId);
     

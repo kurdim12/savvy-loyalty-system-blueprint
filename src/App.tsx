@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import AdminLogin from "./pages/AdminLogin";
 import Admin from "./pages/Admin";
+import CommunityGoalsAdmin from "./pages/admin/CommunityGoalsAdmin";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,6 +65,7 @@ const App = () => (
             {/* Admin routes */}
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+            <Route path="/admin/community-goals" element={<AdminRoute><CommunityGoalsAdmin /></AdminRoute>} />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />

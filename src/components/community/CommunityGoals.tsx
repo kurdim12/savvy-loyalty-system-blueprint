@@ -2,9 +2,12 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress'; 
+import { Button } from '@/components/ui/button';
 import { Users, Award, Recycle, Coffee, Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import ContributeGoalDialog from './ContributeGoalDialog';
+import { toast } from 'sonner';
 
 // Define CommunityGoal interface explicitly, not depending on Database type
 interface CommunityGoal {
@@ -22,14 +25,15 @@ interface CommunityGoal {
 export default function CommunityGoals() {
   const [goals, setGoals] = useState<CommunityGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+  const [selectedGoal, setSelectedGoal] = useState<CommunityGoal | null>(null);
+  const [contributeDialogOpen, setContributeDialogOpen] = useState(false);
+  const { user, profile, refreshProfile } = useAuth();
 
   useEffect(() => {
     const fetchCommunityGoals = async () => {
       try {
-        // Use type assertion for table not defined in Database type
         const { data, error } = await supabase
-          .from('community_goals' as any)
+          .from('community_goals')
           .select('*')
           .eq('active', true);
 
@@ -88,6 +92,20 @@ export default function CommunityGoals() {
       case 'heart': return <Heart className="h-8 w-8 text-amber-700" />;
       default: return <Coffee className="h-8 w-8 text-amber-700" />;
     }
+  };
+
+  const handleContributeClick = (goal: CommunityGoal) => {
+    if (!user) {
+      toast.error('You need to be signed in to contribute to community goals');
+      return;
+    }
+    
+    setSelectedGoal(goal);
+    setContributeDialogOpen(true);
+  };
+
+  const handleContributeSuccess = () => {
+    refreshProfile();
   };
 
   if (isLoading) {
@@ -150,10 +168,18 @@ export default function CommunityGoals() {
                       
                       <div className="flex justify-between items-center mt-2">
                         <span className="text-xs text-amber-700">{daysLeft} days left</span>
-                        <span className="text-xs font-medium bg-amber-100 text-amber-800 px-2 py-1 rounded">
-                          Reward: {goal.reward_description}
-                        </span>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="text-xs border-amber-700 text-amber-800 hover:bg-amber-50"
+                          onClick={() => handleContributeClick(goal)}
+                        >
+                          Contribute Points
+                        </Button>
                       </div>
+                      <span className="text-xs font-medium bg-amber-100 text-amber-800 px-2 py-1 rounded block mt-2">
+                        Reward: {goal.reward_description}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -162,6 +188,17 @@ export default function CommunityGoals() {
           })}
         </div>
       </CardContent>
+      
+      {selectedGoal && (
+        <ContributeGoalDialog
+          open={contributeDialogOpen}
+          onOpenChange={setContributeDialogOpen}
+          goalId={selectedGoal.id}
+          goalName={selectedGoal.name}
+          userPoints={profile?.current_points || 0}
+          onContribute={handleContributeSuccess}
+        />
+      )}
     </Card>
   );
 }

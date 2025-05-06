@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      community_goals: {
+        Row: {
+          active: boolean
+          created_at: string
+          current_points: number
+          description: string | null
+          expires_at: string | null
+          icon: string | null
+          id: string
+          name: string
+          reward_description: string | null
+          starts_at: string
+          target_points: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          current_points?: number
+          description?: string | null
+          expires_at?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          reward_description?: string | null
+          starts_at?: string
+          target_points?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          current_points?: number
+          description?: string | null
+          expires_at?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          reward_description?: string | null
+          starts_at?: string
+          target_points?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           birthday: string | null
@@ -261,6 +306,10 @@ export type Database = {
         Args: { user_id: string; point_amount: number }
         Returns: undefined
       }
+      get_community_goal_points: {
+        Args: { p_goal_id: string }
+        Returns: number
+      }
       get_user_points: {
         Args: { user_id: string }
         Returns: number
@@ -276,6 +325,10 @@ export type Database = {
       is_admin: {
         Args: Record<PropertyKey, never> | { uid: string }
         Returns: boolean
+      }
+      update_community_goal_points: {
+        Args: { p_goal_id: string; p_amount: number }
+        Returns: undefined
       }
     }
     Enums: {
