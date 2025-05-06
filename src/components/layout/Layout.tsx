@@ -72,21 +72,37 @@ export default function Layout({
     );
   }
 
-  // If authentication is required but user is not authenticated, redirect to auth page
-  if (!user) {
-    return <Navigate to="/auth" replace />;
+  // For admin-only routes, we check both authentication and admin role
+  if (adminOnly) {
+    // If not authenticated at all, redirect to admin login
+    if (!user) {
+      return <Navigate to="/admin-login" replace />;
+    }
+    
+    // If authenticated but not admin, show access denied
+    if (!isAdmin) {
+      toast.error('Access denied. This area is restricted to administrators.');
+      return <Navigate to="/dashboard" replace />;
+    }
+    
+    // Additional security: Verify session existence
+    if (!session) {
+      toast.error('Session information missing. Please sign in again.');
+      return <Navigate to="/admin-login" replace />;
+    }
   }
+  // For regular user routes
+  else {
+    // If authentication is required but user is not authenticated, redirect to auth page
+    if (!user) {
+      return <Navigate to="/auth" replace />;
+    }
 
-  // Additional security: Verify session existence
-  if (!session) {
-    toast.error('Session information missing. Please sign in again.');
-    return <Navigate to="/auth" replace />;
-  }
-
-  // If this is an admin-only route and user is not an admin
-  if (adminOnly && !isAdmin) {
-    toast.error('You do not have permission to access this page');
-    return <Navigate to="/dashboard" replace />;
+    // Additional security: Verify session existence
+    if (!session) {
+      toast.error('Session information missing. Please sign in again.');
+      return <Navigate to="/auth" replace />;
+    }
   }
 
   // Check membership tier requirement if specified
@@ -106,6 +122,7 @@ export default function Layout({
     }
   }
 
+  // All checks passed, render the layout with appropriate header
   return (
     <div className="flex min-h-screen flex-col bg-amber-50">
       <Header />

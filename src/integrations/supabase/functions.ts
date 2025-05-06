@@ -1,3 +1,4 @@
+
 // Helper functions for Supabase database interaction
 
 import { supabase } from './client';
@@ -167,4 +168,72 @@ export async function contributeToGoal(userId: string, goalId: string, points: n
   }
   
   return { success: true };
+}
+
+/**
+ * Checks if a user has admin role
+ * @param userId The user ID to check
+ * @returns Boolean indicating if user is an admin
+ */
+export async function isUserAdmin(userId: string): Promise<boolean> {
+  if (!userId) return false;
+  
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+      
+    if (error || !data) {
+      console.error('Error checking admin status:', error);
+      return false;
+    }
+    
+    return data.role === 'admin';
+  } catch (err) {
+    console.error('Unexpected error checking admin status:', err);
+    return false;
+  }
+}
+
+/**
+ * Verify admin credentials
+ * @param email Admin email
+ * @param password Admin password
+ * @returns Success status and user data if successful
+ */
+export async function verifyAdminCredentials(email: string, password: string) {
+  try {
+    // First ensure we're logged out to avoid session conflicts
+    await supabase.auth.signOut({ scope: 'global' });
+    
+    // Try to sign in
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    
+    // Verify this user is actually an admin
+    if (data.user) {
+      const isAdmin = await isUserAdmin(data.user.id);
+      
+      if (!isAdmin) {
+        // If not admin, sign them out immediately
+        await supabase.auth.signOut();
+        return { success: false, error: 'Not authorized as admin' };
+      }
+      
+      return { success: true, user: data.user, session: data.session };
+    }
+    
+    return { success: false, error: 'Authentication failed' };
+  } catch (err) {
+    console.error('Error during admin verification:', err);
+    return { success: false, error: 'Authentication system error' };
+  }
 }
