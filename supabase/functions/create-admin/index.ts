@@ -19,9 +19,9 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    // Create the admin user
+    // Create the admin user with fixed credentials
     const email = 'admin@rawsmith.coffee';
-    const password = 'admin123';
+    const password = 'Admin123!';
     
     // Check if user already exists
     const { data: existingUsers, error: lookupError } = await supabase
@@ -37,10 +37,14 @@ serve(async (req) => {
       );
     }
     
-    // If admin already exists, return success
+    // If admin already exists, return success with credentials
     if (existingUsers && existingUsers.length > 0) {
       return new Response(
-        JSON.stringify({ message: 'Admin user already exists', success: true }),
+        JSON.stringify({ 
+          message: 'Admin user already exists', 
+          success: true,
+          credentials: { email, password }
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

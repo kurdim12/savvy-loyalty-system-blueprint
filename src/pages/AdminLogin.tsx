@@ -39,7 +39,7 @@ const AdminLogin = () => {
       
       // Call the edge function to create an admin user
       const { data, error } = await supabase.functions.invoke('create-admin', {
-        method: 'POST', // Explicitly set method to POST
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         }
@@ -58,7 +58,7 @@ const AdminLogin = () => {
       } else {
         throw new Error(data.error || 'Unknown error occurred');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error creating admin:', err);
       setError('Failed to create admin account. Please try again.');
       toast.error('Failed to create admin account');
@@ -92,7 +92,7 @@ const AdminLogin = () => {
       toast.success('Logged in as admin');
       // Force page reload for clean state
       window.location.href = '/admin';
-    } catch (err) {
+    } catch (err: any) {
       console.error('Login error:', err);
       toast.error('Login failed. Please try manually.');
     } finally {
