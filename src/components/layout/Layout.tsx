@@ -8,10 +8,17 @@ import { toast } from 'sonner';
 interface LayoutProps {
   children: ReactNode;
   adminOnly?: boolean;
+  requireAuthenticatedUser?: boolean;
+  requireTier?: 'bronze' | 'silver' | 'gold';
 }
 
-export default function Layout({ children, adminOnly = false }: LayoutProps) {
-  const { user, loading, isAdmin, session } = useAuth();
+export default function Layout({ 
+  children, 
+  adminOnly = false,
+  requireAuthenticatedUser = true,
+  requireTier
+}: LayoutProps) {
+  const { user, loading, isAdmin, session, membershipTier, profile } = useAuth();
   const navigate = useNavigate();
 
   // Check authentication session expiration
@@ -50,7 +57,22 @@ export default function Layout({ children, adminOnly = false }: LayoutProps) {
     );
   }
 
-  // If not authenticated, redirect to auth page
+  // Skip auth check if requireAuthenticatedUser is false
+  if (!requireAuthenticatedUser) {
+    return (
+      <div className="flex min-h-screen flex-col bg-amber-50">
+        <Header />
+        <main className="flex-1 p-4 md:p-6 container mx-auto">
+          {children}
+        </main>
+        <footer className="py-4 px-6 text-center text-sm text-amber-700 border-t">
+          &copy; {new Date().getFullYear()} Raw Smith Coffee Loyalty Program
+        </footer>
+      </div>
+    );
+  }
+
+  // If authentication is required but user is not authenticated, redirect to auth page
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
@@ -65,6 +87,23 @@ export default function Layout({ children, adminOnly = false }: LayoutProps) {
   if (adminOnly && !isAdmin) {
     toast.error('You do not have permission to access this page');
     return <Navigate to="/dashboard" replace />;
+  }
+
+  // Check membership tier requirement if specified
+  if (requireTier && profile) {
+    const tierValues: Record<string, number> = {
+      'bronze': 1,
+      'silver': 2,
+      'gold': 3
+    };
+    
+    const userTierValue = tierValues[membershipTier] || 0;
+    const requiredTierValue = tierValues[requireTier] || 0;
+    
+    if (userTierValue < requiredTierValue) {
+      toast.error(`This page requires ${requireTier} tier membership or higher`);
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return (

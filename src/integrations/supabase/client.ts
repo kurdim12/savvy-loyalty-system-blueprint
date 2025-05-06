@@ -5,7 +5,7 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://egeufofnkpvwbmffgoxw.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnZXVmb2Zua3B2d2JtZmZnb3h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxODE3NDUsImV4cCI6MjA2MTc1Nzc0NX0.rQbKbndK2BB-oDfp0_v4xrpYAXizNgpFOQMfxbzhQ-A";
 
-// Create the Supabase client with proper security configuration
+// Create the Supabase client with enhanced security configuration
 export const supabase = createClient<Database>(
   SUPABASE_URL, 
   SUPABASE_PUBLISHABLE_KEY,
@@ -14,13 +14,16 @@ export const supabase = createClient<Database>(
       storage: localStorage,
       persistSession: true,
       autoRefreshToken: true,
-      // Set shorter JWT token expiration to mitigate session hijacking
-      // The server will handle token refreshing automatically
       detectSessionInUrl: true,
-      flowType: 'pkce' // More secure flow for authentication
+      flowType: 'pkce', // More secure authentication flow
+      // Set shorter JWT token expiration to mitigate session hijacking risk
+      cookieOptions: {
+        sameSite: 'strict', // Prevent CSRF attacks
+        secure: window.location.protocol === 'https:', // Only send cookies over HTTPS in production
+      }
     },
     global: {
-      // Implement rate limiting protection by adding short throttle
+      // Implement rate limiting protection
       headers: {
         'X-Client-Info': 'raw-smith-loyalty@1.0.0',
       },
@@ -30,6 +33,9 @@ export const supabase = createClient<Database>(
       params: {
         eventsPerSecond: 5, // Rate limiting for realtime events
       }
+    },
+    db: {
+      schema: 'public'
     }
   }
 );
@@ -84,3 +90,48 @@ export const sanitizeInput = (input: string): string => {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 };
+
+// Enhanced function to increment points that supports community features
+export async function incrementPointsWithReason(
+  userId: string, 
+  pointAmount: number, 
+  reason: string, 
+  communityEventId?: string
+) {
+  if (!userId || typeof pointAmount !== 'number' || isNaN(pointAmount)) {
+    return { error: new Error('Invalid user ID or point amount') };
+  }
+
+  // Sanitize input for security
+  const sanitizedReason = sanitizeInput(reason);
+  const sanitizedPointAmount = Math.max(0, pointAmount);
+  
+  // Create a transaction record with more details
+  const { error: transactionError } = await supabase
+    .from('transactions')
+    .insert({
+      user_id: userId,
+      points: sanitizedPointAmount,
+      transaction_type: 'earn',
+      notes: sanitizedReason,
+      community_event_id: communityEventId || null
+    });
+    
+  if (transactionError) {
+    console.error('Error creating transaction record:', transactionError);
+    return { error: transactionError };
+  }
+  
+  // Call the existing incrementPoints function for database update
+  const { error } = await incrementPoints(userId, sanitizedPointAmount);
+  
+  return { error };
+}
+
+// Export additional helper functions from functions.ts
+export { 
+  getUserPoints,
+  getUserVisits,
+  incrementPoints,
+  decrementPoints
+} from './functions';

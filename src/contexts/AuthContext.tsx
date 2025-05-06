@@ -14,6 +14,10 @@ interface AuthContextType {
   loading: boolean;
   signOut: () => Promise<void>;
   isAdmin: boolean;
+  refreshProfile: () => Promise<void>;
+  // Add community-specific properties
+  communityPoints?: number;
+  membershipTier: Database['public']['Enums']['membership_tier'];
 }
 
 const AUTH_SESSION_CHECK_INTERVAL = 60000; // 1 minute
@@ -25,6 +29,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [communityPoints, setCommunityPoints] = useState<number>(0);
+  
+  const membershipTier = profile?.membership_tier || 'bronze';
+  const isAdmin = profile?.role === 'admin';
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -104,8 +112,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setProfile(data);
+      
+      // Also fetch community points
+      fetchCommunityPoints(userId);
     } catch (error) {
       console.error('Unexpected error fetching profile:', error);
+    }
+  };
+
+  const fetchCommunityPoints = async (userId: string) => {
+    try {
+      // Fetch community points from transactions related to community events
+      const { data, error } = await supabase
+        .rpc('get_community_points', { user_id: userId });
+        
+      if (error) {
+        console.error('Error fetching community points:', error);
+        return;
+      }
+      
+      setCommunityPoints(data || 0);
+    } catch (error) {
+      console.error('Error fetching community points:', error);
+    }
+  };
+
+  const refreshProfile = async () => {
+    if (user?.id) {
+      await fetchUserProfile(user.id);
     }
   };
 
@@ -124,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
     setUser(null);
     setSession(null);
+    setCommunityPoints(0);
     
     // Force page reload for a clean state
     window.location.href = '/auth';
@@ -135,7 +170,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profile,
     loading,
     signOut,
-    isAdmin: profile?.role === 'admin',
+    isAdmin,
+    refreshProfile,
+    communityPoints,
+    membershipTier,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

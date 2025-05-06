@@ -108,3 +108,58 @@ export async function decrementPoints(userId: string, pointAmount: number) {
     
   return { error: updateError };
 }
+
+// New helper function for retrieving community goal progress
+export async function getCommunityGoalProgress(goalId: string): Promise<{current: number, target: number}> {
+  const { data, error } = await supabase
+    .from('community_goals')
+    .select('current_points, target_points')
+    .eq('id', goalId)
+    .single();
+    
+  if (error) {
+    console.error('Error getting community goal progress:', error);
+    return { current: 0, target: 0 };
+  }
+  
+  return {
+    current: data.current_points || 0,
+    target: data.target_points || 0
+  };
+}
+
+// Helper function to contribute to a community goal
+export async function contributeToGoal(userId: string, goalId: string, pointAmount: number) {
+  if (!userId || !goalId || typeof pointAmount !== 'number' || pointAmount <= 0) {
+    return { error: new Error('Invalid parameters') };
+  }
+  
+  // First check if the user has enough points
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('current_points')
+    .eq('id', userId)
+    .single();
+    
+  if (profileError || !profile) {
+    return { error: profileError || new Error('User not found') };
+  }
+  
+  if (profile.current_points < pointAmount) {
+    return { error: new Error('Not enough points to contribute') };
+  }
+  
+  // Begin transaction (using supabase functions)
+  const { error: transactionError } = await supabase
+    .rpc('contribute_to_goal', {
+      p_user_id: userId,
+      p_goal_id: goalId,
+      p_point_amount: pointAmount
+    });
+    
+  if (transactionError) {
+    return { error: transactionError };
+  }
+  
+  return { error: null };
+}

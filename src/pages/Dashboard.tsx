@@ -6,10 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { CoffeeIcon, Award, Clock, AlertTriangle } from 'lucide-react';
+import { CoffeeIcon, Award, Clock, AlertTriangle, Users } from 'lucide-react';
+import CommunityGoals from '@/components/community/CommunityGoals';
+import ReferFriend from '@/components/loyalty/ReferFriend';
 
 const Dashboard = () => {
-  const { profile } = useAuth();
+  const { profile, communityPoints } = useAuth();
   
   const { data: recentTransactions } = useQuery({
     queryKey: ['recentTransactions'],
@@ -52,19 +54,20 @@ const Dashboard = () => {
   let nextTier = '';
   let visitsNeeded = 0;
   let progress = 0;
+  let pointsToNextTier = 0;
 
   if (currentMembership === 'bronze') {
     nextTier = 'silver';
-    visitsNeeded = 5 - currentVisits;
-    progress = Math.min((currentVisits / 5) * 100, 100);
+    pointsToNextTier = Math.max(0, 200 - (profile?.current_points || 0));
+    progress = Math.min(((profile?.current_points || 0) / 200) * 100, 100);
   } else if (currentMembership === 'silver') {
     nextTier = 'gold';
-    visitsNeeded = 15 - currentVisits;
-    progress = Math.min(((currentVisits - 5) / 10) * 100, 100);
+    pointsToNextTier = Math.max(0, 550 - (profile?.current_points || 0));
+    progress = Math.min(((profile?.current_points || 0) - 200) / (550 - 200) * 100, 100);
   } else {
     // For gold members
     nextTier = 'gold';
-    visitsNeeded = 0;
+    pointsToNextTier = 0;
     progress = 100;
   }
 
@@ -74,6 +77,15 @@ const Dashboard = () => {
       day: 'numeric',
       year: 'numeric',
     });
+  };
+  
+  const getDiscountRate = (tier: string) => {
+    switch(tier) {
+      case 'bronze': return '10%';
+      case 'silver': return '15%';
+      case 'gold': return '25%';
+      default: return '0%';
+    }
   };
 
   return (
@@ -111,11 +123,15 @@ const Dashboard = () => {
                   <span className="font-medium capitalize">{currentMembership}</span>
                 </div>
                 <div className="flex justify-between items-center">
+                  <span className="font-medium text-amber-900">Discount Rate:</span>
+                  <span>{getDiscountRate(currentMembership)}</span>
+                </div>
+                <div className="flex justify-between items-center">
                   <span className="font-medium text-amber-900">Total Visits:</span>
                   <span>{profile?.visits || 0} visits</span>
                 </div>
                 
-                {visitsNeeded > 0 && (
+                {pointsToNextTier > 0 && (
                   <div className="mt-4">
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-sm">Progress to {nextTier.charAt(0).toUpperCase() + nextTier.slice(1)}</span>
@@ -123,12 +139,12 @@ const Dashboard = () => {
                     </div>
                     <Progress value={progress} className="h-2" />
                     <p className="text-sm mt-2 text-amber-700">
-                      {visitsNeeded} more visit{visitsNeeded !== 1 ? 's' : ''} needed!
+                      {pointsToNextTier} more points needed!
                     </p>
                   </div>
                 )}
                 
-                {visitsNeeded === 0 && currentMembership === 'gold' && (
+                {pointsToNextTier === 0 && currentMembership === 'gold' && (
                   <p className="text-sm mt-2 text-amber-700">
                     You've reached our highest tier! Enjoy all Gold benefits.
                   </p>
@@ -150,6 +166,11 @@ const Dashboard = () => {
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-amber-900">Available Points:</span>
                   <span className="font-bold text-amber-700">{profile?.current_points || 0} pts</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-amber-900">Community Points:</span>
+                  <span className="font-bold text-amber-700">{communityPoints || 0} pts</span>
                 </div>
 
                 <div className="mt-4 space-y-2">
@@ -205,6 +226,11 @@ const Dashboard = () => {
               )}
             </CardContent>
           </Card>
+        </div>
+        
+        <div className="grid gap-6 lg:grid-cols-2">
+          <CommunityGoals />
+          <ReferFriend />
         </div>
       </div>
     </Layout>

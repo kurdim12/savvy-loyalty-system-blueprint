@@ -1,0 +1,178 @@
+
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase, sanitizeInput } from '@/integrations/supabase/client';
+import { Share2 } from 'lucide-react';
+
+export default function ReferFriend() {
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email) {
+      toast.error("Please enter your friend's email address");
+      return;
+    }
+    
+    if (!user) {
+      toast.error("You must be logged in to refer a friend");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Sanitize input for security
+      const sanitizedEmail = sanitizeInput(email);
+      
+      // Check if the email is already registered
+      const { data: existingUser, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', sanitizedEmail)
+        .single();
+        
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError;
+      }
+      
+      if (existingUser) {
+        toast.error("This user is already registered with Raw Smith Coffee");
+        return;
+      }
+      
+      // Create a referral record
+      const { error: referralError } = await supabase
+        .from('referrals')
+        .insert({
+          referrer_id: user.id,
+          referee_email: sanitizedEmail,
+          bonus_points: 15, // Points the referrer will get
+          status: 'pending'
+        });
+        
+      if (referralError) throw referralError;
+      
+      // Send email invitation (this would be implemented in a Supabase edge function)
+      const { error: inviteError } = await supabase.functions.invoke('send-referral-invitation', {
+        body: {
+          referrerUserId: user.id,
+          friendEmail: sanitizedEmail
+        }
+      });
+      
+      if (inviteError) throw inviteError;
+      
+      toast.success("Invitation sent to your friend! You'll receive 15 points when they sign up.");
+      setEmail('');
+    } catch (error) {
+      console.error('Error referring friend:', error);
+      toast.error("Unable to send invitation. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleShareLink = async () => {
+    if (!user) {
+      toast.error("You must be logged in to share a referral link");
+      return;
+    }
+    
+    try {
+      // Generate a unique referral code
+      const { data: referral, error: referralError } = await supabase
+        .from('referrals')
+        .insert({
+          referrer_id: user.id,
+          referee_email: null, // No specific email
+          bonus_points: 15,
+          status: 'pending'
+        })
+        .select('id')
+        .single();
+        
+      if (referralError) throw referralError;
+      
+      // Create a shareable URL with the referral code
+      const referralLink = `${window.location.origin}/signup?ref=${referral.id}`;
+      
+      // Try to use the Web Share API if available
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Join Raw Smith Coffee Loyalty Program',
+          text: 'Sign up for Raw Smith Coffee and we both earn loyalty points!',
+          url: referralLink
+        });
+      } else {
+        // Fallback to copying to clipboard
+        await navigator.clipboard.writeText(referralLink);
+        toast.success("Referral link copied to clipboard!");
+      }
+    } catch (error) {
+      console.error('Error generating sharing link:', error);
+      toast.error("Unable to create sharing link. Please try again.");
+    }
+  };
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Share2 className="h-5 w-5 text-amber-700" />
+          Refer a Friend
+        </CardTitle>
+        <CardDescription>
+          Invite friends to join Raw Smith Coffee and earn 15 bonus points when they sign up!
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Friend's Email Address</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="friend@example.com"
+              required
+            />
+          </div>
+          <Button 
+            type="submit" 
+            className="w-full bg-amber-700 hover:bg-amber-800"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Sending...' : 'Send Invitation'}
+          </Button>
+        </form>
+      </CardContent>
+      <CardFooter className="flex flex-col space-y-2 pt-0">
+        <div className="relative w-full">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white px-2 text-gray-500">Or</span>
+          </div>
+        </div>
+        <Button 
+          variant="outline" 
+          className="w-full" 
+          onClick={handleShareLink}
+        >
+          Share Referral Link
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
