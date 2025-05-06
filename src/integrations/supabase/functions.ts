@@ -1,4 +1,3 @@
-
 // Helper functions for Supabase database interaction
 
 import { supabase } from './client';
@@ -215,6 +214,7 @@ export async function verifyAdminCredentials(email: string, password: string) {
     });
     
     if (error) {
+      console.error("Authentication error:", error);
       return { success: false, error: error.message };
     }
     
