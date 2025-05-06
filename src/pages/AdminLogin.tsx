@@ -8,28 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { verifyAdminCredentials } from '@/integrations/supabase/functions';
 import { useAuth } from '@/contexts/AuthContext';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useEffect } from 'react';
-
-// Helper function to clean up auth state completely
-const cleanupAuthState = () => {
-  localStorage.removeItem('supabase.auth.token');
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      localStorage.removeItem(key);
-    }
-  });
-  Object.keys(sessionStorage || {}).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      sessionStorage.removeItem(key);
-    }
-  });
-};
 
 // Form schema for admin login
 const loginFormSchema = z.object({
@@ -39,7 +23,7 @@ const loginFormSchema = z.object({
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { isAdmin, user } = useAuth();
+  const { isAdmin, user, refreshProfile } = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<boolean>(false);
@@ -67,7 +51,12 @@ const AdminLogin = () => {
     
     try {
       // Clean up existing auth state first
-      cleanupAuthState();
+      localStorage.removeItem('supabase.auth.token');
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          localStorage.removeItem(key);
+        }
+      });
       
       // Call the edge function to create an admin user
       const { data, error } = await supabase.functions.invoke('create-admin', {
@@ -85,6 +74,9 @@ const AdminLogin = () => {
         setCreated(true);
         if (data.credentials) {
           setCredentials(data.credentials);
+          // Pre-populate form fields
+          form.setValue('email', data.credentials.email);
+          form.setValue('password', data.credentials.password);
         }
         toast.success('Admin user created successfully');
       } else {
@@ -105,16 +97,38 @@ const AdminLogin = () => {
 
     try {
       // Clean up existing state
-      cleanupAuthState();
+      localStorage.removeItem('supabase.auth.token');
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          localStorage.removeItem(key);
+        }
+      });
       
-      const result = await verifyAdminCredentials(values.email, values.password);
+      // Direct login using Supabase auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password
+      });
       
-      if (result.success) {
-        toast.success('Logged in as admin');
-        navigate('/admin');
+      if (error) {
+        console.error('Login error:', error);
+        setError(error.message || 'Invalid credentials');
+        toast.error(error.message || 'Login failed');
+        return;
+      }
+      
+      if (data.user) {
+        // Refresh profile to get admin status
+        await refreshProfile();
+        toast.success('Logged in successfully');
+        
+        // Short delay to allow profile refresh to complete
+        setTimeout(() => {
+          navigate('/admin');
+        }, 500);
       } else {
-        setError(result.error || 'Invalid credentials');
-        toast.error(result.error || 'Login failed');
+        setError('Login failed. Please try again.');
+        toast.error('Login failed');
       }
     } catch (err: any) {
       console.error('Login error:', err);
@@ -131,9 +145,6 @@ const AdminLogin = () => {
   
   const handleDefaultLogin = async () => {
     if (!credentials) return;
-    
-    form.setValue('email', credentials.email);
-    form.setValue('password', credentials.password);
     
     await handleLogin({
       email: credentials.email,

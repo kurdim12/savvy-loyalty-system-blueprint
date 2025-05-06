@@ -198,7 +198,7 @@ export async function isUserAdmin(userId: string): Promise<boolean> {
 }
 
 /**
- * Verify admin credentials
+ * Direct method to verify admin credentials
  * @param email Admin email
  * @param password Admin password
  * @returns Success status and user data if successful
