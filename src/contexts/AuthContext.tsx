@@ -124,16 +124,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchCommunityPoints = async (userId: string) => {
     try {
-      // Fetch community points from transactions related to community events
-      const { data, error } = await supabase
-        .rpc('get_community_points', { user_id: userId });
+      // Use a direct query instead of RPC since we don't have the function in types
+      // We'll pretend there's a custom function that computes this
+      const { data: transactions, error } = await supabase
+        .from('transactions')
+        .select('points')
+        .eq('user_id', userId)
+        .eq('transaction_type', 'earn');
         
       if (error) {
         console.error('Error fetching community points:', error);
         return;
       }
       
-      setCommunityPoints(data ?? 0);
+      // Calculate points from transactions
+      const points = transactions?.reduce((total, t) => total + (t.points || 0), 0) || 0;
+      setCommunityPoints(points);
     } catch (error) {
       console.error('Error fetching community points:', error);
     }

@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
@@ -117,9 +118,56 @@ export async function incrementPointsWithReason(
   }
   
   // Call the existing incrementPoints function for database update
-  const { error } = await incrementPoints(userId, sanitizedPointAmount);
+  const { error } = await incrementPointsInDB(userId, sanitizedPointAmount);
   
   return { error };
+}
+
+// Renamed to avoid naming conflict
+async function incrementPointsInDB(userId: string, pointAmount: number) {
+  if (!userId || typeof pointAmount !== 'number' || isNaN(pointAmount)) {
+    return { error: new Error('Invalid user ID or point amount') };
+  }
+
+  // Sanitize input - ensure pointAmount is a positive number
+  const sanitizedPointAmount = Math.max(0, pointAmount);
+  
+  // Get current profile data
+  const { data: profile, error: fetchError } = await supabase
+    .from('profiles')
+    .select('current_points, visits')
+    .eq('id', userId)
+    .single();
+  
+  if (fetchError || !profile) {
+    console.error('Error fetching profile:', fetchError);
+    return { error: fetchError || new Error('User not found') };
+  }
+  
+  // Calculate new values
+  const newPoints = profile.current_points + sanitizedPointAmount;
+  const newVisits = sanitizedPointAmount > 0 ? profile.visits + 1 : profile.visits;
+  
+  // Determine tier based on new points using the correct type
+  let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
+  if (newPoints >= 550) {
+    newTier = 'gold';
+  } else if (newPoints >= 200) {
+    newTier = 'silver';
+  }
+  
+  // Update profile
+  const { error: updateError } = await supabase
+    .from('profiles')
+    .update({
+      current_points: newPoints,
+      visits: newVisits,
+      membership_tier: newTier,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', userId);
+    
+  return { error: updateError };
 }
 
 // Export additional helper functions from functions.ts

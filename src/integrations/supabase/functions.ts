@@ -111,6 +111,13 @@ export async function decrementPoints(userId: string, pointAmount: number) {
 
 // New helper function for retrieving community goal progress
 export async function getCommunityGoalProgress(goalId: string): Promise<{current: number, target: number}> {
+  // Since we don't have a community_goals table in the Database type,
+  // we'll use a type assertion for now
+  type CommunityGoal = {
+    current_points: number;
+    target_points: number;
+  };
+
   const { data, error } = await supabase
     .from('community_goals')
     .select('current_points, target_points')
@@ -122,9 +129,12 @@ export async function getCommunityGoalProgress(goalId: string): Promise<{current
     return { current: 0, target: 0 };
   }
   
+  // Type assertion since we know the shape of the data
+  const goal = data as unknown as CommunityGoal;
+  
   return {
-    current: data.current_points || 0,
-    target: data.target_points || 0
+    current: goal.current_points || 0,
+    target: goal.target_points || 0
   };
 }
 
@@ -149,17 +159,24 @@ export async function contributeToGoal(userId: string, goalId: string, pointAmou
     return { error: new Error('Not enough points to contribute') };
   }
   
-  // Begin transaction (using supabase functions)
-  const { error: transactionError } = await supabase
-    .rpc('contribute_to_goal', {
-      p_user_id: userId,
-      p_goal_id: goalId,
-      p_point_amount: pointAmount
-    });
+  // Use a custom RPC function call instead (assuming this exists in your DB)
+  try {
+    const { error: transactionError } = await supabase.rpc(
+      'contribute_to_goal', 
+      {
+        p_user_id: userId,
+        p_goal_id: goalId,
+        p_point_amount: pointAmount
+      } as any
+    );
     
-  if (transactionError) {
-    return { error: transactionError };
+    if (transactionError) {
+      return { error: transactionError };
+    }
+    
+    return { error: null };
+  } catch (error) {
+    console.error('Error calling contribute_to_goal:', error);
+    return { error: new Error('Failed to contribute to goal') };
   }
-  
-  return { error: null };
 }
