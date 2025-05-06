@@ -1,28 +1,13 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, cleanupAuthState, sanitizeInput } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-
-// Helper function to clean up auth state completely
-const cleanupAuthState = () => {
-  localStorage.removeItem('supabase.auth.token');
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      localStorage.removeItem(key);
-    }
-  });
-  Object.keys(sessionStorage || {}).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      sessionStorage.removeItem(key);
-    }
-  });
-};
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -31,9 +16,68 @@ const Auth = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{
+    email?: string;
+    password?: string;
+    firstName?: string;
+    lastName?: string;
+  }>({});
+
+  // Check if already authenticated
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        // Already logged in, redirect to dashboard
+        navigate('/dashboard', { replace: true });
+      }
+    });
+  }, [navigate]);
+
+  // Input validation function
+  const validateInputs = (isSignUp = false) => {
+    const errors: {
+      email?: string;
+      password?: string;
+      firstName?: string;
+      lastName?: string;
+    } = {};
+    
+    // Email validation
+    if (!email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      errors.email = 'Please enter a valid email address';
+    }
+    
+    // Password validation
+    if (!password) {
+      errors.password = 'Password is required';
+    } else if (password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
+    
+    // First and last name validation for signup only
+    if (isSignUp) {
+      if (!firstName.trim()) {
+        errors.firstName = 'First name is required';
+      }
+      
+      if (!lastName.trim()) {
+        errors.lastName = 'Last name is required';
+      }
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateInputs()) {
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -47,21 +91,11 @@ const Auth = () => {
         // Continue even if this fails
       }
       
-      // Validate inputs
-      if (!email.trim()) {
-        toast.error('Please enter your email');
-        setLoading(false);
-        return;
-      }
+      // Sanitize inputs for security
+      const sanitizedEmail = sanitizeInput(email);
       
-      if (!password.trim() || password.length < 6) {
-        toast.error('Please enter a valid password (minimum 6 characters)');
-        setLoading(false);
-        return;
-      }
-
       const { error, data } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: sanitizedEmail.trim(),
         password,
       });
 
@@ -72,9 +106,9 @@ const Auth = () => {
         // Force page reload for clean state
         window.location.href = '/dashboard';
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error signing in:', error);
-      toast.error('An unexpected error occurred');
+      toast.error(error?.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -82,38 +116,32 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateInputs(true)) {
+      return;
+    }
+    
     setLoading(true);
 
     try {
       // Clean up existing state
       cleanupAuthState();
       
-      // Validate inputs
-      if (!email.trim() || !email.includes('@')) {
-        toast.error('Please enter a valid email address');
-        setLoading(false);
-        return;
-      }
+      // Sanitize inputs for security
+      const sanitizedEmail = sanitizeInput(email);
+      const sanitizedFirstName = sanitizeInput(firstName);
+      const sanitizedLastName = sanitizeInput(lastName);
       
-      if (!password.trim() || password.length < 6) {
-        toast.error('Password must be at least 6 characters');
-        setLoading(false);
-        return;
-      }
+      // Rate limiting - add slight delay to prevent brute force
+      await new Promise(resolve => setTimeout(resolve, 200));
       
-      if (!firstName.trim() || !lastName.trim()) {
-        toast.error('Please enter your first and last name');
-        setLoading(false);
-        return;
-      }
-
       const { error } = await supabase.auth.signUp({
-        email: email.trim(),
+        email: sanitizedEmail.trim(),
         password,
         options: {
           data: {
-            first_name: firstName.trim(),
-            last_name: lastName.trim(),
+            first_name: sanitizedFirstName.trim(),
+            last_name: sanitizedLastName.trim(),
           },
         },
       });
@@ -122,10 +150,15 @@ const Auth = () => {
         toast.error(error.message);
       } else {
         toast.success('Account created successfully! Please check your email for verification.');
+        // Reset form fields after successful signup
+        setEmail('');
+        setPassword('');
+        setFirstName('');
+        setLastName('');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error signing up:', error);
-      toast.error('An unexpected error occurred');
+      toast.error(error?.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -158,7 +191,11 @@ const Auth = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     autoComplete="email"
+                    aria-invalid={validationErrors.email ? 'true' : 'false'}
                   />
+                  {validationErrors.email && (
+                    <p className="text-sm text-red-500">{validationErrors.email}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signin-password">Password</Label>
@@ -169,7 +206,11 @@ const Auth = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     autoComplete="current-password"
+                    aria-invalid={validationErrors.password ? 'true' : 'false'}
                   />
+                  {validationErrors.password && (
+                    <p className="text-sm text-red-500">{validationErrors.password}</p>
+                  )}
                 </div>
               </CardContent>
               <CardFooter className="flex-col space-y-4">
@@ -206,7 +247,11 @@ const Auth = () => {
                       onChange={(e) => setFirstName(e.target.value)}
                       required
                       autoComplete="given-name"
+                      aria-invalid={validationErrors.firstName ? 'true' : 'false'}
                     />
+                    {validationErrors.firstName && (
+                      <p className="text-sm text-red-500">{validationErrors.firstName}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="last-name">Last Name</Label>
@@ -217,7 +262,11 @@ const Auth = () => {
                       onChange={(e) => setLastName(e.target.value)}
                       required
                       autoComplete="family-name"
+                      aria-invalid={validationErrors.lastName ? 'true' : 'false'}
                     />
+                    {validationErrors.lastName && (
+                      <p className="text-sm text-red-500">{validationErrors.lastName}</p>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -230,7 +279,11 @@ const Auth = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     autoComplete="email"
+                    aria-invalid={validationErrors.email ? 'true' : 'false'}
                   />
+                  {validationErrors.email && (
+                    <p className="text-sm text-red-500">{validationErrors.email}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
@@ -242,7 +295,11 @@ const Auth = () => {
                     required
                     autoComplete="new-password"
                     minLength={6}
+                    aria-invalid={validationErrors.password ? 'true' : 'false'}
                   />
+                  {validationErrors.password && (
+                    <p className="text-sm text-red-500">{validationErrors.password}</p>
+                  )}
                 </div>
               </CardContent>
               <CardFooter className="flex-col space-y-4">

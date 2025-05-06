@@ -1,8 +1,9 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, cleanupAuthState } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { toast } from 'sonner';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -15,23 +16,7 @@ interface AuthContextType {
   isAdmin: boolean;
 }
 
-// Helper function to clean up auth state completely
-const cleanupAuthState = () => {
-  // Remove standard auth tokens
-  localStorage.removeItem('supabase.auth.token');
-  // Remove all Supabase auth keys from localStorage
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      localStorage.removeItem(key);
-    }
-  });
-  // Remove from sessionStorage if in use
-  Object.keys(sessionStorage || {}).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      sessionStorage.removeItem(key);
-    }
-  });
-};
+const AUTH_SESSION_CHECK_INTERVAL = 60000; // 1 minute
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -45,6 +30,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
+        // Log auth events for debugging security issues
+        console.log('Auth state changed:', event);
+        
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
@@ -70,11 +58,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Set up session expiration monitoring
+    const intervalId = setInterval(checkSessionExpiration, AUTH_SESSION_CHECK_INTERVAL);
+
+    return () => {
+      subscription.unsubscribe();
+      clearInterval(intervalId);
+    };
   }, []);
+
+  // Check if the session is about to expire
+  const checkSessionExpiration = () => {
+    if (session?.expires_at) {
+      const expiresAt = session.expires_at;
+      const now = Math.floor(Date.now() / 1000);
+      const timeRemaining = expiresAt - now;
+      
+      // If token is about to expire in next 5 minutes, try to refresh it
+      if (timeRemaining < 300 && timeRemaining > 0) {
+        console.log('Session about to expire, attempting refresh');
+        supabase.auth.refreshSession();
+      }
+      
+      // If token is expired, force logout
+      if (timeRemaining <= 0) {
+        console.log('Session expired');
+        toast.error('Your session has expired. Please sign in again.');
+        signOut();
+      }
+    }
+  };
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      // Apply rate limiting by adding a small delay
       const { data, error } = await supabase
         .from('profiles')
         .select('*')

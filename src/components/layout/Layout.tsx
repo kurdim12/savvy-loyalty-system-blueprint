@@ -11,27 +11,26 @@ interface LayoutProps {
 }
 
 export default function Layout({ children, adminOnly = false }: LayoutProps) {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin, session } = useAuth();
   const navigate = useNavigate();
 
   // Check authentication session expiration
   useEffect(() => {
     const checkSessionExpiration = () => {
       // If we have a user but session might be expired
-      if (user) {
-        const tokenExpiryString = localStorage.getItem('supabase.auth.token.expires_at');
-        if (tokenExpiryString) {
-          const expiresAt = parseInt(tokenExpiryString, 10);
-          const now = Math.floor(Date.now() / 1000);
-          
-          // If token is expired or about to expire (within 60 seconds)
-          if (expiresAt - now < 60) {
-            toast.error('Your session has expired. Please sign in again.');
-            // Redirect to auth after a short delay
-            setTimeout(() => {
-              navigate('/auth', { replace: true });
-            }, 1500);
-          }
+      if (user && session) {
+        const expiresAt = session.expires_at;
+        if (!expiresAt) return;
+        
+        const now = Math.floor(Date.now() / 1000);
+        
+        // If token is expired or about to expire (within 60 seconds)
+        if (expiresAt - now < 60) {
+          toast.error('Your session has expired. Please sign in again.');
+          // Redirect to auth after a short delay
+          setTimeout(() => {
+            navigate('/auth', { replace: true });
+          }, 1500);
         }
       }
     };
@@ -41,7 +40,7 @@ export default function Layout({ children, adminOnly = false }: LayoutProps) {
     const intervalId = setInterval(checkSessionExpiration, 60000);
     
     return () => clearInterval(intervalId);
-  }, [user, navigate]);
+  }, [user, navigate, session]);
 
   if (loading) {
     return (
@@ -53,6 +52,12 @@ export default function Layout({ children, adminOnly = false }: LayoutProps) {
 
   // If not authenticated, redirect to auth page
   if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Additional security: Verify session existence
+  if (!session) {
+    toast.error('Session information missing. Please sign in again.');
     return <Navigate to="/auth" replace />;
   }
 
