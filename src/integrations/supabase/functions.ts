@@ -29,6 +29,13 @@ export async function getUserVisits(userId: string): Promise<number> {
 
 // Create helper functions to match the SQL functions we created
 export async function incrementPoints(userId: string, pointAmount: number) {
+  if (!userId || typeof pointAmount !== 'number' || isNaN(pointAmount)) {
+    return { error: new Error('Invalid user ID or point amount') };
+  }
+
+  // Sanitize input - ensure pointAmount is a positive number
+  const sanitizedPointAmount = Math.max(0, pointAmount);
+  
   // Get current profile data
   const { data: profile, error: fetchError } = await supabase
     .from('profiles')
@@ -42,8 +49,8 @@ export async function incrementPoints(userId: string, pointAmount: number) {
   }
   
   // Calculate new values
-  const newPoints = profile.current_points + pointAmount;
-  const newVisits = pointAmount > 0 ? profile.visits + 1 : profile.visits;
+  const newPoints = profile.current_points + sanitizedPointAmount;
+  const newVisits = sanitizedPointAmount > 0 ? profile.visits + 1 : profile.visits;
   
   // Determine tier based on new points using the correct type
   let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
@@ -68,6 +75,13 @@ export async function incrementPoints(userId: string, pointAmount: number) {
 }
 
 export async function decrementPoints(userId: string, pointAmount: number) {
+  if (!userId || typeof pointAmount !== 'number' || isNaN(pointAmount)) {
+    return { error: new Error('Invalid user ID or point amount') };
+  }
+
+  // Sanitize input - ensure pointAmount is a positive number
+  const sanitizedPointAmount = Math.max(0, pointAmount);
+  
   // Get current profile data
   const { data: profile, error: fetchError } = await supabase
     .from('profiles')
@@ -81,7 +95,7 @@ export async function decrementPoints(userId: string, pointAmount: number) {
   }
   
   // Calculate new points (never below 0)
-  const newPoints = Math.max(0, profile.current_points - pointAmount);
+  const newPoints = Math.max(0, profile.current_points - sanitizedPointAmount);
   
   // Update profile
   const { error: updateError } = await supabase

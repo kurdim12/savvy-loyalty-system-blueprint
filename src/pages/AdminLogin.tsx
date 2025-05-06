@@ -7,6 +7,21 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
+// Helper function to clean up auth state completely
+const cleanupAuthState = () => {
+  localStorage.removeItem('supabase.auth.token');
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      localStorage.removeItem(key);
+    }
+  });
+  Object.keys(sessionStorage || {}).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      sessionStorage.removeItem(key);
+    }
+  });
+};
+
 const AdminLogin = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(false);
@@ -19,8 +34,16 @@ const AdminLogin = () => {
     setError(null);
     
     try {
+      // Clean up existing auth state first
+      cleanupAuthState();
+      
       // Call the edge function to create an admin user
-      const { data, error } = await supabase.functions.invoke('create-admin');
+      const { data, error } = await supabase.functions.invoke('create-admin', {
+        method: 'POST', // Explicitly set method to POST
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
       
       if (error) {
         throw error;
@@ -49,6 +72,16 @@ const AdminLogin = () => {
     
     setLoading(true);
     try {
+      // Clean up existing state
+      cleanupAuthState();
+      
+      // Attempt global sign out before new sign in
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
+      
       const { error } = await supabase.auth.signInWithPassword({
         email: credentials.email,
         password: credentials.password,
@@ -57,7 +90,8 @@ const AdminLogin = () => {
       if (error) throw error;
       
       toast.success('Logged in as admin');
-      navigate('/dashboard');
+      // Force page reload for clean state
+      window.location.href = '/admin';
     } catch (err) {
       console.error('Login error:', err);
       toast.error('Login failed. Please try manually.');

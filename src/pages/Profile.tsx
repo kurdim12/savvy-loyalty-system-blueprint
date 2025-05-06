@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,17 +11,30 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const Profile = () => {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   
   const [formData, setFormData] = useState({
-    firstName: profile?.first_name || '',
-    lastName: profile?.last_name || '',
-    email: profile?.email || '',
-    phone: profile?.phone || '',
-    birthday: profile?.birthday || '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    birthday: '',
   });
   
   const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Update form data when profile changes
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        firstName: profile.first_name || '',
+        lastName: profile.last_name || '',
+        email: profile.email || '',
+        phone: profile.phone || '',
+        birthday: profile.birthday || '',
+      });
+    }
+  }, [profile]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -33,20 +46,38 @@ const Profile = () => {
   
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate data
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      toast.error('First name and last name are required');
+      return;
+    }
+    
+    // Phone validation (optional field)
+    if (formData.phone && !/^[0-9\(\)\-\s\+\.]+$/.test(formData.phone)) {
+      toast.error('Please enter a valid phone number');
+      return;
+    }
+    
     setIsUpdating(true);
     
     try {
-      if (!profile?.id) {
+      if (!profile?.id || !user) {
         throw new Error('User profile not found');
+      }
+      
+      // Verify user owns this profile
+      if (profile.id !== user.id) {
+        throw new Error('Unauthorized profile update attempt');
       }
       
       const { error } = await supabase
         .from('profiles')
         .update({
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          phone: formData.phone,
-          birthday: formData.birthday,
+          first_name: formData.firstName.trim(),
+          last_name: formData.lastName.trim(),
+          phone: formData.phone?.trim() || null,
+          birthday: formData.birthday || null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', profile.id);
@@ -61,6 +92,16 @@ const Profile = () => {
       setIsUpdating(false);
     }
   };
+  
+  if (!profile) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-64">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-amber-700 border-t-transparent"></div>
+        </div>
+      </Layout>
+    );
+  }
   
   return (
     <Layout>
@@ -82,7 +123,9 @@ const Profile = () => {
                       id="firstName" 
                       name="firstName"
                       value={formData.firstName} 
-                      onChange={handleChange} 
+                      onChange={handleChange}
+                      required
+                      autoComplete="given-name"
                     />
                   </div>
                   
@@ -92,7 +135,9 @@ const Profile = () => {
                       id="lastName" 
                       name="lastName"
                       value={formData.lastName} 
-                      onChange={handleChange} 
+                      onChange={handleChange}
+                      required
+                      autoComplete="family-name"
                     />
                   </div>
                 </div>
@@ -105,6 +150,7 @@ const Profile = () => {
                     value={formData.email} 
                     disabled 
                     className="bg-muted"
+                    aria-readonly="true"
                   />
                   <p className="text-xs text-muted-foreground">
                     Email address cannot be changed
@@ -119,6 +165,7 @@ const Profile = () => {
                     value={formData.phone || ''} 
                     onChange={handleChange} 
                     placeholder="(123) 456-7890"
+                    autoComplete="tel"
                   />
                 </div>
                 
@@ -129,7 +176,8 @@ const Profile = () => {
                     name="birthday"
                     type="date" 
                     value={formData.birthday || ''} 
-                    onChange={handleChange} 
+                    onChange={handleChange}
+                    autoComplete="bday" 
                   />
                 </div>
               </CardContent>

@@ -1,8 +1,9 @@
 
-import { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+import { ReactNode, useEffect } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from './Header';
+import { toast } from 'sonner';
 
 interface LayoutProps {
   children: ReactNode;
@@ -11,6 +12,36 @@ interface LayoutProps {
 
 export default function Layout({ children, adminOnly = false }: LayoutProps) {
   const { user, loading, isAdmin } = useAuth();
+  const navigate = useNavigate();
+
+  // Check authentication session expiration
+  useEffect(() => {
+    const checkSessionExpiration = () => {
+      // If we have a user but session might be expired
+      if (user) {
+        const tokenExpiryString = localStorage.getItem('supabase.auth.token.expires_at');
+        if (tokenExpiryString) {
+          const expiresAt = parseInt(tokenExpiryString, 10);
+          const now = Math.floor(Date.now() / 1000);
+          
+          // If token is expired or about to expire (within 60 seconds)
+          if (expiresAt - now < 60) {
+            toast.error('Your session has expired. Please sign in again.');
+            // Redirect to auth after a short delay
+            setTimeout(() => {
+              navigate('/auth', { replace: true });
+            }, 1500);
+          }
+        }
+      }
+    };
+    
+    checkSessionExpiration();
+    // Check every minute
+    const intervalId = setInterval(checkSessionExpiration, 60000);
+    
+    return () => clearInterval(intervalId);
+  }, [user, navigate]);
 
   if (loading) {
     return (
@@ -27,6 +58,7 @@ export default function Layout({ children, adminOnly = false }: LayoutProps) {
 
   // If this is an admin-only route and user is not an admin
   if (adminOnly && !isAdmin) {
+    toast.error('You do not have permission to access this page');
     return <Navigate to="/dashboard" replace />;
   }
 

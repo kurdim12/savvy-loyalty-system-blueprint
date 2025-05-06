@@ -15,6 +15,24 @@ interface AuthContextType {
   isAdmin: boolean;
 }
 
+// Helper function to clean up auth state completely
+const cleanupAuthState = () => {
+  // Remove standard auth tokens
+  localStorage.removeItem('supabase.auth.token');
+  // Remove all Supabase auth keys from localStorage
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      localStorage.removeItem(key);
+    }
+  });
+  // Remove from sessionStorage if in use
+  Object.keys(sessionStorage || {}).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      sessionStorage.removeItem(key);
+    }
+  });
+};
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -75,8 +93,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    // Clean up auth state first
+    cleanupAuthState();
+    
+    try {
+      // Attempt global sign out for complete logout
+      await supabase.auth.signOut({ scope: 'global' });
+    } catch (error) {
+      console.error('Error during sign out:', error);
+    }
+    
+    // Clear state
     setProfile(null);
+    setUser(null);
+    setSession(null);
+    
+    // Force page reload for a clean state
+    window.location.href = '/auth';
   };
 
   const value = {

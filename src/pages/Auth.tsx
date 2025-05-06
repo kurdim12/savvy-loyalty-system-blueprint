@@ -9,6 +9,21 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 
+// Helper function to clean up auth state completely
+const cleanupAuthState = () => {
+  localStorage.removeItem('supabase.auth.token');
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      localStorage.removeItem(key);
+    }
+  });
+  Object.keys(sessionStorage || {}).forEach((key) => {
+    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      sessionStorage.removeItem(key);
+    }
+  });
+};
+
 const Auth = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -22,16 +37,40 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      // Clean up existing state first
+      cleanupAuthState();
+      
+      // Attempt global sign out before new sign in
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
+      
+      // Validate inputs
+      if (!email.trim()) {
+        toast.error('Please enter your email');
+        setLoading(false);
+        return;
+      }
+      
+      if (!password.trim() || password.length < 6) {
+        toast.error('Please enter a valid password (minimum 6 characters)');
+        setLoading(false);
+        return;
+      }
+
+      const { error, data } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
         password,
       });
 
       if (error) {
         toast.error(error.message);
-      } else {
+      } else if (data?.user) {
         toast.success('Signed in successfully');
-        navigate('/dashboard');
+        // Force page reload for clean state
+        window.location.href = '/dashboard';
       }
     } catch (error) {
       console.error('Error signing in:', error);
@@ -46,13 +85,35 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Clean up existing state
+      cleanupAuthState();
+      
+      // Validate inputs
+      if (!email.trim() || !email.includes('@')) {
+        toast.error('Please enter a valid email address');
+        setLoading(false);
+        return;
+      }
+      
+      if (!password.trim() || password.length < 6) {
+        toast.error('Password must be at least 6 characters');
+        setLoading(false);
+        return;
+      }
+      
+      if (!firstName.trim() || !lastName.trim()) {
+        toast.error('Please enter your first and last name');
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           data: {
-            first_name: firstName,
-            last_name: lastName,
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
           },
         },
       });
@@ -61,7 +122,6 @@ const Auth = () => {
         toast.error(error.message);
       } else {
         toast.success('Account created successfully! Please check your email for verification.');
-        // Note: depending on your Supabase settings, the user might need to verify their email
       }
     } catch (error) {
       console.error('Error signing up:', error);
@@ -97,6 +157,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    autoComplete="email"
                   />
                 </div>
                 <div className="space-y-2">
@@ -107,6 +168,7 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    autoComplete="current-password"
                   />
                 </div>
               </CardContent>
@@ -143,6 +205,7 @@ const Auth = () => {
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       required
+                      autoComplete="given-name"
                     />
                   </div>
                   <div className="space-y-2">
@@ -153,6 +216,7 @@ const Auth = () => {
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       required
+                      autoComplete="family-name"
                     />
                   </div>
                 </div>
@@ -165,6 +229,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    autoComplete="email"
                   />
                 </div>
                 <div className="space-y-2">
@@ -175,6 +240,8 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    autoComplete="new-password"
+                    minLength={6}
                   />
                 </div>
               </CardContent>
