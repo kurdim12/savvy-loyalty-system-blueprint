@@ -1,3 +1,4 @@
+
 // Helper functions for Supabase database interaction
 
 import { supabase } from './client';
@@ -110,8 +111,7 @@ export async function decrementPoints(userId: string, pointAmount: number) {
 
 // New helper function for retrieving community goal progress
 export async function getCommunityGoalProgress(goalId: string): Promise<{current: number, target: number}> {
-  // Since we don't have a community_goals table in the Database type,
-  // we'll use a type assertion for now
+  // Define CommunityGoal type explicitly for type safety
   type CommunityGoal = {
     current_points: number;
     target_points: number;
@@ -128,8 +128,8 @@ export async function getCommunityGoalProgress(goalId: string): Promise<{current
     return { current: 0, target: 0 };
   }
   
-  // Type assertion since we know the shape of the data
-  const goal = data as CommunityGoal;
+  // Properly convert data to CommunityGoal type with a safe type assertion
+  const goal = data as unknown as CommunityGoal;
   
   return {
     current: goal.current_points || 0,
@@ -166,12 +166,26 @@ export async function contributeToGoal(userId: string, goalId: string, pointAmou
       return { error: decrementError };
     }
     
-    // Then update the community goal
+    // First get current points
+    const { data: goalData, error: goalError } = await supabase
+      .from('community_goals' as any)
+      .select('current_points')
+      .eq('id', goalId)
+      .single();
+      
+    if (goalError) {
+      // If there was an error, attempt to restore the user's points
+      await incrementPoints(userId, pointAmount);
+      return { error: goalError };
+    }
+    
+    // Then update with new point total
+    const currentPoints = (goalData as any).current_points || 0;
+    const newPoints = currentPoints + pointAmount;
+    
     const { error: updateGoalError } = await supabase
       .from('community_goals' as any)
-      .update({ 
-        current_points: supabase.rpc('get_community_goal_points', { p_goal_id: goalId } as any) + pointAmount 
-      })
+      .update({ current_points: newPoints })
       .eq('id', goalId);
     
     if (updateGoalError) {
