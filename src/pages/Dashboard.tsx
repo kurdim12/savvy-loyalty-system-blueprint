@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { CoffeeIcon, Award, Clock, AlertTriangle, Users } from 'lucide-react';
-import CommunityGoals from '@/components/community/CommunityGoals';
+import CommunityGoalsList from '@/components/community/CommunityGoalsList';
 import ReferFriend from '@/components/loyalty/ReferFriend';
 
 const Dashboard = () => {
@@ -229,7 +229,18 @@ const Dashboard = () => {
         </div>
         
         <div className="grid gap-6 lg:grid-cols-2">
-          <CommunityGoals />
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="h-5 w-5 text-amber-700" />
+                Community Goals
+              </CardTitle>
+              <CardDescription>Contribute your points to community challenges</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CommunityGoalsList />
+            </CardContent>
+          </Card>
           <ReferFriend />
         </div>
       </div>

@@ -12,9 +12,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import { contributeToGoal } from '@/integrations/supabase/functions';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface ContributeGoalDialogProps {
   open: boolean;
@@ -22,7 +19,7 @@ interface ContributeGoalDialogProps {
   goalId: string;
   goalName: string;
   userPoints: number;
-  onContribute: () => void;
+  onContribute: (points: number) => void;
 }
 
 export default function ContributeGoalDialog({
@@ -35,41 +32,25 @@ export default function ContributeGoalDialog({
 }: ContributeGoalDialogProps) {
   const [points, setPoints] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user?.id) {
-      toast.error('You must be logged in to contribute points');
-      return;
-    }
-    
     if (!points || points <= 0) {
-      toast.error('Please enter a valid number of points');
       return;
     }
     
     if (points > userPoints) {
-      toast.error('You do not have enough points to contribute');
       return;
     }
     
     setIsSubmitting(true);
     
     try {
-      const { error } = await contributeToGoal(user.id, goalId, points);
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast.success(`Successfully contributed ${points} points to "${goalName}"!`);
-      onContribute();
-      onOpenChange(false);
+      onContribute(points);
       setPoints(0);
     } catch (error) {
-      toast.error(`Failed to contribute points: ${(error as Error).message}`);
+      console.error('Error:', error);
     } finally {
       setIsSubmitting(false);
     }

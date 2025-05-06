@@ -1,10 +1,7 @@
-import Layout from '@/components/layout/Layout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useDeleteCommunityGoal, useUpdateCommunityGoal } from '@/hooks/useCommunityGoals';
+
 import { useState } from 'react';
-import NewGoalForm from '@/components/community/NewGoalForm';
-import CommunityGoalsList from '@/components/community/CommunityGoalsList';
-import { CommunityGoalRow, UpdateCommunityGoalInput } from '@/types/communityGoals';
+import { useCreateCommunityGoal } from '@/hooks/useCommunityGoals';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -13,105 +10,93 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Award, Coffee, Heart, Recycle, Users } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Award, Coffee, Heart, Plus, Recycle, Users } from 'lucide-react';
+import { CreateCommunityGoalInput } from '@/types/communityGoals';
 
-export default function CommunityGoalsAdmin() {
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editingGoal, setEditingGoal] = useState<CommunityGoalRow | null>(null);
-  const [formData, setFormData] = useState<UpdateCommunityGoalInput>({
-    id: '',
+interface NewGoalFormProps {
+  onSuccess?: () => void;
+}
+
+export default function NewGoalForm({ onSuccess }: NewGoalFormProps) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [formData, setFormData] = useState<CreateCommunityGoalInput>({
     name: '',
     description: '',
-    target_points: 0,
-    expires_at: '',
-    icon: '',
+    target_points: 1000,
+    expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+    icon: 'coffee',
     reward_description: '',
     active: true
   });
 
-  const { mutate: updateGoal, isPending: isUpdating } = useUpdateCommunityGoal();
-  const { mutate: deleteGoal } = useDeleteCommunityGoal();
-
-  const handleEditGoal = (goal: CommunityGoalRow) => {
-    setEditingGoal(goal);
-    setFormData({
-      id: goal.id,
-      name: goal.name,
-      description: goal.description || '',
-      target_points: goal.target_points,
-      expires_at: goal.expires_at ? new Date(goal.expires_at).toISOString().split('T')[0] : '',
-      icon: goal.icon || 'coffee',
-      reward_description: goal.reward_description || '',
-      active: goal.active
-    });
-    setEditDialogOpen(true);
-  };
+  const { mutate: createGoal, isPending } = useCreateCommunityGoal();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (name: string, value: string | boolean) => {
+  const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleUpdateSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (formData.id) {
-      updateGoal(formData, {
-        onSuccess: () => {
-          setEditDialogOpen(false);
-          setEditingGoal(null);
-        }
-      });
-    }
+    createGoal(formData, {
+      onSuccess: () => {
+        setDialogOpen(false);
+        resetForm();
+        onSuccess?.();
+      }
+    });
   };
-
-  const handleDeleteGoal = (id: string) => {
-    deleteGoal(id);
+  
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      target_points: 1000,
+      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      icon: 'coffee',
+      reward_description: '',
+      active: true
+    });
   };
 
   return (
-    <Layout adminOnly>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-amber-900">Community Goals Management</h1>
-          <p className="text-amber-700">Create and manage community challenges for your users</p>
-        </div>
+    <>
+      <Card className="mb-6">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-lg">Create New Community Goal</CardTitle>
+          <Button 
+            onClick={() => setDialogOpen(true)}
+            className="bg-amber-700 hover:bg-amber-800 flex items-center gap-2"
+          >
+            <Plus size={16} /> New Goal
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Create a new community goal for customers to contribute their points toward. 
+            Set a target, reward, and timeframe.
+          </p>
+        </CardContent>
+      </Card>
 
-        <NewGoalForm />
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Active Community Goals</CardTitle>
-            <CardDescription>Manage your community challenges and track progress</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CommunityGoalsList 
-              isAdminView={true}
-              onEditGoal={handleEditGoal}
-              onDeleteGoal={handleDeleteGoal}
-            />
-          </CardContent>
-        </Card>
-      </div>
-
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Edit Community Goal</DialogTitle>
+            <DialogTitle>Create Community Goal</DialogTitle>
             <DialogDescription>
-              Update the details of this community goal.
+              Create a new community goal for users to contribute to.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleUpdateSubmit}>
+          <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="name" className="text-right">Name</Label>
@@ -223,39 +208,26 @@ export default function CommunityGoalsAdmin() {
                   </SelectContent>
                 </Select>
               </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Progress</Label>
-                <div className="col-span-3">
-                  <div className="text-sm mb-2">
-                    {editingGoal?.current_points} / {editingGoal?.target_points} points
-                  </div>
-                  <Progress 
-                    value={editingGoal ? (editingGoal.current_points / editingGoal.target_points * 100) : 0} 
-                    className="h-2"
-                  />
-                </div>
-              </div>
             </div>
             <DialogFooter>
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => setEditDialogOpen(false)}
+                onClick={() => setDialogOpen(false)}
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
                 className="bg-amber-700 hover:bg-amber-800"
-                disabled={isUpdating}
+                disabled={isPending}
               >
-                {isUpdating ? 'Updating...' : 'Update Goal'}
+                {isPending ? 'Creating...' : 'Create Goal'}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-    </Layout>
+    </>
   );
 }
