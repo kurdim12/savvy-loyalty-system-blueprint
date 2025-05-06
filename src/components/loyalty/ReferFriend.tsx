@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, sanitizeInput } from '@/integrations/supabase/client';
 import { Share2 } from 'lucide-react';
+import { Database } from '@/integrations/supabase/types';
 
 export default function ReferFriend() {
   const [email, setEmail] = useState('');
@@ -37,7 +38,7 @@ export default function ReferFriend() {
       const { data: existingUser, error: checkError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('email', sanitizedEmail)
+        .eq('email', sanitizedEmail as string)
         .single();
         
       if (checkError && checkError.code !== 'PGRST116') {
@@ -50,14 +51,16 @@ export default function ReferFriend() {
       }
       
       // Create a referral record
+      const referralData = {
+        referrer_id: user.id,
+        referee_email: sanitizedEmail,
+        bonus_points: 15, // Points the referrer will get
+        status: 'pending'
+      } as unknown as Database['public']['Tables']['referrals']['Insert'];
+
       const { error: referralError } = await supabase
         .from('referrals')
-        .insert({
-          referrer_id: user.id,
-          referee_email: sanitizedEmail,
-          bonus_points: 15, // Points the referrer will get
-          status: 'pending'
-        });
+        .insert(referralData);
         
       if (referralError) throw referralError;
       
@@ -89,21 +92,23 @@ export default function ReferFriend() {
     
     try {
       // Generate a unique referral code
+      const referralData = {
+        referrer_id: user.id,
+        referee_email: null, // No specific email
+        bonus_points: 15,
+        status: 'pending'
+      } as unknown as Database['public']['Tables']['referrals']['Insert'];
+
       const { data: referral, error: referralError } = await supabase
         .from('referrals')
-        .insert({
-          referrer_id: user.id,
-          referee_email: null, // No specific email
-          bonus_points: 15,
-          status: 'pending'
-        })
+        .insert(referralData)
         .select('id')
         .single();
         
       if (referralError) throw referralError;
       
       // Create a shareable URL with the referral code
-      const referralLink = `${window.location.origin}/signup?ref=${referral.id}`;
+      const referralLink = `${window.location.origin}/signup?ref=${(referral as any).id}`;
       
       // Try to use the Web Share API if available
       if (navigator.share) {

@@ -28,17 +28,19 @@ export default function CommunityGoals() {
         const { data, error } = await supabase
           .from('community_goals')
           .select('*')
-          .eq('active', true)
+          .eq('active', true as boolean)
           .order('expires_at', { ascending: true });
 
         if (error) throw error;
 
-        const formattedGoals = data.map(goal => ({
-          ...goal,
-          icon: goal.icon as 'users' | 'award' | 'recycle' | 'coffee' | 'heart'
-        }));
-        
-        setGoals(formattedGoals);
+        if (data) {
+          const formattedGoals = data.map(goal => ({
+            ...goal,
+            icon: goal.icon as 'users' | 'award' | 'recycle' | 'coffee' | 'heart'
+          }));
+          
+          setGoals(formattedGoals);
+        }
       } catch (error) {
         console.error('Error fetching community goals:', error);
       } finally {
@@ -61,7 +63,7 @@ export default function CommunityGoals() {
           setGoals(currentGoals => 
             currentGoals.map(goal => 
               goal.id === payload.new.id 
-                ? { ...goal, ...payload.new, icon: payload.new.icon as any } 
+                ? { ...goal, ...payload.new as any, icon: payload.new.icon as any } 
                 : goal
             )
           );

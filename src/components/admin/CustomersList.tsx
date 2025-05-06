@@ -58,7 +58,7 @@ const CustomersList = ({ onManagePoints, onSelectCustomer }: CustomersListProps)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('role', 'customer')
+        .eq('role', 'customer' as Database['public']['Enums']['user_role'])
         .order('created_at', { ascending: false });
       
       if (error) throw error;

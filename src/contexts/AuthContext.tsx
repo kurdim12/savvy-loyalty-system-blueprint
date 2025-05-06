@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('id', userId as string)
         .single();
 
       if (error) {
@@ -111,10 +111,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      setProfile(data);
-      
-      // Also fetch community points
-      fetchCommunityPoints(userId);
+      if (data) {
+        setProfile(data as Profile);
+        
+        // Also fetch community points
+        fetchCommunityPoints(userId);
+      }
     } catch (error) {
       console.error('Unexpected error fetching profile:', error);
     }
@@ -131,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       
-      setCommunityPoints(data || 0);
+      setCommunityPoints(data ?? 0);
     } catch (error) {
       console.error('Error fetching community points:', error);
     }

@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
@@ -16,11 +15,6 @@ export const supabase = createClient<Database>(
       autoRefreshToken: true,
       detectSessionInUrl: true,
       flowType: 'pkce', // More secure authentication flow
-      // Set shorter JWT token expiration to mitigate session hijacking risk
-      cookieOptions: {
-        sameSite: 'strict', // Prevent CSRF attacks
-        secure: window.location.protocol === 'https:', // Only send cookies over HTTPS in production
-      }
     },
     global: {
       // Implement rate limiting protection

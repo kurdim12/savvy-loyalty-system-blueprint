@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { incrementPoints, decrementPoints } from '@/integrations/supabase/functions';
@@ -54,7 +53,7 @@ const drinkCategories: DrinkCategory[] = [
 
 const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps) => {
   const [customerId, setCustomerId] = useState('');
-  const [transactionType, setTransactionType] = useState<'earn' | 'redeem'>('earn');
+  const [transactionType, setTransactionType] = useState<Database['public']['Enums']['transaction_type']>('earn');
   const [points, setPoints] = useState<number>(0);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [notes, setNotes] = useState('');
@@ -69,7 +68,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
       const query = supabase
         .from('profiles')
         .select('id, first_name, last_name, email')
-        .eq('role', 'customer');
+        .eq('role', 'customer' as Database['public']['Enums']['user_role']);
         
       // Apply search filter if provided
       if (customerSearchQuery) {
@@ -96,18 +95,18 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
         throw new Error('Points must be greater than 0');
       }
       
-      // Use type assertion for the transaction data
+      // Use correct typing for the transaction data
       const transactionData = {
         user_id: customerId,
         transaction_type: transactionType,
         points: finalPoints,
         notes: notes || `${transactionType === 'earn' ? 'Earned' : 'Redeemed'} ${finalPoints} points`,
-      };
+      } as unknown as Database['public']['Tables']['transactions']['Insert'];
       
       // Step 1: Create the transaction
       const { data: transaction, error: transactionError } = await supabase
         .from('transactions')
-        .insert(transactionData as any)
+        .insert(transactionData)
         .select();
       
       if (transactionError) throw transactionError;

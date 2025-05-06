@@ -124,11 +124,11 @@ const RewardsList = () => {
         membership_required: data.membership_required || null,
         inventory: data.inventory || null,
         active: data.active,
-      };
+      } as unknown as Database['public']['Tables']['rewards']['Insert'];
       
       const { error } = await supabase
         .from('rewards')
-        .insert(rewardData as any);
+        .insert(rewardData);
       
       if (error) throw error;
     },
@@ -156,12 +156,12 @@ const RewardsList = () => {
         inventory: rewardData.inventory || null,
         active: rewardData.active,
         updated_at: new Date().toISOString()
-      };
+      } as unknown as Database['public']['Tables']['rewards']['Update'];
       
       const { error } = await supabase
         .from('rewards')
-        .update(updatedData as any)
-        .eq('id', id);
+        .update(updatedData)
+        .eq('id', id as string);
       
       if (error) throw error;
     },
@@ -183,7 +183,7 @@ const RewardsList = () => {
       const { error } = await supabase
         .from('rewards')
         .delete()
-        .eq('id', id);
+        .eq('id', id as string);
       
       if (error) throw error;
     },
@@ -206,8 +206,8 @@ const RewardsList = () => {
         .update({ 
           active, 
           updated_at: new Date().toISOString() 
-        })
-        .eq('id', id);
+        } as unknown as Database['public']['Tables']['rewards']['Update'])
+        .eq('id', id as string);
       
       if (error) throw error;
     },

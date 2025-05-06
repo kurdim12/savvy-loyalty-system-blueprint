@@ -33,7 +33,7 @@ const ManagePointsDialog = ({
   customerName,
 }: ManagePointsDialogProps) => {
   const [points, setPoints] = useState<number>(0);
-  const [transactionType, setTransactionType] = useState<'earn' | 'redeem'>('earn');
+  const [transactionType, setTransactionType] = useState<Database['public']['Enums']['transaction_type']>('earn');
   const [notes, setNotes] = useState<string>('');
   const queryClient = useQueryClient();
 
@@ -52,18 +52,18 @@ const ManagePointsDialog = ({
     mutationFn: async () => {
       if (!customerId) return;
       
-      // Use type assertion to correctly type the transaction data
+      // Use correct typing for the transaction data
       const transactionData = {
         user_id: customerId,
         transaction_type: transactionType,
         points: points,
         notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} points manually by admin`,
-      };
+      } as unknown as Database['public']['Tables']['transactions']['Insert'];
       
       // Step 1: Create the transaction
       const { data: transaction, error: transactionError } = await supabase
         .from('transactions')
-        .insert(transactionData as any)
+        .insert(transactionData)
         .select();
       
       if (transactionError) throw transactionError;
