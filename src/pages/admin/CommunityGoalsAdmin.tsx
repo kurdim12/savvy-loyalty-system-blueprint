@@ -1,261 +1,252 @@
-import Layout from '@/components/layout/Layout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useDeleteCommunityGoal, useUpdateCommunityGoal } from '@/hooks/useCommunityGoals';
-import { useState } from 'react';
-import NewGoalForm from '@/components/community/NewGoalForm';
-import CommunityGoalsList from '@/components/community/CommunityGoalsList';
-import { CommunityGoalRow, UpdateCommunityGoalInput } from '@/types/communityGoals';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Award, Coffee, Heart, Recycle, Users } from 'lucide-react';
 
-export default function CommunityGoalsAdmin() {
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editingGoal, setEditingGoal] = useState<CommunityGoalRow | null>(null);
-  const [formData, setFormData] = useState<UpdateCommunityGoalInput>({
-    id: '',
-    name: '',
-    description: '',
-    target_points: 0,
-    expires_at: '',
-    icon: '',
-    reward_description: '',
-    active: true
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { toast } from 'sonner';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Plus, Edit, Trash2, ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
+import Layout from '@/components/layout/Layout';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import NewGoalForm from '@/components/community/NewGoalForm';
+import { CommunityGoalRow } from '@/types/communityGoals';
+
+const CommunityGoalsAdmin = () => {
+  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
+  const [mode, setMode] = useState<'list' | 'create'>('list');
+  const [deleteGoalId, setDeleteGoalId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Get all community goals for admins
+  const { data: goals, isLoading, refetch } = useQuery({
+    queryKey: ['admin', 'communityGoals'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('community_goals')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as CommunityGoalRow[];
+    },
+    enabled: isAdmin,
   });
 
-  const { mutate: updateGoal, isPending: isUpdating } = useUpdateCommunityGoal();
-  const { mutate: deleteGoal } = useDeleteCommunityGoal();
-
-  const handleEditGoal = (goal: CommunityGoalRow) => {
-    setEditingGoal(goal);
-    setFormData({
-      id: goal.id,
-      name: goal.name,
-      description: goal.description || '',
-      target_points: goal.target_points,
-      expires_at: goal.expires_at ? new Date(goal.expires_at).toISOString().split('T')[0] : '',
-      icon: goal.icon || 'coffee',
-      reward_description: goal.reward_description || '',
-      active: goal.active
-    });
-    setEditDialogOpen(true);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleUpdateSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Delete community goal
+  const handleDeleteGoal = async () => {
+    if (!deleteGoalId) return;
     
-    if (formData.id) {
-      updateGoal(formData, {
-        onSuccess: () => {
-          setEditDialogOpen(false);
-          setEditingGoal(null);
-        }
-      });
+    setIsDeleting(true);
+    
+    try {
+      const { error } = await supabase
+        .from('community_goals')
+        .delete()
+        .eq('id', deleteGoalId);
+        
+      if (error) throw error;
+      
+      toast.success('Community goal deleted successfully');
+      refetch();
+    } catch (error: any) {
+      toast.error(`Error deleting community goal: ${error.message}`);
+    } finally {
+      setIsDeleting(false);
+      setDeleteGoalId(null);
     }
   };
 
-  const handleDeleteGoal = (id: string) => {
-    deleteGoal(id);
+  // Format date for display
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'No expiry';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   return (
     <Layout adminOnly>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-amber-900">Community Goals Management</h1>
-          <p className="text-amber-700">Create and manage community challenges for your users</p>
-        </div>
-
-        <NewGoalForm />
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Active Community Goals</CardTitle>
-            <CardDescription>Manage your community challenges and track progress</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CommunityGoalsList 
-              isAdminView={true}
-              onEditGoal={handleEditGoal}
-              onDeleteGoal={handleDeleteGoal}
-            />
-          </CardContent>
-        </Card>
-      </div>
-
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Edit Community Goal</DialogTitle>
-            <DialogDescription>
-              Update the details of this community goal.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleUpdateSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right">Description</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  rows={3}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="target_points" className="text-right">Target Points</Label>
-                <Input
-                  id="target_points"
-                  name="target_points"
-                  type="number"
-                  min={1}
-                  value={formData.target_points}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="expires_at" className="text-right">Expiry Date</Label>
-                <Input
-                  id="expires_at"
-                  name="expires_at"
-                  type="date"
-                  value={formData.expires_at || ''}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="icon" className="text-right">Icon</Label>
-                <Select 
-                  value={formData.icon} 
-                  onValueChange={(value) => handleSelectChange('icon', value)}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select an icon" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="coffee">
-                      <div className="flex items-center gap-2">
-                        <Coffee className="h-4 w-4" /> Coffee
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="heart">
-                      <div className="flex items-center gap-2">
-                        <Heart className="h-4 w-4" /> Heart
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="award">
-                      <div className="flex items-center gap-2">
-                        <Award className="h-4 w-4" /> Award
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="recycle">
-                      <div className="flex items-center gap-2">
-                        <Recycle className="h-4 w-4" /> Recycle
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="users">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4" /> Users
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="reward_description" className="text-right">Reward</Label>
-                <Input
-                  id="reward_description"
-                  name="reward_description"
-                  value={formData.reward_description}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  placeholder="e.g. Free coffee for all gold members"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="active" className="text-right">Status</Label>
-                <Select 
-                  value={formData.active ? 'active' : 'inactive'} 
-                  onValueChange={(value) => handleSelectChange('active', value === 'active')}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Progress</Label>
-                <div className="col-span-3">
-                  <div className="text-sm mb-2">
-                    {editingGoal?.current_points} / {editingGoal?.target_points} points
-                  </div>
-                  <Progress 
-                    value={editingGoal ? (editingGoal.current_points / editingGoal.target_points * 100) : 0} 
-                    className="h-2"
-                  />
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
+        <div className="flex items-center justify-between">
+          {mode === 'create' ? (
+            <div className="flex items-center gap-2">
               <Button 
-                type="button" 
                 variant="outline" 
-                onClick={() => setEditDialogOpen(false)}
+                size="sm"
+                onClick={() => setMode('list')}
               >
-                Cancel
+                <ArrowLeft className="w-4 h-4 mr-1" /> Back to Goals
               </Button>
+              <h2 className="text-xl font-bold text-amber-900">New Community Goal</h2>
+            </div>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold text-amber-900">Community Goals Management</h1>
               <Button 
-                type="submit" 
+                onClick={() => setMode('create')} 
                 className="bg-amber-700 hover:bg-amber-800"
-                disabled={isUpdating}
               >
-                {isUpdating ? 'Updating...' : 'Update Goal'}
+                <Plus className="w-4 h-4 mr-1" /> New Goal
               </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            </>
+          )}
+        </div>
+        
+        {mode === 'create' ? (
+          <NewGoalForm />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>All Community Goals</CardTitle>
+              <CardDescription>
+                Manage the community goals visible to your customers
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="text-center py-8">Loading goals...</div>
+              ) : goals && goals.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Progress</TableHead>
+                        <TableHead>Expiry</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {goals.map((goal) => {
+                        const progress = Math.min((goal.current_points / goal.target_points) * 100, 100);
+                        const isComplete = goal.current_points >= goal.target_points;
+                        
+                        return (
+                          <TableRow key={goal.id}>
+                            <TableCell className="font-medium">
+                              <div className="font-semibold">{goal.name}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {goal.current_points} / {goal.target_points} points
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="w-full max-w-[200px]">
+                                <Progress value={progress} className="h-2" />
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="whitespace-nowrap">
+                                {formatDate(goal.expires_at)}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {isComplete ? (
+                                <Badge className="bg-green-600">
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  Completed
+                                </Badge>
+                              ) : goal.active ? (
+                                <Badge className="bg-amber-600">Active</Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-muted-foreground">
+                                  <XCircle className="h-3 w-3 mr-1" />
+                                  Inactive
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => navigate(`/admin/community-goals/edit/${goal.id}`)}
+                                className="mr-1"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setDeleteGoalId(goal.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Delete Community Goal
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete this community goal?
+                                      This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={handleDeleteGoal}
+                                      disabled={isDeleting}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      {isDeleting ? 'Deleting...' : 'Delete'}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No community goals found.</p>
+                  <p className="text-sm">Create your first community goal to engage your customers.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </Layout>
   );
-}
+};
+
+export default CommunityGoalsAdmin;

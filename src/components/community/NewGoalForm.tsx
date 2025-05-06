@@ -1,233 +1,284 @@
 
 import { useState } from 'react';
-import { useCreateCommunityGoal } from '@/hooks/useCommunityGoals';
+import { useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Award, Coffee, Heart, Plus, Recycle, Users } from 'lucide-react';
-import { CreateCommunityGoalInput } from '@/types/communityGoals';
+import { Switch } from '@/components/ui/switch';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
+import { toast } from 'sonner';
+import { createCommunityGoal } from '@/services/communityGoals';
 
-interface NewGoalFormProps {
-  onSuccess?: () => void;
-}
+const formSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  targetPoints: z.number().min(100, 'Target points must be at least 100'),
+  expiresAt: z.date().optional(),
+  icon: z.string().min(1, 'Icon is required'),
+  rewardDescription: z.string().min(5, 'Reward description must be at least 5 characters'),
+  active: z.boolean().default(true),
+});
 
-export default function NewGoalForm({ onSuccess }: NewGoalFormProps) {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [formData, setFormData] = useState<CreateCommunityGoalInput>({
-    name: '',
-    description: '',
-    target_points: 1000,
-    expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
-    icon: 'coffee',
-    reward_description: '',
-    active: true
-  });
+type FormData = z.infer<typeof formSchema>;
 
-  const { mutate: createGoal, isPending } = useCreateCommunityGoal();
+const ICON_OPTIONS = [
+  { value: 'coffee', label: 'Coffee Cup' },
+  { value: 'gift', label: 'Gift Box' },
+  { value: 'star', label: 'Star' },
+  { value: 'award', label: 'Award' },
+  { value: 'heart', label: 'Heart' },
+];
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    createGoal(formData, {
-      onSuccess: () => {
-        setDialogOpen(false);
-        resetForm();
-        onSuccess?.();
-      }
-    });
-  };
+export default function NewGoalForm() {
+  const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
   
-  const resetForm = () => {
-    setFormData({
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
       name: '',
       description: '',
-      target_points: 1000,
-      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      targetPoints: 1000,
       icon: 'coffee',
-      reward_description: '',
-      active: true
+      rewardDescription: '',
+      active: true,
+    },
+  });
+
+  const createGoalMutation = useMutation({
+    mutationFn: createCommunityGoal,
+    onSuccess: () => {
+      toast.success('Community goal created successfully!');
+      form.reset();
+      navigate('/admin/community-goals');
+    },
+    onError: (error: any) => {
+      toast.error(`Error creating community goal: ${error.message}`);
+      setSubmitting(false);
+    },
+  });
+
+  const onSubmit = async (data: FormData) => {
+    setSubmitting(true);
+    
+    // Convert the form data to match the CreateCommunityGoalInput type
+    createGoalMutation.mutate({
+      name: data.name,
+      description: data.description,
+      target_points: data.targetPoints,
+      expires_at: data.expiresAt ? data.expiresAt.toISOString() : null,
+      icon: data.icon,
+      reward_description: data.rewardDescription,
+      active: data.active,
     });
   };
 
   return (
-    <>
-      <Card className="mb-6">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg">Create New Community Goal</CardTitle>
-          <Button 
-            onClick={() => setDialogOpen(true)}
-            className="bg-amber-700 hover:bg-amber-800 flex items-center gap-2"
-          >
-            <Plus size={16} /> New Goal
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Create a new community goal for customers to contribute their points toward. 
-            Set a target, reward, and timeframe.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Create Community Goal</DialogTitle>
-            <DialogDescription>
-              Create a new community goal for users to contribute to.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right">Description</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  rows={3}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="target_points" className="text-right">Target Points</Label>
-                <Input
-                  id="target_points"
-                  name="target_points"
-                  type="number"
-                  min={1}
-                  value={formData.target_points}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="expires_at" className="text-right">Expiry Date</Label>
-                <Input
-                  id="expires_at"
-                  name="expires_at"
-                  type="date"
-                  value={formData.expires_at || ''}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="icon" className="text-right">Icon</Label>
-                <Select 
-                  value={formData.icon} 
-                  onValueChange={(value) => handleSelectChange('icon', value)}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select an icon" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="coffee">
-                      <div className="flex items-center gap-2">
-                        <Coffee className="h-4 w-4" /> Coffee
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="heart">
-                      <div className="flex items-center gap-2">
-                        <Heart className="h-4 w-4" /> Heart
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="award">
-                      <div className="flex items-center gap-2">
-                        <Award className="h-4 w-4" /> Award
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="recycle">
-                      <div className="flex items-center gap-2">
-                        <Recycle className="h-4 w-4" /> Recycle
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="users">
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4" /> Users
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="reward_description" className="text-right">Reward</Label>
-                <Input
-                  id="reward_description"
-                  name="reward_description"
-                  value={formData.reward_description}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  placeholder="e.g. Free coffee for all gold members"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="active" className="text-right">Status</Label>
-                <Select 
-                  value={formData.active ? 'active' : 'inactive'} 
-                  onValueChange={(value) => handleSelectChange('active', value === 'active')}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Create New Community Goal</CardTitle>
+        <CardDescription>
+          Define a new community goal for your members to contribute to.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Goal Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Free Coffee Day" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="targetPoints"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Target Points</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        min={100}
+                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        value={field.value}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <DialogFooter>
-              <Button 
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Help us reach our goal for a community-wide free coffee day!"
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="icon"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Icon</FormLabel>
+                    <FormControl>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                        {...field}
+                      >
+                        {ICON_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="expiresAt"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Expiry Date (Optional)</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className="w-full flex justify-between items-center text-left font-normal"
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>No expiry date</span>
+                            )}
+                            <CalendarIcon className="h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date < new Date(new Date().setHours(0, 0, 0, 0))
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <FormField
+              control={form.control}
+              name="rewardDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Reward Description</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Free coffee for all loyalty members!"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="active"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Active Status</FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      Enable this goal for immediate display on the dashboard
+                    </p>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+        
+            <CardFooter className="flex justify-between px-0">
+              <Button
                 type="button" 
-                variant="outline" 
-                onClick={() => setDialogOpen(false)}
+                variant="outline"
+                onClick={() => navigate('/admin/community-goals')}
               >
                 Cancel
               </Button>
               <Button 
-                type="submit" 
+                type="submit"
                 className="bg-amber-700 hover:bg-amber-800"
-                disabled={isPending}
+                disabled={submitting}
               >
-                {isPending ? 'Creating...' : 'Create Goal'}
+                {submitting ? 'Creating...' : 'Create Goal'}
               </Button>
-            </DialogFooter>
+            </CardFooter>
           </form>
-        </DialogContent>
-      </Dialog>
-    </>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }
