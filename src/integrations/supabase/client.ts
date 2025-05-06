@@ -107,7 +107,7 @@ export async function incrementPointsWithReason(
     .insert({
       user_id: userId,
       points: sanitizedPointAmount,
-      transaction_type: 'earn',
+      transaction_type: 'earn' as Database['public']['Enums']['transaction_type'],
       notes: sanitizedReason,
       community_event_id: communityEventId || null
     });

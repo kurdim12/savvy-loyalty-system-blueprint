@@ -6,7 +6,7 @@ import { Users, Award, Recycle, Coffee, Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Define CommunityGoal interface based on what we know the structure is
+// Define CommunityGoal interface explicitly, not depending on Database type
 interface CommunityGoal {
   id: string;
   name: string;
@@ -16,6 +16,7 @@ interface CommunityGoal {
   expires_at: string;
   reward_description: string;
   icon: 'users' | 'award' | 'recycle' | 'coffee' | 'heart';
+  active?: boolean;
 }
 
 export default function CommunityGoals() {
@@ -26,9 +27,9 @@ export default function CommunityGoals() {
   useEffect(() => {
     const fetchCommunityGoals = async () => {
       try {
-        // Using type assertion since community_goals is not in the Database types
+        // Use type assertion for table not defined in Database type
         const { data, error } = await supabase
-          .from('community_goals')
+          .from('community_goals' as any)
           .select('*')
           .eq('active', true);
 
@@ -36,7 +37,7 @@ export default function CommunityGoals() {
 
         if (data) {
           // Type assertion because we know the shape
-          const formattedGoals = (data as unknown as CommunityGoal[]).map(goal => ({
+          const formattedGoals = (data as any[]).map(goal => ({
             ...goal,
             icon: goal.icon as 'users' | 'award' | 'recycle' | 'coffee' | 'heart'
           }));

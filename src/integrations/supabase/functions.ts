@@ -1,4 +1,3 @@
-
 // Helper functions for Supabase database interaction
 
 import { supabase } from './client';
@@ -119,7 +118,7 @@ export async function getCommunityGoalProgress(goalId: string): Promise<{current
   };
 
   const { data, error } = await supabase
-    .from('community_goals')
+    .from('community_goals' as any)
     .select('current_points, target_points')
     .eq('id', goalId)
     .single();
@@ -130,7 +129,7 @@ export async function getCommunityGoalProgress(goalId: string): Promise<{current
   }
   
   // Type assertion since we know the shape of the data
-  const goal = data as unknown as CommunityGoal;
+  const goal = data as CommunityGoal;
   
   return {
     current: goal.current_points || 0,
@@ -159,24 +158,47 @@ export async function contributeToGoal(userId: string, goalId: string, pointAmou
     return { error: new Error('Not enough points to contribute') };
   }
   
-  // Use a custom RPC function call instead (assuming this exists in your DB)
+  // Use a direct contribution method instead of relying on RPC
   try {
-    const { error: transactionError } = await supabase.rpc(
-      'contribute_to_goal', 
-      {
-        p_user_id: userId,
-        p_goal_id: goalId,
-        p_point_amount: pointAmount
-      } as any
-    );
+    // Update the user's points first
+    const { error: decrementError } = await decrementPoints(userId, pointAmount);
+    if (decrementError) {
+      return { error: decrementError };
+    }
+    
+    // Then update the community goal
+    const { error: updateGoalError } = await supabase
+      .from('community_goals' as any)
+      .update({ 
+        current_points: supabase.rpc('get_community_goal_points', { p_goal_id: goalId } as any) + pointAmount 
+      })
+      .eq('id', goalId);
+    
+    if (updateGoalError) {
+      // If there was an error, attempt to restore the user's points
+      await incrementPoints(userId, pointAmount);
+      return { error: updateGoalError };
+    }
+
+    // Create a transaction record
+    const { error: transactionError } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: userId,
+        points: pointAmount,
+        transaction_type: 'redeem' as Database['public']['Enums']['transaction_type'],
+        notes: `Contributed ${pointAmount} points to community goal`,
+        community_event_id: goalId
+      });
     
     if (transactionError) {
-      return { error: transactionError };
+      console.error('Error recording transaction:', transactionError);
+      // We don't revert the points here as the contribution was successful
     }
     
     return { error: null };
   } catch (error) {
-    console.error('Error calling contribute_to_goal:', error);
+    console.error('Error contributing to goal:', error);
     return { error: new Error('Failed to contribute to goal') };
   }
 }
