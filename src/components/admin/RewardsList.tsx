@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -45,6 +44,7 @@ import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Database } from '@/integrations/supabase/types';
 
 // Define the reward schema for validation
 const rewardSchema = z.object({
@@ -63,7 +63,7 @@ interface Reward {
   name: string;
   description?: string;
   points_required: number;
-  membership_required?: 'bronze' | 'silver' | 'gold';
+  membership_required?: Database['public']['Enums']['membership_tier'];
   inventory?: number;
   active: boolean;
   created_at: string;
@@ -110,23 +110,25 @@ const RewardsList = () => {
         .order('points_required', { ascending: true });
       
       if (error) throw error;
-      return data as Reward[];
+      return data as unknown as Reward[];
     }
   });
   
   // Create a new reward
   const createReward = useMutation({
     mutationFn: async (data: RewardFormData) => {
+      const rewardData = {
+        name: data.name,
+        description: data.description || null,
+        points_required: data.points_required,
+        membership_required: data.membership_required || null,
+        inventory: data.inventory || null,
+        active: data.active,
+      };
+      
       const { error } = await supabase
         .from('rewards')
-        .insert({
-          name: data.name,
-          description: data.description || null,
-          points_required: data.points_required,
-          membership_required: data.membership_required || null,
-          inventory: data.inventory || null,
-          active: data.active,
-        });
+        .insert(rewardData as any);
       
       if (error) throw error;
     },
@@ -146,17 +148,19 @@ const RewardsList = () => {
     mutationFn: async (data: RewardFormData & { id: string }) => {
       const { id, ...rewardData } = data;
       
+      const updatedData = {
+        name: rewardData.name,
+        description: rewardData.description || null,
+        points_required: rewardData.points_required,
+        membership_required: rewardData.membership_required || null,
+        inventory: rewardData.inventory || null,
+        active: rewardData.active,
+        updated_at: new Date().toISOString()
+      };
+      
       const { error } = await supabase
         .from('rewards')
-        .update({
-          name: rewardData.name,
-          description: rewardData.description || null,
-          points_required: rewardData.points_required,
-          membership_required: rewardData.membership_required || null,
-          inventory: rewardData.inventory || null,
-          active: rewardData.active,
-          updated_at: new Date().toISOString()
-        })
+        .update(updatedData as any)
         .eq('id', id);
       
       if (error) throw error;

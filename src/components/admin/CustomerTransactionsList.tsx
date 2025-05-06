@@ -27,7 +27,7 @@ interface CustomerTransactionsListProps {
 type Transaction = {
   id: string;
   user_id: string;
-  transaction_type: 'earn' | 'redeem';
+  transaction_type: Database['public']['Enums']['transaction_type'];
   points: number;
   created_at: string;
   notes?: string;
@@ -42,11 +42,11 @@ const CustomerTransactionsList = ({ customerId }: CustomerTransactionsListProps)
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
-        .eq('user_id', customerId as string)
+        .eq('user_id', customerId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Transaction[];
+      return data as unknown as Transaction[];
     },
     enabled: !!customerId
   });

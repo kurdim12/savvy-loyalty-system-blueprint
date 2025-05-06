@@ -52,15 +52,18 @@ const ManagePointsDialog = ({
     mutationFn: async () => {
       if (!customerId) return;
       
+      // Use type assertion to correctly type the transaction data
+      const transactionData = {
+        user_id: customerId,
+        transaction_type: transactionType,
+        points: points,
+        notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} points manually by admin`,
+      };
+      
       // Step 1: Create the transaction
       const { data: transaction, error: transactionError } = await supabase
         .from('transactions')
-        .insert({
-          user_id: customerId,
-          transaction_type: transactionType as Database['public']['Enums']['transaction_type'],
-          points: points,
-          notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} points manually by admin`,
-        })
+        .insert(transactionData as any)
         .select();
       
       if (transactionError) throw transactionError;

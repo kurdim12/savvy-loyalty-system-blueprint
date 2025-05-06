@@ -69,7 +69,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
       const query = supabase
         .from('profiles')
         .select('id, first_name, last_name, email')
-        .eq('role', 'customer' as Database['public']['Enums']['user_role']);
+        .eq('role', 'customer');
         
       // Apply search filter if provided
       if (customerSearchQuery) {
@@ -96,15 +96,18 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
         throw new Error('Points must be greater than 0');
       }
       
+      // Use type assertion for the transaction data
+      const transactionData = {
+        user_id: customerId,
+        transaction_type: transactionType,
+        points: finalPoints,
+        notes: notes || `${transactionType === 'earn' ? 'Earned' : 'Redeemed'} ${finalPoints} points`,
+      };
+      
       // Step 1: Create the transaction
       const { data: transaction, error: transactionError } = await supabase
         .from('transactions')
-        .insert({
-          user_id: customerId,
-          transaction_type: transactionType as Database['public']['Enums']['transaction_type'],
-          points: finalPoints,
-          notes: notes || `${transactionType === 'earn' ? 'Earned' : 'Redeemed'} ${finalPoints} points`,
-        })
+        .insert(transactionData as any)
         .select();
       
       if (transactionError) throw transactionError;

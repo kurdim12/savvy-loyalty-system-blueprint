@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -36,7 +37,7 @@ export interface Customer {
   last_name: string;
   email: string;
   current_points: number;
-  membership_tier: string;
+  membership_tier: Database['public']['Enums']['membership_tier'];
   visits: number;
   created_at: string;
 }
@@ -57,7 +58,7 @@ const CustomersList = ({ onManagePoints, onSelectCustomer }: CustomersListProps)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('role', 'customer' as Database['public']['Enums']['user_role'])
+        .eq('role', 'customer')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
