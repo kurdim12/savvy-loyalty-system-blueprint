@@ -2,6 +2,7 @@
 // Helper functions for Supabase database interaction
 
 import { supabase } from './client';
+import type { Database } from './types';
 
 // User Points & Visits
 export async function getUserPoints(userId: string): Promise<number> {
@@ -44,8 +45,8 @@ export async function incrementPoints(userId: string, pointAmount: number) {
   const newPoints = profile.current_points + pointAmount;
   const newVisits = pointAmount > 0 ? profile.visits + 1 : profile.visits;
   
-  // Determine tier based on new points
-  let newTier = 'bronze';
+  // Determine tier based on new points using the correct type
+  let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
   if (newPoints >= 550) {
     newTier = 'gold';
   } else if (newPoints >= 200) {
