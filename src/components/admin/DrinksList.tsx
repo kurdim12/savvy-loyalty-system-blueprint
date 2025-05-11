@@ -102,8 +102,14 @@ const DrinksList = () => {
         }
       });
     } else {
-      // Create new drink
-      createDrink.mutate(values, {
+      // Create new drink - Fix: Ensure all required fields are present
+      createDrink.mutate({
+        name: values.name, // This ensures name is always provided
+        points_earned: values.points_earned,
+        category: values.category,
+        price: values.price,
+        active: values.active
+      }, {
         onSuccess: () => {
           setDialogOpen(false);
         }
