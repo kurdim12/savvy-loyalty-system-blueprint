@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bar, Line, Pie } from 'recharts';
@@ -242,7 +241,6 @@ const AdminDashboard = () => {
                 >
                   <Line 
                     data={pointsChartData}
-                    margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
                   >
                     <ChartTooltip content={<ChartTooltipContent />} />
                     {/* Add additional chart components here if needed */}

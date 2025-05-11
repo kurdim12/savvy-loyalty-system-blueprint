@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
@@ -40,7 +40,7 @@ function App() {
             <Route path="/admin/drinks" element={<DrinksList />} />
             
             {/* User routes with Layout */}
-            <Route path="/" element={<Layout />}>
+            <Route path="/" element={<Layout><Outlet /></Layout>}>
               <Route index element={<Index />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
