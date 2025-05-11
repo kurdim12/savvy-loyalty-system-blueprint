@@ -1,105 +1,142 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { 
-  fetchActiveDrinks, 
-  fetchAllDrinks,
-  createNewDrink,
-  updateExistingDrink,
-  removeExistingDrink,
-  type Drink,
-  type CreateDrinkInput,
-  type UpdateDrinkInput
-} from '@/services/drinks';
+  createDrink as createDrinkApi, 
+  updateDrink as updateDrinkApi, 
+  deleteDrink as deleteDrinkApi
+} from '@/integrations/supabase/functions';
 import { toast } from 'sonner';
 
-// Query keys for React Query
-export const drinksKeys = {
-  all: ['drinks'] as const,
-  lists: () => [...drinksKeys.all, 'list'] as const,
-  list: (filters: Record<string, unknown> = {}) => [
-    ...drinksKeys.lists(),
-    filters
-  ] as const,
-  actives: () => [...drinksKeys.all, 'active'] as const,
-  details: () => [...drinksKeys.all, 'detail'] as const,
-  detail: (id: string) => [...drinksKeys.details(), id] as const,
+export type Drink = {
+  id: string;
+  name: string;
+  points_earned: number;
+  category?: string | null;
+  price?: number | null;
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
 };
 
-/**
- * Hook to fetch all active drinks
- */
-export function useActiveDrinks() {
-  return useQuery({
-    queryKey: drinksKeys.actives(),
-    queryFn: fetchActiveDrinks,
-  });
-}
+export type CreateDrinkInput = {
+  name: string;
+  points_earned: number;
+  category?: string;
+  price?: number;
+  active?: boolean;
+};
 
-/**
- * Hook to fetch all drinks (for admin)
- */
+export type UpdateDrinkInput = {
+  id: string;
+  name?: string;
+  points_earned?: number;
+  category?: string;
+  price?: number;
+  active?: boolean;
+};
+
+// Get all drinks
 export function useAllDrinks() {
   return useQuery({
-    queryKey: drinksKeys.lists(),
-    queryFn: fetchAllDrinks,
+    queryKey: ['drinks', 'all'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('drinks')
+        .select('*')
+        .order('name');
+      
+      if (error) {
+        toast.error('Failed to load drinks');
+        throw error;
+      }
+      
+      return data as Drink[];
+    }
   });
 }
 
-/**
- * Hook to create a new drink
- */
+// Get active drinks
+export function useActiveDrinks() {
+  return useQuery({
+    queryKey: ['drinks', 'active'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('drinks')
+        .select('*')
+        .eq('active', true)
+        .order('name');
+      
+      if (error) {
+        toast.error('Failed to load drinks');
+        throw error;
+      }
+      
+      return data as Drink[];
+    }
+  });
+}
+
+// Create drink
 export function useCreateDrink() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (drink: CreateDrinkInput) => createNewDrink(drink),
+    mutationFn: async (drinkData: CreateDrinkInput) => {
+      const { data, error } = await createDrinkApi(drinkData);
+      
+      if (error) {
+        toast.error(`Failed to create drink: ${error.message}`);
+        throw error;
+      }
+      
+      return data;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: drinksKeys.lists() });
-      toast.success('Drink created successfully');
-    },
-    onError: (error) => {
-      console.error('Failed to create drink:', error);
-      toast.error(`Failed to create drink: ${(error as Error).message}`);
-    },
+      queryClient.invalidateQueries({ queryKey: ['drinks'] });
+    }
   });
 }
 
-/**
- * Hook to update an existing drink
- */
+// Update drink
 export function useUpdateDrink() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (drink: UpdateDrinkInput) => updateExistingDrink(drink),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: drinksKeys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: drinksKeys.lists() });
-      toast.success('Drink updated successfully');
+    mutationFn: async (drinkData: UpdateDrinkInput) => {
+      const { id, ...updateData } = drinkData;
+      const { data, error } = await updateDrinkApi(id, updateData);
+      
+      if (error) {
+        toast.error(`Failed to update drink: ${error.message}`);
+        throw error;
+      }
+      
+      return data;
     },
-    onError: (error) => {
-      console.error('Failed to update drink:', error);
-      toast.error(`Failed to update drink: ${(error as Error).message}`);
-    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['drinks'] });
+    }
   });
 }
 
-/**
- * Hook to delete a drink
- */
+// Delete drink
 export function useDeleteDrink() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (id: string) => removeExistingDrink(id),
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: drinksKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: drinksKeys.lists() });
-      toast.success('Drink deleted successfully');
+    mutationFn: async (id: string) => {
+      const { data, error } = await deleteDrinkApi(id);
+      
+      if (error) {
+        toast.error(`Failed to delete drink: ${error.message}`);
+        throw error;
+      }
+      
+      return data;
     },
-    onError: (error) => {
-      console.error('Failed to delete drink:', error);
-      toast.error(`Failed to delete drink: ${(error as Error).message}`);
-    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['drinks'] });
+    }
   });
 }
