@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { CoffeeIcon, Award, Clock, AlertTriangle, Users } from 'lucide-react';
 import CommunityGoalsList from '@/components/community/CommunityGoalsList';
 import ReferFriend from '@/components/loyalty/ReferFriend';
+import RankBenefits from '@/components/loyalty/RankBenefits';
+import { getDiscountRate } from '@/integrations/supabase/functions';
 
 const Dashboard = () => {
   const { profile, communityPoints } = useAuth();
@@ -77,15 +80,6 @@ const Dashboard = () => {
       year: 'numeric',
     });
   };
-  
-  const getDiscountRate = (tier: string) => {
-    switch(tier) {
-      case 'bronze': return '10%';
-      case 'silver': return '15%';
-      case 'gold': return '25%';
-      default: return '0%';
-    }
-  };
 
   return (
     <Layout>
@@ -123,7 +117,7 @@ const Dashboard = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-amber-900">Discount Rate:</span>
-                  <span>{getDiscountRate(currentMembership)}</span>
+                  <span>{getDiscountRate(currentMembership)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-amber-900">Total Visits:</span>
@@ -228,6 +222,14 @@ const Dashboard = () => {
         </div>
         
         <div className="grid gap-6 lg:grid-cols-2">
+          <RankBenefits 
+            currentPoints={profile?.current_points || 0}
+            membershipTier={profile?.membership_tier || 'bronze'}
+          />
+          <ReferFriend />
+        </div>
+        
+        <div className="grid gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -240,7 +242,6 @@ const Dashboard = () => {
               <CommunityGoalsList />
             </CardContent>
           </Card>
-          <ReferFriend />
         </div>
       </div>
     </Layout>

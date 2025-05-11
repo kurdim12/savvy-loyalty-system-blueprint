@@ -1,3 +1,4 @@
+
 // Helper functions for Supabase database interaction
 
 import { supabase } from './client';
@@ -96,11 +97,20 @@ export async function decrementPoints(userId: string, pointAmount: number) {
   // Calculate new points (never below 0)
   const newPoints = Math.max(0, profile.current_points - sanitizedPointAmount);
   
+  // Update profile and possibly adjust membership tier
+  let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
+  if (newPoints >= 550) {
+    newTier = 'gold';
+  } else if (newPoints >= 200) {
+    newTier = 'silver';
+  }
+  
   // Update profile
   const { error: updateError } = await supabase
     .from('profiles')
     .update({
       current_points: newPoints,
+      membership_tier: newTier,
       updated_at: new Date().toISOString()
     })
     .eq('id', userId);
@@ -236,4 +246,146 @@ export async function verifyAdminCredentials(email: string, password: string) {
     console.error('Error during admin verification:', err);
     return { success: false, error: 'Authentication system error' };
   }
+}
+
+/**
+ * Get discount rate based on membership tier
+ */
+export function getDiscountRate(tier: Database['public']['Enums']['membership_tier']): number {
+  switch(tier) {
+    case 'gold': return 25;
+    case 'silver': return 15;
+    case 'bronze': return 10;
+    default: return 0;
+  }
+}
+
+/**
+ * Get all available drinks
+ */
+export async function getDrinks() {
+  const { data, error } = await supabase
+    .from('drinks')
+    .select('*')
+    .eq('active', true)
+    .order('points_earned', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching drinks:', error);
+    return { error };
+  }
+  
+  return { data };
+}
+
+/**
+ * Get all drinks (admin function)
+ */
+export async function getAllDrinks() {
+  const { data, error } = await supabase
+    .from('drinks')
+    .select('*')
+    .order('name');
+  
+  if (error) {
+    console.error('Error fetching all drinks:', error);
+    return { error };
+  }
+  
+  return { data };
+}
+
+/**
+ * Update a drink (admin function)
+ */
+export async function updateDrink(id: string, drinkData: any) {
+  const { data, error } = await supabase
+    .from('drinks')
+    .update({
+      name: drinkData.name,
+      category: drinkData.category,
+      points_earned: drinkData.points_earned,
+      price: drinkData.price,
+      active: drinkData.active,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Error updating drink:', error);
+    return { error };
+  }
+  
+  return { data };
+}
+
+/**
+ * Create a new drink (admin function)
+ */
+export async function createDrink(drinkData: any) {
+  const { data, error } = await supabase
+    .from('drinks')
+    .insert({
+      name: drinkData.name,
+      category: drinkData.category,
+      points_earned: drinkData.points_earned,
+      price: drinkData.price,
+      active: drinkData.active || true
+    });
+  
+  if (error) {
+    console.error('Error creating drink:', error);
+    return { error };
+  }
+  
+  return { data };
+}
+
+/**
+ * Delete a drink (admin function)
+ */
+export async function deleteDrink(id: string) {
+  const { data, error } = await supabase
+    .from('drinks')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Error deleting drink:', error);
+    return { error };
+  }
+  
+  return { data };
+}
+
+/**
+ * Helper function to calculate if a redemption would cause a rank downgrade
+ */
+export function wouldCauseRankDowngrade(currentPoints: number, pointsToRedeem: number): {
+  wouldDowngrade: boolean;
+  currentTier: Database['public']['Enums']['membership_tier'];
+  newTier: Database['public']['Enums']['membership_tier'];
+} {
+  // Determine current tier
+  let currentTier: Database['public']['Enums']['membership_tier'] = 'bronze';
+  if (currentPoints >= 550) {
+    currentTier = 'gold';
+  } else if (currentPoints >= 200) {
+    currentTier = 'silver';
+  }
+  
+  // Calculate new tier after redemption
+  const newPoints = Math.max(0, currentPoints - pointsToRedeem);
+  let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
+  if (newPoints >= 550) {
+    newTier = 'gold';
+  } else if (newPoints >= 200) {
+    newTier = 'silver';
+  }
+  
+  return {
+    wouldDowngrade: currentTier !== newTier,
+    currentTier,
+    newTier
+  };
 }

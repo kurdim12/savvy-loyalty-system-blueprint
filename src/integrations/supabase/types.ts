@@ -54,6 +54,39 @@ export type Database = {
         }
         Relationships: []
       }
+      drinks: {
+        Row: {
+          active: boolean | null
+          category: string | null
+          created_at: string | null
+          id: string
+          name: string
+          points_earned: number
+          price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          points_earned?: number
+          price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          points_earned?: number
+          price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           birthday: string | null
@@ -192,7 +225,9 @@ export type Database = {
       rewards: {
         Row: {
           active: boolean
+          category: string | null
           created_at: string
+          cupping_score_min: number | null
           description: string | null
           id: string
           inventory: number | null
@@ -205,7 +240,9 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          category?: string | null
           created_at?: string
+          cupping_score_min?: number | null
           description?: string | null
           id?: string
           inventory?: number | null
@@ -218,7 +255,9 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          category?: string | null
           created_at?: string
+          cupping_score_min?: number | null
           description?: string | null
           id?: string
           inventory?: number | null
