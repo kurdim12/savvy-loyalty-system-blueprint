@@ -168,6 +168,13 @@ const Auth = () => {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100 p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/logo.png" 
+              alt="Raw Smith Coffee" 
+              className="h-16 md:h-20" 
+            />
+          </div>
           <CardTitle className="text-2xl font-bold text-amber-900">Raw Smith Coffee</CardTitle>
           <CardDescription>Loyalty Program</CardDescription>
         </CardHeader>
@@ -224,7 +231,7 @@ const Auth = () => {
                 
                 <div className="flex w-full justify-center">
                   <Link 
-                    to="/admin-login" 
+                    to="/admin/login" 
                     className="text-sm text-amber-700 hover:text-amber-900 hover:underline"
                   >
                     Admin Login
@@ -313,7 +320,7 @@ const Auth = () => {
                 
                 <div className="flex w-full justify-center">
                   <Link 
-                    to="/admin-login" 
+                    to="/admin/login" 
                     className="text-sm text-amber-700 hover:text-amber-900 hover:underline"
                   >
                     Admin Login

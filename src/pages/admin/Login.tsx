@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { verifyAdminCredentials } from '@/integrations/supabase/functions';
@@ -21,6 +20,10 @@ const loginFormSchema = z.object({
   email: z.string().email("Valid email required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
+
+// Hardcoded admin credentials as per requirements
+const DEFAULT_ADMIN_EMAIL = "admin@rawsmithcoffee.com";
+const DEFAULT_ADMIN_PASSWORD = "RawSmith2024!";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -61,8 +64,62 @@ const AdminLogin = () => {
       
       cleanupAuthState();
       
-      // Use the improved verifyAdminCredentials function
-      const result = await verifyAdminCredentials(values.email, values.password);
+      // Check if using default admin credentials
+      const isDefaultAdmin = 
+        values.email === DEFAULT_ADMIN_EMAIL && 
+        values.password === DEFAULT_ADMIN_PASSWORD;
+      
+      let result;
+      
+      if (isDefaultAdmin) {
+        // For default admin, we'll always try to authenticate and create if needed
+        try {
+          // First try to sign in with default credentials
+          result = await verifyAdminCredentials(DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PASSWORD);
+          
+          // If login fails but it's because the user doesn't exist, create the admin account
+          if (!result.success && result.error?.includes("Invalid login credentials")) {
+            // Create default admin account
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+              email: DEFAULT_ADMIN_EMAIL,
+              password: DEFAULT_ADMIN_PASSWORD,
+              options: {
+                data: {
+                  first_name: "Admin",
+                  last_name: "User",
+                }
+              }
+            });
+            
+            if (signUpError) {
+              console.error("Error creating default admin:", signUpError);
+              throw signUpError;
+            }
+            
+            if (signUpData.user) {
+              // Set the user's role to admin
+              const { error: updateError } = await supabase
+                .from('profiles')
+                .update({ role: 'admin' })
+                .eq('id', signUpData.user.id);
+                
+              if (updateError) {
+                console.error("Error setting admin role:", updateError);
+                throw updateError;
+              }
+              
+              // Try logging in again
+              result = await verifyAdminCredentials(DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PASSWORD);
+            }
+          }
+        } catch (err) {
+          console.error("Error with default admin:", err);
+          result = { success: false, error: "Error processing default admin" };
+        }
+      } else {
+        // Regular login attempt
+        result = await verifyAdminCredentials(values.email, values.password);
+      }
       
       if (result.success) {
         // Refresh profile to ensure admin status is reflected
@@ -90,11 +147,27 @@ const AdminLogin = () => {
   const onSubmit = async (values: z.infer<typeof loginFormSchema>) => {
     await handleLogin(values);
   };
+
+  const loginWithDefaultAdmin = () => {
+    form.setValue("email", DEFAULT_ADMIN_EMAIL);
+    form.setValue("password", DEFAULT_ADMIN_PASSWORD);
+    handleLogin({
+      email: DEFAULT_ADMIN_EMAIL,
+      password: DEFAULT_ADMIN_PASSWORD
+    });
+  };
   
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100 p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/logo.png" 
+              alt="Raw Smith Coffee" 
+              className="h-16 md:h-20" 
+            />
+          </div>
           <CardTitle className="text-2xl font-bold text-amber-900">Admin Login</CardTitle>
           <CardDescription>Secure access for Raw Smith Coffee administrators</CardDescription>
         </CardHeader>
@@ -116,7 +189,7 @@ const AdminLogin = () => {
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="admin@rawsmith.coffee" 
+                        placeholder="admin@rawsmithcoffee.com" 
                         {...field} 
                         type="email"
                         autoComplete="username"
@@ -153,8 +226,26 @@ const AdminLogin = () => {
               >
                 {loading ? 'Logging In...' : 'Login'}
               </Button>
+              
+              <div className="text-center mt-2">
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-amber-700 hover:text-amber-900"
+                  onClick={loginWithDefaultAdmin}
+                  disabled={loading}
+                >
+                  Use Default Admin Credentials
+                </Button>
+              </div>
             </form>
           </Form>
+          
+          <div className="text-center text-sm text-gray-500 mt-4">
+            <p>Default credentials:</p>
+            <p>Email: admin@rawsmithcoffee.com</p>
+            <p>Password: RawSmith2024!</p>
+          </div>
         </CardContent>
       </Card>
     </div>
