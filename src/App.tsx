@@ -35,42 +35,15 @@ function App() {
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             
-            {/* Authenticated routes */}
-            <Route path="/" element={
-              <Layout>
-                <Index />
-              </Layout>
-            } />
-            <Route path="/dashboard" element={
-              <Layout>
-                <Dashboard />
-              </Layout>
-            } />
-            <Route path="/profile" element={
-              <Layout>
-                <Profile />
-              </Layout>
-            } />
-            <Route path="/rewards" element={
-              <Layout>
-                <Rewards />
-              </Layout>
-            } />
+            {/* Authenticated routes - directly using components without nesting them in Layout */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/rewards" element={<Rewards />} />
             
             {/* Admin routes */}
-            <Route path="/admin" element={
-              <Layout adminOnly={true}>
-                <AdminDashboard />
-              </Layout>
-            } />
-            <Route path="/admin/drinks" element={
-              <Layout adminOnly={true}>
-                <DrinksList />
-              </Layout>
-            } />
-            
-            {/* Redirect root to dashboard */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/drinks" element={<DrinksList />} />
             
             {/* Fallback route */}
             <Route path="*" element={<NotFound />} />
