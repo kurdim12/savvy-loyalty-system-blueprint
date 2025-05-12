@@ -18,6 +18,8 @@ interface AuthContextType {
   // Add community-specific properties
   communityPoints?: number;
   membershipTier: Database['public']['Enums']['membership_tier'];
+  // Add updateProfile function
+  updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
 
 const AUTH_SESSION_CHECK_INTERVAL = 60000; // 1 minute
@@ -151,6 +153,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Add the updateProfile function
+  const updateProfile = async (updates: Partial<Profile>) => {
+    if (!user?.id) {
+      throw new Error('User not authenticated');
+    }
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', user.id);
+      
+    if (error) {
+      throw error;
+    }
+    
+    // Refresh the profile after updating
+    await refreshProfile();
+  };
+
   const signOut = async () => {
     // Clean up auth state first
     cleanupAuthState();
@@ -182,6 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshProfile,
     communityPoints,
     membershipTier,
+    updateProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

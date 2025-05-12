@@ -61,13 +61,14 @@ const Rewards = () => {
     
     setRedeeming(rewardId);
     try {
-      // Create redemption record
+      // Create redemption record - now with pointsCost included as points_spent
       const { error: redemptionError } = await supabase
         .from('redemptions')
         .insert({
           user_id: profile.id,
           reward_id: rewardId,
-          status: 'pending'
+          status: 'pending',
+          points_spent: pointsCost // Add the required points_spent field
         });
         
       if (redemptionError) throw redemptionError;
