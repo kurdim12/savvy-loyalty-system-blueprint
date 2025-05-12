@@ -12,7 +12,7 @@ const Header = () => {
       <div className="container mx-auto px-4 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <img src="/logo.png" alt="Raw Smith Coffee" className="h-8 w-auto mr-2" />
+            <img src="/lovable-uploads/8d4d71ac-a5a9-4e5d-92d5-3083e04eeda7.png" alt="Raw Smith Coffee" className="h-8 w-auto mr-2" />
             <h1 className="text-xl font-bold text-white">Raw Smith Coffee</h1>
           </div>
 

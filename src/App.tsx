@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
@@ -33,19 +33,44 @@ function App() {
           <Routes>
             {/* Public routes */}
             <Route path="/auth" element={<Auth />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            
+            {/* Authenticated routes */}
+            <Route path="/" element={
+              <Layout>
+                <Index />
+              </Layout>
+            } />
+            <Route path="/dashboard" element={
+              <Layout>
+                <Dashboard />
+              </Layout>
+            } />
+            <Route path="/profile" element={
+              <Layout>
+                <Profile />
+              </Layout>
+            } />
+            <Route path="/rewards" element={
+              <Layout>
+                <Rewards />
+              </Layout>
+            } />
             
             {/* Admin routes */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/drinks" element={<DrinksList />} />
+            <Route path="/admin" element={
+              <Layout adminOnly={true}>
+                <AdminDashboard />
+              </Layout>
+            } />
+            <Route path="/admin/drinks" element={
+              <Layout adminOnly={true}>
+                <DrinksList />
+              </Layout>
+            } />
             
-            {/* User routes with Layout */}
-            <Route path="/" element={<Layout><Outlet /></Layout>}>
-              <Route index element={<Index />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/rewards" element={<Rewards />} />
-            </Route>
+            {/* Redirect root to dashboard */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             
             {/* Fallback route */}
             <Route path="*" element={<NotFound />} />
