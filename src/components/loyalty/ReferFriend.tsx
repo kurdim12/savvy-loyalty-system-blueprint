@@ -129,20 +129,20 @@ export default function ReferFriend() {
   };
   
   return (
-    <Card>
+    <Card className="border-[#8B4513]/20">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Share2 className="h-5 w-5 text-amber-700" />
+        <CardTitle className="flex items-center gap-2 text-[#8B4513]">
+          <Share2 className="h-5 w-5 text-[#8B4513]" />
           Refer a Friend
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-[#6F4E37]">
           Invite friends to join Raw Smith Coffee and earn 15 bonus points when they sign up!
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Friend's Email Address</Label>
+            <Label htmlFor="email" className="text-[#6F4E37]">Friend's Email Address</Label>
             <Input
               id="email"
               type="email"
@@ -150,11 +150,12 @@ export default function ReferFriend() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="friend@example.com"
               required
+              className="border-[#8B4513]/20 focus:border-[#8B4513] focus:ring-[#8B4513]"
             />
           </div>
           <Button 
             type="submit" 
-            className="w-full bg-amber-700 hover:bg-amber-800"
+            className="w-full bg-[#8B4513] hover:bg-[#6F4E37] text-white"
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Sending...' : 'Send Invitation'}
@@ -164,15 +165,15 @@ export default function ReferFriend() {
       <CardFooter className="flex flex-col space-y-2 pt-0">
         <div className="relative w-full">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+            <div className="w-full border-t border-[#8B4513]/20"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-2 text-gray-500">Or</span>
+            <span className="bg-white px-2 text-[#6F4E37]">Or</span>
           </div>
         </div>
         <Button 
           variant="outline" 
-          className="w-full" 
+          className="w-full border-[#8B4513]/20 text-[#8B4513] hover:bg-[#FFF8DC] hover:text-[#6F4E37]" 
           onClick={handleShareLink}
         >
           Share Referral Link

@@ -51,8 +51,8 @@ export default function Layout({
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-amber-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-amber-700 border-t-transparent"></div>
+      <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent"></div>
       </div>
     );
   }
@@ -60,12 +60,12 @@ export default function Layout({
   // Skip auth check if requireAuthenticatedUser is false
   if (!requireAuthenticatedUser) {
     return (
-      <div className="flex min-h-screen flex-col bg-amber-50">
+      <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
         <Header />
         <main className="flex-1 p-4 md:p-6 container mx-auto">
           {children}
         </main>
-        <footer className="py-4 px-6 text-center text-sm text-amber-700 border-t">
+        <footer className="py-4 px-6 text-center text-sm text-[#6F4E37] border-t border-[#8B4513]/10">
           &copy; {new Date().getFullYear()} Raw Smith Coffee Loyalty Program
         </footer>
       </div>
@@ -124,12 +124,12 @@ export default function Layout({
 
   // All checks passed, render the layout with appropriate header
   return (
-    <div className="flex min-h-screen flex-col bg-amber-50">
+    <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
       <Header />
       <main className="flex-1 p-4 md:p-6 container mx-auto">
         {children}
       </main>
-      <footer className="py-4 px-6 text-center text-sm text-amber-700 border-t">
+      <footer className="py-4 px-6 text-center text-sm text-[#6F4E37] border-t border-[#8B4513]/10">
         &copy; {new Date().getFullYear()} Raw Smith Coffee Loyalty Program
       </footer>
     </div>

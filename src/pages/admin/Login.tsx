@@ -158,18 +158,18 @@ const AdminLogin = () => {
   };
   
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100 p-4">
-      <Card className="w-full max-w-md shadow-lg">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#FAF6F0] to-[#FFF8DC] p-4">
+      <Card className="w-full max-w-md shadow-lg border-[#8B4513]/20">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <img 
               src="/logo.png" 
               alt="Raw Smith Coffee" 
-              className="h-16 md:h-20" 
+              className="h-24 md:h-28 w-auto" 
             />
           </div>
-          <CardTitle className="text-2xl font-bold text-amber-900">Admin Login</CardTitle>
-          <CardDescription>Secure access for Raw Smith Coffee administrators</CardDescription>
+          <CardTitle className="text-2xl font-bold text-[#8B4513]">Admin Login</CardTitle>
+          <CardDescription className="text-[#6F4E37]">Secure access for Raw Smith Coffee administrators</CardDescription>
         </CardHeader>
         
         <CardContent className="space-y-4">
@@ -186,13 +186,14 @@ const AdminLogin = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-[#6F4E37]">Email</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="admin@rawsmithcoffee.com" 
                         {...field} 
                         type="email"
                         autoComplete="username"
+                        className="border-[#8B4513]/20 focus:border-[#8B4513] focus:ring-[#8B4513]"
                       />
                     </FormControl>
                     <FormMessage />
@@ -205,13 +206,14 @@ const AdminLogin = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel className="text-[#6F4E37]">Password</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="••••••••" 
                         {...field} 
                         type="password"
                         autoComplete="current-password" 
+                        className="border-[#8B4513]/20 focus:border-[#8B4513] focus:ring-[#8B4513]"
                       />
                     </FormControl>
                     <FormMessage />
@@ -221,7 +223,7 @@ const AdminLogin = () => {
               
               <Button 
                 type="submit"
-                className="w-full bg-amber-700 hover:bg-amber-800"
+                className="w-full bg-[#8B4513] hover:bg-[#6F4E37]"
                 disabled={loading}
               >
                 {loading ? 'Logging In...' : 'Login'}
@@ -231,7 +233,7 @@ const AdminLogin = () => {
                 <Button
                   type="button"
                   variant="link"
-                  className="text-amber-700 hover:text-amber-900"
+                  className="text-[#8B4513] hover:text-[#6F4E37]"
                   onClick={loginWithDefaultAdmin}
                   disabled={loading}
                 >
@@ -241,7 +243,7 @@ const AdminLogin = () => {
             </form>
           </Form>
           
-          <div className="text-center text-sm text-gray-500 mt-4">
+          <div className="text-center text-sm text-[#6F4E37] mt-4">
             <p>Default credentials:</p>
             <p>Email: admin@rawsmithcoffee.com</p>
             <p>Password: RawSmith2024!</p>

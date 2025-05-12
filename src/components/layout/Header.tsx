@@ -8,12 +8,12 @@ const Header = () => {
   const { signOut, isAdmin } = useAuth();
 
   return (
-    <header className="bg-amber-800 text-white shadow-md">
+    <header className="bg-[#8B4513] text-white shadow-md">
       <div className="container mx-auto px-4 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Coffee className="h-6 w-6 mr-2" />
-            <h1 className="text-xl font-bold">Raw Smith Coffee</h1>
+            <img src="/logo.png" alt="Raw Smith Coffee" className="h-8 w-auto mr-2" />
+            <h1 className="text-xl font-bold text-white">Raw Smith Coffee</h1>
           </div>
 
           <nav className="hidden md:flex space-x-4">
@@ -21,7 +21,7 @@ const Header = () => {
               to="/dashboard" 
               className={({ isActive }) => 
                 `flex items-center px-3 py-2 rounded-md transition-colors ${
-                  isActive ? 'bg-amber-900 text-white' : 'hover:bg-amber-700'
+                  isActive ? 'bg-[#6F4E37] text-white' : 'hover:bg-[#6F4E37]'
                 }`
               }
             >
@@ -32,7 +32,7 @@ const Header = () => {
               to="/rewards" 
               className={({ isActive }) => 
                 `flex items-center px-3 py-2 rounded-md transition-colors ${
-                  isActive ? 'bg-amber-900 text-white' : 'hover:bg-amber-700'
+                  isActive ? 'bg-[#6F4E37] text-white' : 'hover:bg-[#6F4E37]'
                 }`
               }
             >
@@ -43,7 +43,7 @@ const Header = () => {
               to="/profile" 
               className={({ isActive }) => 
                 `flex items-center px-3 py-2 rounded-md transition-colors ${
-                  isActive ? 'bg-amber-900 text-white' : 'hover:bg-amber-700'
+                  isActive ? 'bg-[#6F4E37] text-white' : 'hover:bg-[#6F4E37]'
                 }`
               }
             >
@@ -57,7 +57,7 @@ const Header = () => {
                 to="/admin" 
                 className={({ isActive }) => 
                   `flex items-center px-3 py-2 rounded-md transition-colors ${
-                    isActive ? 'bg-amber-900 text-white' : 'hover:bg-amber-700'
+                    isActive ? 'bg-[#6F4E37] text-white' : 'hover:bg-[#6F4E37]'
                   }`
                 }
               >
@@ -70,7 +70,7 @@ const Header = () => {
           <div className="flex items-center">
             <Button 
               variant="ghost" 
-              className="text-white hover:bg-amber-700" 
+              className="text-white hover:bg-[#6F4E37]" 
               onClick={signOut}
             >
               <LogOut className="h-4 w-4 mr-2" />

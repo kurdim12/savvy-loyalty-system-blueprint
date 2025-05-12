@@ -165,31 +165,41 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100 p-4">
-      <Card className="w-full max-w-md shadow-lg">
+    <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0] p-4">
+      <Card className="w-full max-w-md shadow-lg border-[#8B4513]/20">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <img 
               src="/logo.png" 
               alt="Raw Smith Coffee" 
-              className="h-16 md:h-20" 
+              className="h-24 md:h-28 w-auto" 
             />
           </div>
-          <CardTitle className="text-2xl font-bold text-amber-900">Raw Smith Coffee</CardTitle>
-          <CardDescription>Loyalty Program</CardDescription>
+          <CardTitle className="text-2xl font-bold text-[#8B4513]">Raw Smith Coffee</CardTitle>
+          <CardDescription className="text-[#6F4E37]">Loyalty Program</CardDescription>
         </CardHeader>
 
         <Tabs defaultValue="signin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-[#FFF8DC]">
+            <TabsTrigger 
+              value="signin" 
+              className="data-[state=active]:bg-[#8B4513] data-[state=active]:text-white"
+            >
+              Sign In
+            </TabsTrigger>
+            <TabsTrigger 
+              value="signup"
+              className="data-[state=active]:bg-[#8B4513] data-[state=active]:text-white"
+            >
+              Sign Up
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="signin">
             <form onSubmit={handleSignIn}>
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
+                  <Label htmlFor="signin-email" className="text-[#6F4E37]">Email</Label>
                   <Input 
                     id="signin-email" 
                     type="email" 
@@ -198,6 +208,7 @@ const Auth = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     autoComplete="email"
+                    className="border-[#8B4513]/20 focus:border-[#8B4513] focus:ring-[#8B4513]"
                     aria-invalid={validationErrors.email ? 'true' : 'false'}
                   />
                   {validationErrors.email && (
@@ -205,7 +216,7 @@ const Auth = () => {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
+                  <Label htmlFor="signin-password" className="text-[#6F4E37]">Password</Label>
                   <Input 
                     id="signin-password" 
                     type="password" 
@@ -213,6 +224,7 @@ const Auth = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     autoComplete="current-password"
+                    className="border-[#8B4513]/20 focus:border-[#8B4513] focus:ring-[#8B4513]"
                     aria-invalid={validationErrors.password ? 'true' : 'false'}
                   />
                   {validationErrors.password && (
@@ -223,7 +235,7 @@ const Auth = () => {
               <CardFooter className="flex-col space-y-4">
                 <Button 
                   type="submit" 
-                  className="w-full bg-amber-700 hover:bg-amber-800"
+                  className="w-full bg-[#8B4513] hover:bg-[#6F4E37]"
                   disabled={loading}
                 >
                   {loading ? 'Signing in...' : 'Sign In'}
@@ -232,7 +244,7 @@ const Auth = () => {
                 <div className="flex w-full justify-center">
                   <Link 
                     to="/admin/login" 
-                    className="text-sm text-amber-700 hover:text-amber-900 hover:underline"
+                    className="text-sm text-[#8B4513] hover:text-[#6F4E37] hover:underline"
                   >
                     Admin Login
                   </Link>
@@ -246,7 +258,7 @@ const Auth = () => {
               <CardContent className="space-y-4 pt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="first-name">First Name</Label>
+                    <Label htmlFor="first-name" className="text-[#6F4E37]">First Name</Label>
                     <Input 
                       id="first-name" 
                       placeholder="John" 
@@ -254,6 +266,7 @@ const Auth = () => {
                       onChange={(e) => setFirstName(e.target.value)}
                       required
                       autoComplete="given-name"
+                      className="border-[#8B4513]/20 focus:border-[#8B4513] focus:ring-[#8B4513]"
                       aria-invalid={validationErrors.firstName ? 'true' : 'false'}
                     />
                     {validationErrors.firstName && (
@@ -261,7 +274,7 @@ const Auth = () => {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="last-name">Last Name</Label>
+                    <Label htmlFor="last-name" className="text-[#6F4E37]">Last Name</Label>
                     <Input 
                       id="last-name" 
                       placeholder="Doe" 
@@ -269,6 +282,7 @@ const Auth = () => {
                       onChange={(e) => setLastName(e.target.value)}
                       required
                       autoComplete="family-name"
+                      className="border-[#8B4513]/20 focus:border-[#8B4513] focus:ring-[#8B4513]"
                       aria-invalid={validationErrors.lastName ? 'true' : 'false'}
                     />
                     {validationErrors.lastName && (
@@ -277,7 +291,7 @@ const Auth = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email" className="text-[#6F4E37]">Email</Label>
                   <Input 
                     id="signup-email" 
                     type="email" 
@@ -286,6 +300,7 @@ const Auth = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     autoComplete="email"
+                    className="border-[#8B4513]/20 focus:border-[#8B4513] focus:ring-[#8B4513]"
                     aria-invalid={validationErrors.email ? 'true' : 'false'}
                   />
                   {validationErrors.email && (
@@ -293,7 +308,7 @@ const Auth = () => {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password" className="text-[#6F4E37]">Password</Label>
                   <Input 
                     id="signup-password" 
                     type="password"
@@ -302,6 +317,7 @@ const Auth = () => {
                     required
                     autoComplete="new-password"
                     minLength={6}
+                    className="border-[#8B4513]/20 focus:border-[#8B4513] focus:ring-[#8B4513]"
                     aria-invalid={validationErrors.password ? 'true' : 'false'}
                   />
                   {validationErrors.password && (
@@ -312,7 +328,7 @@ const Auth = () => {
               <CardFooter className="flex-col space-y-4">
                 <Button 
                   type="submit" 
-                  className="w-full bg-amber-700 hover:bg-amber-800"
+                  className="w-full bg-[#8B4513] hover:bg-[#6F4E37]"
                   disabled={loading}
                 >
                   {loading ? 'Creating Account...' : 'Create Account'}
@@ -321,7 +337,7 @@ const Auth = () => {
                 <div className="flex w-full justify-center">
                   <Link 
                     to="/admin/login" 
-                    className="text-sm text-amber-700 hover:text-amber-900 hover:underline"
+                    className="text-sm text-[#8B4513] hover:text-[#6F4E37] hover:underline"
                   >
                     Admin Login
                   </Link>
