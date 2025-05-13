@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Coffee, User, Award, Home, LogOut } from 'lucide-react';
 
 const Header = () => {
-  const { signOut, isAdmin } = useAuth();
+  const { signOut, isAdmin, profile } = useAuth();
+  
+  // Get user's first name for display
+  const firstName = profile?.first_name || 'User';
 
   return (
     <header className="bg-[#8B4513] text-white shadow-md">
@@ -48,11 +51,12 @@ const Header = () => {
               }
             >
               <User className="h-4 w-4 mr-2" />
-              Profile
+              {firstName}'s Profile
             </NavLink>
           </nav>
 
-          <div className="flex items-center">
+          <div className="flex items-center space-x-2">
+            <span className="hidden md:inline text-sm">Hi, {firstName}!</span>
             <Button 
               variant="ghost" 
               className="text-white hover:bg-[#6F4E37]" 

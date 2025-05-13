@@ -116,6 +116,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Error fetching profile:', error);
+        
+        // Check if the error is because the profile wasn't found
+        if (error.code === 'PGRST116') {
+          console.log('Profile not found, attempting to create it');
+          await createUserProfile(userId);
+          return;
+        }
         return;
       }
 
@@ -130,6 +137,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('Unexpected error fetching profile:', error);
+    }
+  };
+  
+  // Add a function to create a user profile if it doesn't exist
+  const createUserProfile = async (userId: string) => {
+    try {
+      // Get user data from auth
+      const { data: userData } = await supabase.auth.getUser(userId);
+      
+      if (!userData?.user) {
+        console.error('Could not get user data for profile creation');
+        return;
+      }
+      
+      // Create new profile with default values
+      const { data: newProfile, error } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          email: userData.user.email || '',
+          first_name: userData.user.user_metadata?.first_name || '',
+          last_name: userData.user.user_metadata?.last_name || '',
+          role: 'customer',
+          current_points: 0,
+          membership_tier: 'bronze',
+          visits: 0
+        })
+        .select()
+        .single();
+        
+      if (error) {
+        console.error('Error creating user profile:', error);
+        toast.error('Could not create user profile. Please try again or contact support.');
+        return;
+      }
+      
+      if (newProfile) {
+        setProfile(newProfile as Profile);
+        toast.success('Welcome! Your profile has been created.');
+      }
+    } catch (error) {
+      console.error('Error in profile creation:', error);
     }
   };
 
