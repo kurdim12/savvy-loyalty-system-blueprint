@@ -3,3 +3,10 @@ project_id = "egeufofnkpvwbmffgoxw"
 
 [functions.create-admin]
 verify_jwt = false
+
+[auth]
+enable_strong_password = true
+enable_mfa = true
+mfa_remember_days = 14
+mfa_methods = ["totp", "email"]
+sms_autoconfirm = false
