@@ -11,11 +11,15 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Save, RefreshCw, AlertTriangle } from 'lucide-react';
 
+// Define the SystemSettings interface
 interface SystemSettings {
   manualOverride: boolean;
   birthdayBonus: boolean;
   strategicReset: boolean;
 }
+
+// Define a type for Supabase's JSON data
+type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
 const SettingsManagement = () => {
   const [settings, setSettings] = useState<SystemSettings>({
@@ -45,7 +49,8 @@ const SettingsManagement = () => {
         
         // If settings exist in DB, use them, otherwise use defaults
         if (data?.setting_value) {
-          return data.setting_value as SystemSettings;
+          // Type assertion to cast the JSON value to our expected structure
+          return (data.setting_value as unknown) as SystemSettings;
         }
         
         // Default settings
@@ -97,7 +102,9 @@ const SettingsManagement = () => {
           // Update existing record
           const { error: updateError } = await supabase
             .from('settings')
-            .update({ setting_value: newSettings })
+            .update({ 
+              setting_value: newSettings as unknown as Json 
+            })
             .eq('id', existingSettings.id);
           
           error = updateError;
@@ -107,7 +114,7 @@ const SettingsManagement = () => {
             .from('settings')
             .insert({ 
               setting_name: 'system_settings',
-              setting_value: newSettings
+              setting_value: newSettings as unknown as Json
             });
           
           error = insertError;

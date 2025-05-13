@@ -33,10 +33,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Search, Download, Calendar, Filter, Plus, Coffee } from 'lucide-react';
 import { toast } from 'sonner';
-import { type Profile } from '@/hooks/useDrinks';
+import { Database } from '@/integrations/supabase/types';
 
 // Import and use the TransactionsList component
 import TransactionsList from '@/components/admin/TransactionsList';
+
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface CustomerOption {
   id: string;

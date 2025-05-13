@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -58,6 +57,7 @@ import ManagePointsDialog from '@/components/admin/ManagePointsDialog';
 import { Database } from '@/integrations/supabase/types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
+type MembershipTier = 'bronze' | 'silver' | 'gold';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -158,6 +158,13 @@ const UserManagement = () => {
         const { id, ...updateData } = userData;
         
         if (!id) throw new Error('User ID is required');
+        
+        // Ensure membership_tier is properly typed as a valid enum value
+        if (updateData.membership_tier) {
+          // Convert to the proper type
+          const membershipTier = updateData.membership_tier as MembershipTier;
+          updateData.membership_tier = membershipTier;
+        }
         
         const { error } = await supabase
           .from('profiles')
