@@ -2,7 +2,7 @@
 import * as React from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import { Cake } from "lucide-react";
+import { Cake, ChevronDown } from "lucide-react";
 import { 
   Popover, 
   PopoverContent, 
@@ -19,6 +19,13 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function BirthdaySelector() {
   const { profile, updateProfile } = useAuth();
@@ -26,6 +33,52 @@ export function BirthdaySelector() {
     profile?.birthday ? new Date(profile.birthday) : undefined
   );
   const [isUpdating, setIsUpdating] = React.useState(false);
+  const [month, setMonth] = React.useState<number>(date ? date.getMonth() : new Date().getMonth());
+  const [year, setYear] = React.useState<number>(date ? date.getFullYear() : 1990);
+
+  const months = [
+    "January", "February", "March", "April", "May", "June", 
+    "July", "August", "September", "October", "November", "December"
+  ];
+  
+  // Generate years from 1900 to current year
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1900 + 1 }, (_, i) => currentYear - i);
+
+  const handleMonthChange = (value: string) => {
+    const newMonth = parseInt(value);
+    setMonth(newMonth);
+    
+    if (date) {
+      const newDate = new Date(date);
+      newDate.setMonth(newMonth);
+      setDate(newDate);
+    } else {
+      // If no date selected yet, create one with the selected month, year and default to the 1st
+      setDate(new Date(year, newMonth, 1));
+    }
+  };
+
+  const handleYearChange = (value: string) => {
+    const newYear = parseInt(value);
+    setYear(newYear);
+    
+    if (date) {
+      const newDate = new Date(date);
+      newDate.setFullYear(newYear);
+      setDate(newDate);
+    } else {
+      // If no date selected yet, create one with the selected year, month and default to the 1st
+      setDate(new Date(newYear, month, 1));
+    }
+  };
+
+  React.useEffect(() => {
+    if (date) {
+      setMonth(date.getMonth());
+      setYear(date.getFullYear());
+    }
+  }, [date]);
 
   const handleSaveBirthday = async () => {
     if (!date) return;
@@ -56,7 +109,7 @@ export function BirthdaySelector() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -71,10 +124,44 @@ export function BirthdaySelector() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
+              <div className="p-3 space-y-3 bg-white rounded-t-md">
+                <div className="flex space-x-2">
+                  <Select value={month.toString()} onValueChange={handleMonthChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {months.map((month, index) => (
+                        <SelectItem key={index} value={index.toString()}>
+                          {month}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={year.toString()} onValueChange={handleYearChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Year" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px] overflow-y-auto">
+                      {years.map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <Calendar
                 mode="single"
                 selected={date}
                 onSelect={setDate}
+                month={new Date(year, month)}
+                onMonthChange={(newDate) => {
+                  setMonth(newDate.getMonth());
+                  setYear(newDate.getFullYear());
+                }}
                 disabled={(date) => 
                   date > new Date() || 
                   date < new Date("1900-01-01")
