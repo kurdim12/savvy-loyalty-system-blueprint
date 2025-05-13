@@ -7,18 +7,14 @@ import { toast } from 'sonner';
 
 interface LayoutProps {
   children: ReactNode;
-  adminOnly?: boolean;
-  requireAuthenticatedUser?: boolean;
   requireTier?: 'bronze' | 'silver' | 'gold';
 }
 
 export default function Layout({ 
   children, 
-  adminOnly = false,
-  requireAuthenticatedUser = true,
   requireTier
 }: LayoutProps) {
-  const { user, loading, isAdmin, session, membershipTier, profile } = useAuth();
+  const { user, loading, isAdmin, isUser, session, membershipTier, profile } = useAuth();
   const navigate = useNavigate();
 
   // Check authentication session expiration
@@ -57,52 +53,30 @@ export default function Layout({
     );
   }
 
-  // Skip auth check if requireAuthenticatedUser is false
-  if (!requireAuthenticatedUser) {
-    return (
-      <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
-        <Header />
-        <main className="flex-1 p-4 md:p-6 container mx-auto">
-          {children}
-        </main>
-        <footer className="py-4 px-6 text-center text-sm text-[#6F4E37] border-t border-[#8B4513]/10">
-          &copy; {new Date().getFullYear()} Raw Smith Coffee Loyalty Program
-        </footer>
-      </div>
-    );
-  }
-
-  // For admin-only routes, we check both authentication and admin role
-  if (adminOnly) {
-    // If not authenticated at all, redirect to admin login
-    if (!user) {
-      return <Navigate to="/admin-login" replace />;
-    }
-    
-    // If authenticated but not admin, show access denied
-    if (!isAdmin) {
-      toast.error('Access denied. This area is restricted to administrators.');
-      return <Navigate to="/dashboard" replace />;
-    }
-    
-    // Additional security: Verify session existence
-    if (!session) {
-      toast.error('Session information missing. Please sign in again.');
-      return <Navigate to="/admin-login" replace />;
-    }
-  }
   // For regular user routes
-  else {
-    // If authentication is required but user is not authenticated, redirect to auth page
-    if (!user) {
-      return <Navigate to="/auth" replace />;
-    }
+  if (!user) {
+    toast.error('Please sign in to access this page');
+    return <Navigate to="/auth" replace />;
+  }
 
-    // Additional security: Verify session existence
-    if (!session) {
-      toast.error('Session information missing. Please sign in again.');
-      return <Navigate to="/auth" replace />;
-    }
+  // If admin tries to access user routes - we'll allow it, but this could be changed
+  // to redirect to admin dashboard if preferred
+  if (isAdmin) {
+    // Uncomment below to redirect admins to admin dashboard
+    // toast.info('Redirecting to admin dashboard');
+    // return <Navigate to="/admin/dashboard" replace />;
+  }
+  
+  // Ensure only users can access user routes
+  if (!isUser && !isAdmin) {
+    toast.error('Access denied. Contact support if you think this is a mistake.');
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Additional security: Verify session existence
+  if (!session) {
+    toast.error('Session information missing. Please sign in again.');
+    return <Navigate to="/auth" replace />;
   }
 
   // Check membership tier requirement if specified
@@ -122,7 +96,6 @@ export default function Layout({
     }
   }
 
-  // All checks passed, render the layout with appropriate header
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
       <Header />

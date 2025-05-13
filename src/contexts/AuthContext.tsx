@@ -4,6 +4,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase, cleanupAuthState } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -14,6 +15,7 @@ interface AuthContextType {
   loading: boolean;
   signOut: () => Promise<void>;
   isAdmin: boolean;
+  isUser: boolean; // Added for explicit role check
   refreshProfile: () => Promise<void>;
   // Add community-specific properties
   communityPoints?: number;
@@ -32,9 +34,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [communityPoints, setCommunityPoints] = useState<number>(0);
+  const navigate = useNavigate();
+  const location = useLocation();
   
   const membershipTier = profile?.membership_tier || 'bronze';
   const isAdmin = profile?.role === 'admin';
+  // Explicit check for user role
+  const isUser = profile?.role === 'customer';
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -116,11 +122,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data) {
         setProfile(data as Profile);
         
+        // Check if user is on the wrong route based on their role
+        checkAndRedirectBasedOnRole(data.role);
+        
         // Also fetch community points
         fetchCommunityPoints(userId);
       }
     } catch (error) {
       console.error('Unexpected error fetching profile:', error);
+    }
+  };
+
+  // Redirect users based on their role
+  const checkAndRedirectBasedOnRole = (role: string) => {
+    const currentPath = location.pathname;
+    
+    // Admin accessing user routes - redirect to admin dashboard
+    if (role === 'admin' && 
+        !currentPath.startsWith('/admin') && 
+        !currentPath.startsWith('/auth') &&
+        currentPath !== '/') {
+      toast.info('Redirecting to admin dashboard');
+      navigate('/admin/dashboard');
+    }
+    
+    // User accessing admin routes - redirect to user dashboard
+    if (role === 'customer' && 
+        currentPath.startsWith('/admin')) {
+      toast.error('Access denied. You do not have permission to view this page.');
+      navigate('/dashboard');
     }
   };
 
@@ -189,8 +219,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setCommunityPoints(0);
     
-    // Force page reload for a clean state
-    window.location.href = '/auth';
+    // Direct admin users to admin login, regular users to main auth page
+    if (location.pathname.startsWith('/admin')) {
+      window.location.href = '/admin/login';
+    } else {
+      window.location.href = '/auth';
+    }
   };
 
   const value = {
@@ -200,6 +234,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     signOut,
     isAdmin,
+    isUser,
     refreshProfile,
     communityPoints,
     membershipTier,

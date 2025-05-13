@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase, cleanupAuthState, sanitizeInput } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -240,15 +240,6 @@ const Auth = () => {
                 >
                   {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
-                
-                <div className="flex w-full justify-center">
-                  <Link 
-                    to="/admin/login" 
-                    className="text-sm text-[#8B4513] hover:text-[#6F4E37] hover:underline"
-                  >
-                    Admin Login
-                  </Link>
-                </div>
               </CardFooter>
             </form>
           </TabsContent>
@@ -333,15 +324,6 @@ const Auth = () => {
                 >
                   {loading ? 'Creating Account...' : 'Create Account'}
                 </Button>
-                
-                <div className="flex w-full justify-center">
-                  <Link 
-                    to="/admin/login" 
-                    className="text-sm text-[#8B4513] hover:text-[#6F4E37] hover:underline"
-                  >
-                    Admin Login
-                  </Link>
-                </div>
               </CardFooter>
             </form>
           </TabsContent>

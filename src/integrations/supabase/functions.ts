@@ -1,182 +1,222 @@
 
 // Helper functions for Supabase database interaction
 
-import { supabase } from './client';
+import { supabase, requireAdmin, requireAuth } from './client';
 import type { Database } from './types';
 
 // User Points & Visits
 export async function getUserPoints(userId: string): Promise<number> {
-  const { data, error } = await supabase.rpc('get_user_points', { user_id: userId });
-  
-  if (error) {
-    console.error('Error getting user points:', error);
+  // Only allow authenticated users to access this
+  try {
+    await requireAuth();
+    
+    const { data, error } = await supabase.rpc('get_user_points', { user_id: userId });
+    
+    if (error) {
+      console.error('Error getting user points:', error);
+      return 0;
+    }
+    
+    return data || 0;
+  } catch (error) {
+    console.error('Authentication error getting user points:', error);
     return 0;
   }
-  
-  return data || 0;
 }
 
 export async function getUserVisits(userId: string): Promise<number> {
-  const { data, error } = await supabase.rpc('get_user_visits', { user_id: userId });
-  
-  if (error) {
-    console.error('Error getting user visits:', error);
+  // Only allow authenticated users to access this
+  try {
+    await requireAuth();
+    
+    const { data, error } = await supabase.rpc('get_user_visits', { user_id: userId });
+    
+    if (error) {
+      console.error('Error getting user visits:', error);
+      return 0;
+    }
+    
+    return data || 0;
+  } catch (error) {
+    console.error('Authentication error getting user visits:', error);
     return 0;
   }
-  
-  return data || 0;
 }
 
 // Create helper functions to match the SQL functions we created
 export async function incrementPoints(userId: string, pointAmount: number) {
-  if (!userId || typeof pointAmount !== 'number' || isNaN(pointAmount)) {
-    return { error: new Error('Invalid user ID or point amount') };
-  }
-
-  // Sanitize input - ensure pointAmount is a positive number
-  const sanitizedPointAmount = Math.max(0, pointAmount);
-  
-  // Get current profile data
-  const { data: profile, error: fetchError } = await supabase
-    .from('profiles')
-    .select('current_points, visits')
-    .eq('id', userId)
-    .single();
-  
-  if (fetchError || !profile) {
-    console.error('Error fetching profile:', fetchError);
-    return { error: fetchError || new Error('User not found') };
-  }
-  
-  // Calculate new values
-  const newPoints = profile.current_points + sanitizedPointAmount;
-  const newVisits = sanitizedPointAmount > 0 ? profile.visits + 1 : profile.visits;
-  
-  // Determine tier based on new points using the correct type
-  let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
-  if (newPoints >= 550) {
-    newTier = 'gold';
-  } else if (newPoints >= 200) {
-    newTier = 'silver';
-  }
-  
-  // Update profile
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update({
-      current_points: newPoints,
-      visits: newVisits,
-      membership_tier: newTier,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', userId);
+  // Only allow authenticated users to access this
+  try {
+    await requireAuth();
     
-  return { error: updateError };
+    if (!userId || typeof pointAmount !== 'number' || isNaN(pointAmount)) {
+      return { error: new Error('Invalid user ID or point amount') };
+    }
+
+    // Sanitize input - ensure pointAmount is a positive number
+    const sanitizedPointAmount = Math.max(0, pointAmount);
+    
+    // Get current profile data
+    const { data: profile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('current_points, visits')
+      .eq('id', userId)
+      .single();
+    
+    if (fetchError || !profile) {
+      console.error('Error fetching profile:', fetchError);
+      return { error: fetchError || new Error('User not found') };
+    }
+    
+    // Calculate new values
+    const newPoints = profile.current_points + sanitizedPointAmount;
+    const newVisits = sanitizedPointAmount > 0 ? profile.visits + 1 : profile.visits;
+    
+    // Determine tier based on new points using the correct type
+    let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
+    if (newPoints >= 550) {
+      newTier = 'gold';
+    } else if (newPoints >= 200) {
+      newTier = 'silver';
+    }
+    
+    // Update profile
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        current_points: newPoints,
+        visits: newVisits,
+        membership_tier: newTier,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId);
+      
+    return { error: updateError };
+  } catch (error) {
+    console.error('Authentication error incrementing points:', error);
+    return { error };
+  }
 }
 
 export async function decrementPoints(userId: string, pointAmount: number) {
-  if (!userId || typeof pointAmount !== 'number' || isNaN(pointAmount)) {
-    return { error: new Error('Invalid user ID or point amount') };
-  }
-
-  // Sanitize input - ensure pointAmount is a positive number
-  const sanitizedPointAmount = Math.max(0, pointAmount);
-  
-  // Get current profile data
-  const { data: profile, error: fetchError } = await supabase
-    .from('profiles')
-    .select('current_points')
-    .eq('id', userId)
-    .single();
-  
-  if (fetchError || !profile) {
-    console.error('Error fetching profile:', fetchError);
-    return { error: fetchError || new Error('User not found') };
-  }
-  
-  // Calculate new points (never below 0)
-  const newPoints = Math.max(0, profile.current_points - sanitizedPointAmount);
-  
-  // Update profile and possibly adjust membership tier
-  let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
-  if (newPoints >= 550) {
-    newTier = 'gold';
-  } else if (newPoints >= 200) {
-    newTier = 'silver';
-  }
-  
-  // Update profile
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update({
-      current_points: newPoints,
-      membership_tier: newTier,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', userId);
+  // Only allow authenticated users to access this
+  try {
+    await requireAuth();
     
-  return { error: updateError };
+    if (!userId || typeof pointAmount !== 'number' || isNaN(pointAmount)) {
+      return { error: new Error('Invalid user ID or point amount') };
+    }
+
+    // Sanitize input - ensure pointAmount is a positive number
+    const sanitizedPointAmount = Math.max(0, pointAmount);
+    
+    // Get current profile data
+    const { data: profile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('current_points')
+      .eq('id', userId)
+      .single();
+    
+    if (fetchError || !profile) {
+      console.error('Error fetching profile:', fetchError);
+      return { error: fetchError || new Error('User not found') };
+    }
+    
+    // Calculate new points (never below 0)
+    const newPoints = Math.max(0, profile.current_points - sanitizedPointAmount);
+    
+    // Update profile and possibly adjust membership tier
+    let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
+    if (newPoints >= 550) {
+      newTier = 'gold';
+    } else if (newPoints >= 200) {
+      newTier = 'silver';
+    }
+    
+    // Update profile
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        current_points: newPoints,
+        membership_tier: newTier,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId);
+      
+    return { error: updateError };
+  } catch (error) {
+    console.error('Authentication error decrementing points:', error);
+    return { error };
+  }
 }
 
 // Create helper functions for community goal contributions
 export async function contributeToGoal(userId: string, goalId: string, points: number) {
-  if (!userId || !goalId || typeof points !== 'number' || isNaN(points) || points <= 0) {
-    return { error: new Error('Invalid parameters for contribution') };
-  }
-
-  // First, check if user has enough points
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('current_points')
-    .eq('id', userId)
-    .single();
-  
-  if (profileError || !profile) {
-    console.error('Error fetching user profile:', profileError);
-    return { error: profileError || new Error('User not found') };
-  }
-  
-  if (profile.current_points < points) {
-    return { error: new Error('Not enough points to contribute') };
-  }
-  
-  // Create a transaction for the contribution
-  const { error: transactionError } = await supabase
-    .from('transactions')
-    .insert({
-      user_id: userId,
-      transaction_type: 'redeem',
-      points: points,
-      notes: `Contributed to community goal`,
-      community_goal_id: goalId
-    });
+  // Only allow authenticated users to access this
+  try {
+    await requireAuth();
     
-  if (transactionError) {
-    console.error('Error creating transaction record:', transactionError);
-    return { error: transactionError };
+    if (!userId || !goalId || typeof points !== 'number' || isNaN(points) || points <= 0) {
+      return { error: new Error('Invalid parameters for contribution') };
+    }
+
+    // First, check if user has enough points
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('current_points')
+      .eq('id', userId)
+      .single();
+    
+    if (profileError || !profile) {
+      console.error('Error fetching user profile:', profileError);
+      return { error: profileError || new Error('User not found') };
+    }
+    
+    if (profile.current_points < points) {
+      return { error: new Error('Not enough points to contribute') };
+    }
+    
+    // Create a transaction for the contribution
+    const { error: transactionError } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: userId,
+        transaction_type: 'redeem',
+        points: points,
+        notes: `Contributed to community goal`,
+        community_goal_id: goalId
+      });
+      
+    if (transactionError) {
+      console.error('Error creating transaction record:', transactionError);
+      return { error: transactionError };
+    }
+    
+    // Update community goal points
+    const { error: updateGoalError } = await supabase
+      .rpc('update_community_goal_points', { 
+        p_goal_id: goalId, 
+        p_amount: points 
+      });
+    
+    if (updateGoalError) {
+      console.error('Error updating community goal points:', updateGoalError);
+      return { error: updateGoalError };
+    }
+    
+    // Deduct points from user
+    const { error: deductPointsError } = await decrementPoints(userId, points);
+    
+    if (deductPointsError) {
+      console.error('Error deducting points:', deductPointsError);
+      return { error: deductPointsError };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Authentication error contributing to goal:', error);
+    return { error };
   }
-  
-  // Update community goal points
-  const { error: updateGoalError } = await supabase
-    .rpc('update_community_goal_points', { 
-      p_goal_id: goalId, 
-      p_amount: points 
-    });
-  
-  if (updateGoalError) {
-    console.error('Error updating community goal points:', updateGoalError);
-    return { error: updateGoalError };
-  }
-  
-  // Deduct points from user
-  const { error: deductPointsError } = await decrementPoints(userId, points);
-  
-  if (deductPointsError) {
-    console.error('Error deducting points:', deductPointsError);
-    return { error: deductPointsError };
-  }
-  
-  return { success: true };
 }
 
 /**
@@ -261,101 +301,136 @@ export function getDiscountRate(tier: Database['public']['Enums']['membership_ti
 }
 
 /**
- * Get all available drinks
+ * Get all available drinks - user function
  */
 export async function getDrinks() {
-  const { data, error } = await supabase
-    .from('drinks')
-    .select('*')
-    .eq('active', true)
-    .order('points_earned', { ascending: false });
-  
-  if (error) {
-    console.error('Error fetching drinks:', error);
+  try {
+    await requireAuth();
+    
+    const { data, error } = await supabase
+      .from('drinks')
+      .select('*')
+      .eq('active', true)
+      .order('points_earned', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching drinks:', error);
+      return { error };
+    }
+    
+    return { data };
+  } catch (error) {
+    console.error('Authentication error fetching drinks:', error);
     return { error };
   }
-  
-  return { data };
 }
 
 /**
- * Get all drinks (admin function)
+ * Get all drinks - admin function
  */
 export async function getAllDrinks() {
-  const { data, error } = await supabase
-    .from('drinks')
-    .select('*')
-    .order('name');
-  
-  if (error) {
-    console.error('Error fetching all drinks:', error);
+  try {
+    await requireAdmin();
+    
+    const { data, error } = await supabase
+      .from('drinks')
+      .select('*')
+      .order('name');
+    
+    if (error) {
+      console.error('Error fetching all drinks:', error);
+      return { error };
+    }
+    
+    return { data };
+  } catch (error) {
+    console.error('Authentication error fetching all drinks:', error);
     return { error };
   }
-  
-  return { data };
 }
 
 /**
- * Update a drink (admin function)
+ * Update a drink - admin function
  */
 export async function updateDrink(id: string, drinkData: any) {
-  const { data, error } = await supabase
-    .from('drinks')
-    .update({
-      name: drinkData.name,
-      category: drinkData.category,
-      points_earned: drinkData.points_earned,
-      price: drinkData.price,
-      active: drinkData.active,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', id);
-  
-  if (error) {
-    console.error('Error updating drink:', error);
+  try {
+    await requireAdmin();
+    
+    const { data, error } = await supabase
+      .from('drinks')
+      .update({
+        name: drinkData.name,
+        category: drinkData.category,
+        points_earned: drinkData.points_earned,
+        price: drinkData.price,
+        active: drinkData.active,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error updating drink:', error);
+      return { error };
+    }
+    
+    return { data };
+  } catch (error) {
+    console.error('Authentication error updating drink:', error);
     return { error };
   }
-  
-  return { data };
 }
 
 /**
- * Create a new drink (admin function)
+ * Create a new drink - admin function
  */
 export async function createDrink(drinkData: any) {
-  const { data, error } = await supabase
-    .from('drinks')
-    .insert({
-      name: drinkData.name,
-      category: drinkData.category,
-      points_earned: drinkData.points_earned,
-      price: drinkData.price,
-      active: drinkData.active || true
-    });
-  
-  if (error) {
-    console.error('Error creating drink:', error);
+  try {
+    await requireAdmin();
+    
+    const { data, error } = await supabase
+      .from('drinks')
+      .insert({
+        name: drinkData.name,
+        category: drinkData.category,
+        points_earned: drinkData.points_earned,
+        price: drinkData.price,
+        active: drinkData.active || true
+      });
+    
+    if (error) {
+      console.error('Error creating drink:', error);
+      return { error };
+    }
+    
+    return { data };
+  } catch (error) {
+    console.error('Authentication error creating drink:', error);
     return { error };
   }
-  
-  return { data };
 }
 
 /**
- * Delete a drink (admin function)
+ * Delete a drink - admin function
  */
 export async function deleteDrink(id: string) {
-  const { data, error } = await supabase
-    .from('drinks')
-    .delete()
-    .eq('id', id);
-  
-  if (error) {
-    console.error('Error deleting drink:', error);
+  try {
+    await requireAdmin();
+    
+    const { data, error } = await supabase
+      .from('drinks')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error deleting drink:', error);
+      return { error };
+    }
+    
+    return { data };
+  } catch (error) {
+    console.error('Authentication error deleting drink:', error);
     return { error };
   }
-  
-  return { data };
 }
 
 /**
@@ -388,4 +463,54 @@ export function wouldCauseRankDowngrade(currentPoints: number, pointsToRedeem: n
     currentTier,
     newTier
   };
+}
+
+// Admin-only API functions
+/**
+ * Get all users - admin only
+ */
+export async function getAllUsers() {
+  try {
+    await requireAdmin();
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching all users:', error);
+      return { error };
+    }
+    
+    return { data };
+  } catch (error) {
+    console.error('Authentication error fetching all users:', error);
+    return { error };
+  }
+}
+
+/**
+ * Delete a user - admin only
+ */
+export async function deleteUser(userId: string) {
+  try {
+    await requireAdmin();
+    
+    // This will delete the auth.user as well due to cascade
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
+    
+    if (error) {
+      console.error('Error deleting user:', error);
+      return { error };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Authentication error deleting user:', error);
+    return { error: error instanceof Error ? error : new Error('Unknown error') };
+  }
 }

@@ -9,20 +9,15 @@ import {
   CoffeeIcon,
   GiftIcon,
   ArrowRightLeft,
-  BarChart4,
   Bell,
   Settings,
-  Sparkles,
-  FileText,
-  ShieldAlert,
-  HelpCircle,
+  MessageSquare,
   LogOut,
   ChevronDown,
   Menu,
   X,
   Moon,
   Sun,
-  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -53,22 +48,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(2); // Mock notification count
 
-  useEffect(() => {
-    // If user is not an admin, redirect to login
-    if (user === null) {
-      navigate('/admin/login');
-      return;
-    }
-    
-    if (user && !isAdmin) {
-      toast.error('You do not have admin privileges');
-      navigate('/');
-    }
-  }, [user, isAdmin, navigate]);
+  // Admin routes are protected at the router level now, so we don't need to check here
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/admin/login');
+    // Redirection is handled in the AuthContext signOut function
   };
 
   const toggleDarkMode = () => {
@@ -321,10 +305,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         {/* Top Bar */}
         <header className="bg-white border-b px-4 py-2 flex items-center justify-between">
           <div className="flex items-center">
-            <NavLink to="/" className="flex items-center text-amber-800 font-medium">
+            {/* Remove link to user dashboard */}
+            <span className="flex items-center text-amber-800 font-medium">
               <CoffeeIcon className="h-5 w-5 mr-1" />
-              <span>View Store</span>
-            </NavLink>
+              <span>Admin Panel</span>
+            </span>
           </div>
           
           <div className="flex items-center space-x-4">
@@ -394,9 +379,6 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Admin Dashboard</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => navigate('/profile')}>
-                  Your Profile
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/admin/settings')}>
                   Settings
                 </DropdownMenuItem>

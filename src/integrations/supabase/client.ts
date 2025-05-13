@@ -86,6 +86,39 @@ export const sanitizeInput = (input: string): string => {
     .replace(/'/g, '&#039;');
 };
 
+// Role-based API access check
+export async function checkUserRole(): Promise<{ isAdmin: boolean, isUser: boolean, userId: string | null }> {
+  try {
+    // Get current session
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      return { isAdmin: false, isUser: false, userId: null };
+    }
+    
+    // Get user profile including role
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+      
+    if (error || !profile) {
+      console.error('Error fetching user role:', error);
+      return { isAdmin: false, isUser: false, userId: session.user.id };
+    }
+    
+    return { 
+      isAdmin: profile.role === 'admin', 
+      isUser: profile.role === 'customer',
+      userId: session.user.id 
+    };
+  } catch (error) {
+    console.error('Error checking user role:', error);
+    return { isAdmin: false, isUser: false, userId: null };
+  }
+}
+
 // Enhanced function to increment points that supports community features
 export async function incrementPointsWithReason(
   userId: string, 
@@ -168,6 +201,29 @@ async function incrementPointsInDB(userId: string, pointAmount: number) {
     .eq('id', userId);
     
   return { error: updateError };
+}
+
+// Create a middleware-like function to verify admin access
+export async function requireAdmin() {
+  const { isAdmin } = await checkUserRole();
+  if (!isAdmin) {
+    throw new Error('Access denied. Admin rights required.');
+  }
+  return true;
+}
+
+// Create a middleware-like function to verify user authentication
+export async function requireAuth() {
+  const { userId, isAdmin, isUser } = await checkUserRole();
+  if (!userId) {
+    throw new Error('Authentication required.');
+  }
+  
+  if (!isAdmin && !isUser) {
+    throw new Error('Valid user role required.');
+  }
+  
+  return true;
 }
 
 // Export additional helper functions from functions.ts

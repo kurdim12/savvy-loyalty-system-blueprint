@@ -2,7 +2,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Coffee, User, Award, Home, LogOut, Settings } from 'lucide-react';
+import { Coffee, User, Award, Home, LogOut } from 'lucide-react';
 
 const Header = () => {
   const { signOut, isAdmin } = useAuth();
@@ -50,21 +50,6 @@ const Header = () => {
               <User className="h-4 w-4 mr-2" />
               Profile
             </NavLink>
-            
-            {/* Admin link - only shown to admins */}
-            {isAdmin && (
-              <NavLink 
-                to="/admin" 
-                className={({ isActive }) => 
-                  `flex items-center px-3 py-2 rounded-md transition-colors ${
-                    isActive ? 'bg-[#6F4E37] text-white' : 'hover:bg-[#6F4E37]'
-                  }`
-                }
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Admin
-              </NavLink>
-            )}
           </nav>
 
           <div className="flex items-center">
