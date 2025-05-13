@@ -145,13 +145,20 @@ const UserManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
-      toast.success('User deleted successfully');
+      toast({ 
+        title: "Success", 
+        description: "User deleted successfully" 
+      });
       setDeleteUserId(null);
       setShowDeleteDialog(false);
     },
     onError: (error) => {
       console.error('Failed to delete user:', error);
-      toast.error('Failed to delete user');
+      toast({ 
+        title: "Error", 
+        description: "Failed to delete user",
+        variant: "destructive"
+      });
     }
   });
 
@@ -183,13 +190,20 @@ const UserManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
-      toast.success('User updated successfully');
+      toast({ 
+        title: "Success", 
+        description: "User updated successfully" 
+      });
       setEditingUser(null);
       setShowEditDialog(false);
     },
     onError: (error) => {
       console.error('Failed to update user:', error);
-      toast.error('Failed to update user');
+      toast({ 
+        title: "Error", 
+        description: "Failed to update user",
+        variant: "destructive"
+      });
     }
   });
 
@@ -211,12 +225,19 @@ const UserManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
-      toast.success('All non-admin users have been purged');
+      toast({ 
+        title: "Success", 
+        description: "All non-admin users have been purged" 
+      });
       setShowPurgeDialog(false);
     },
     onError: (error) => {
       console.error('Failed to purge users:', error);
-      toast.error('Failed to purge users');
+      toast({ 
+        title: "Error", 
+        description: "Failed to purge users",
+        variant: "destructive"
+      });
     }
   });
 
@@ -254,17 +275,26 @@ const UserManagement = () => {
 
   const handleResetPassword = (email: string) => {
     // In a real implementation, you would trigger a password reset email
-    toast.success(`Password reset link sent to ${email}`);
+    toast({ 
+      title: "Success", 
+      description: `Password reset link sent to ${email}` 
+    });
   };
 
   const handleBulkExport = () => {
     // In a real implementation, this would export user data to CSV
-    toast.success('Exporting user data');
+    toast({ 
+      title: "Success", 
+      description: "Exporting user data" 
+    });
   };
 
   const handleBulkImport = () => {
     // In a real implementation, this would show a file upload dialog
-    toast.success('Please select a CSV file to import');
+    toast({ 
+      title: "Success", 
+      description: "Please select a CSV file to import" 
+    });
   };
 
   const getMembershipBadge = (tier: string) => {
@@ -332,7 +362,7 @@ const UserManagement = () => {
                 <div className="flex-shrink-0 w-full sm:w-40">
                   <Select
                     value={tierFilter}
-                    onValueChange={(value) => {
+                    onValueChange={(value: TierFilter) => {
                       setTierFilter(value);
                       setCurrentPage(1); // Reset to first page on filter change
                     }}
