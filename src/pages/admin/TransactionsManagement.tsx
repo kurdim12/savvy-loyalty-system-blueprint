@@ -23,7 +23,7 @@ import TransactionsList from '@/components/admin/TransactionsList';
 const TransactionsManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [transactionType, setTransactionType] = useState<string>('');
+  const [transactionType, setTransactionType] = useState<string>('all');
   
   const handleExport = () => {
     toast.success('Exporting transactions data');
@@ -72,7 +72,7 @@ const TransactionsManagement = () => {
                   <SelectValue placeholder="Transaction Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="earn">Earned Points</SelectItem>
                   <SelectItem value="redeem">Redeemed Points</SelectItem>
                   <SelectItem value="adjustment">Manual Adjustment</SelectItem>
@@ -95,7 +95,7 @@ const TransactionsManagement = () => {
           </CardContent>
         </Card>
 
-        {/* Transactions Table - removed props that don't exist */}
+        {/* Transactions Table */}
         <TransactionsList />
 
         {/* Add Transaction Dialog */}
