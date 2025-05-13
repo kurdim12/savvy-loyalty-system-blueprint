@@ -21,15 +21,16 @@ const loginFormSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-// Hardcoded admin credentials as per requirements
-const DEFAULT_ADMIN_EMAIL = "admin@rawsmithcoffee.com";
-const DEFAULT_ADMIN_PASSWORD = "RawSmith2024!";
+// Admin credentials for first login
+const ADMIN_EMAIL = "rawsmith@admin.com";
+const ADMIN_PASSWORD = "rawsmith123";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { isAdmin, user, refreshProfile } = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [accountCreated, setAccountCreated] = useState<boolean>(false);
 
   // Form definition
   const form = useForm<z.infer<typeof loginFormSchema>>({
@@ -47,78 +48,84 @@ const AdminLogin = () => {
     }
   }, [isAdmin, user, navigate]);
 
+  const cleanupAuthState = () => {
+    localStorage.removeItem('supabase.auth.token');
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+    Object.keys(sessionStorage || {}).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  };
+
+  const handleCreateAdmin = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Clean up existing auth state first
+      cleanupAuthState();
+      
+      // Call the edge function to create an admin user
+      const { data, error } = await supabase.functions.invoke('create-admin', {
+        method: 'POST',
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data.success) {
+        setAccountCreated(true);
+        toast.success('Admin account created successfully!');
+        
+        // Pre-fill login form with admin credentials
+        form.setValue('email', ADMIN_EMAIL);
+        form.setValue('password', ADMIN_PASSWORD);
+      } else {
+        throw new Error(data.error || 'Unknown error occurred');
+      }
+    } catch (err: any) {
+      console.error('Error creating admin:', err);
+      setError('Failed to create admin account. Please try again.');
+      toast.error('Failed to create admin account');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogin = async (values: z.infer<typeof loginFormSchema>) => {
     setLoading(true);
     setError(null);
 
     try {
       // Clean up existing state
-      const cleanupAuthState = () => {
-        localStorage.removeItem('supabase.auth.token');
-        Object.keys(localStorage).forEach((key) => {
-          if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-            localStorage.removeItem(key);
-          }
-        });
-      }
-      
       cleanupAuthState();
       
-      // Check if using default admin credentials
-      const isDefaultAdmin = 
-        values.email === DEFAULT_ADMIN_EMAIL && 
-        values.password === DEFAULT_ADMIN_PASSWORD;
+      // Try to sign in with these credentials
+      let result = await verifyAdminCredentials(values.email, values.password);
       
-      let result;
-      
-      if (isDefaultAdmin) {
-        // For default admin, we'll always try to authenticate and create if needed
-        try {
-          // First try to sign in with default credentials
-          result = await verifyAdminCredentials(DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PASSWORD);
+      // If admin login fails due to invalid credentials, try to create the account
+      // but only if using the default admin credentials
+      if (!result.success && 
+          values.email === ADMIN_EMAIL && 
+          values.password === ADMIN_PASSWORD) {
+        
+        // Try to create the admin account
+        const { data, error } = await supabase.functions.invoke('create-admin', {
+          method: 'POST',
+        });
+        
+        if (!error && data.success) {
+          toast.success('Admin account created! Logging you in...');
           
-          // If login fails but it's because the user doesn't exist, create the admin account
-          if (!result.success && result.error?.includes("Invalid login credentials")) {
-            // Create default admin account
-            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-              email: DEFAULT_ADMIN_EMAIL,
-              password: DEFAULT_ADMIN_PASSWORD,
-              options: {
-                data: {
-                  first_name: "Admin",
-                  last_name: "User",
-                }
-              }
-            });
-            
-            if (signUpError) {
-              console.error("Error creating default admin:", signUpError);
-              throw signUpError;
-            }
-            
-            if (signUpData.user) {
-              // Set the user's role to admin
-              const { error: updateError } = await supabase
-                .from('profiles')
-                .update({ role: 'admin' })
-                .eq('id', signUpData.user.id);
-                
-              if (updateError) {
-                console.error("Error setting admin role:", updateError);
-                throw updateError;
-              }
-              
-              // Try logging in again
-              result = await verifyAdminCredentials(DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PASSWORD);
-            }
-          }
-        } catch (err) {
-          console.error("Error with default admin:", err);
-          result = { success: false, error: "Error processing default admin" };
+          // Try logging in again after account creation
+          result = await verifyAdminCredentials(ADMIN_EMAIL, ADMIN_PASSWORD);
         }
-      } else {
-        // Regular login attempt
-        result = await verifyAdminCredentials(values.email, values.password);
       }
       
       if (result.success) {
@@ -148,12 +155,12 @@ const AdminLogin = () => {
     await handleLogin(values);
   };
 
-  const loginWithDefaultAdmin = () => {
-    form.setValue("email", DEFAULT_ADMIN_EMAIL);
-    form.setValue("password", DEFAULT_ADMIN_PASSWORD);
+  const loginWithAdminCredentials = () => {
+    form.setValue("email", ADMIN_EMAIL);
+    form.setValue("password", ADMIN_PASSWORD);
     handleLogin({
-      email: DEFAULT_ADMIN_EMAIL,
-      password: DEFAULT_ADMIN_PASSWORD
+      email: ADMIN_EMAIL,
+      password: ADMIN_PASSWORD
     });
   };
   
@@ -169,7 +176,11 @@ const AdminLogin = () => {
             />
           </div>
           <CardTitle className="text-2xl font-bold text-[#8B4513]">Admin Login</CardTitle>
-          <CardDescription className="text-[#6F4E37]">Secure access for Raw Smith Coffee administrators</CardDescription>
+          <CardDescription className="text-[#6F4E37]">
+            {accountCreated 
+              ? "Admin account created! Log in with the credentials below." 
+              : "Secure access for Raw Smith Coffee administrators"}
+          </CardDescription>
         </CardHeader>
         
         <CardContent className="space-y-4">
@@ -189,7 +200,7 @@ const AdminLogin = () => {
                     <FormLabel className="text-[#6F4E37]">Email</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="admin@rawsmithcoffee.com" 
+                        placeholder="rawsmith@admin.com" 
                         {...field} 
                         type="email"
                         autoComplete="username"
@@ -228,25 +239,41 @@ const AdminLogin = () => {
               >
                 {loading ? 'Logging In...' : 'Login'}
               </Button>
-              
-              <div className="text-center mt-2">
-                <Button
-                  type="button"
-                  variant="link"
-                  className="text-[#8B4513] hover:text-[#6F4E37]"
-                  onClick={loginWithDefaultAdmin}
-                  disabled={loading}
-                >
-                  Use Default Admin Credentials
-                </Button>
-              </div>
             </form>
           </Form>
           
-          <div className="text-center text-sm text-[#6F4E37] mt-4">
-            <p>Default credentials:</p>
-            <p>Email: admin@rawsmithcoffee.com</p>
-            <p>Password: RawSmith2024!</p>
+          <div className="flex flex-col space-y-4">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#8B4513]/20"></div>
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-[#FAF6F0] px-2 text-[#6F4E37]">or</span>
+              </div>
+            </div>
+            
+            <Button
+              variant="outline"
+              onClick={handleCreateAdmin}
+              disabled={loading}
+              className="border-[#8B4513]/20 hover:bg-[#8B4513]/10"
+            >
+              {loading ? 'Creating Admin...' : 'Create Admin Account'}
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={loginWithAdminCredentials}
+              disabled={loading}
+              className="border-[#8B4513]/20 hover:bg-[#8B4513]/10"
+            >
+              Use Default Admin Credentials
+            </Button>
+          </div>
+          
+          <div className="text-center text-xs text-[#6F4E37] mt-4">
+            <p>Default admin credentials:</p>
+            <p className="font-medium">rawsmith@admin.com / rawsmith123</p>
           </div>
         </CardContent>
       </Card>
