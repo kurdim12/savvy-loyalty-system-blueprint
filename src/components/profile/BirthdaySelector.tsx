@@ -85,8 +85,12 @@ export function BirthdaySelector() {
     
     setIsUpdating(true);
     try {
+      // Create a fixed date without timezone conversion issues
+      // Use UTC date with noon time to avoid day shifts due to timezone conversions
+      const fixedDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0));
+      
       await updateProfile({
-        birthday: date.toISOString()
+        birthday: fixedDate.toISOString()
       });
       toast.success("Birthday updated successfully!");
     } catch (error) {
@@ -184,7 +188,8 @@ export function BirthdaySelector() {
         {profile?.birthday && (
           <div className="mt-2 text-sm text-[#6F4E37]">
             <div className="p-3 rounded-md bg-[#F2FCE2] border border-[#F2FCE2]/30 text-[#403E43]">
-              <span className="font-medium">Current birthday:</span> {format(new Date(profile.birthday), "PPP")}
+              <span className="font-medium">Current birthday:</span> {profile.birthday ? 
+                format(new Date(profile.birthday), "PPP") : "Not set"}
             </div>
           </div>
         )}
