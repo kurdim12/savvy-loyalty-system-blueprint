@@ -51,13 +51,15 @@ import {
   MoreHorizontal, Search, Download, Upload, Users, Edit, Trash2, 
   UserPlus, ChevronLeft, ChevronRight, Filter, AlertTriangle
 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import CustomerTransactionsList from '@/components/admin/CustomerTransactionsList';
 import ManagePointsDialog from '@/components/admin/ManagePointsDialog';
 import { Database } from '@/integrations/supabase/types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type MembershipTier = 'bronze' | 'silver' | 'gold';
+// Define a type for the tier filter that includes 'all' option
+type TierFilter = MembershipTier | 'all';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -73,7 +75,8 @@ const UserManagement = () => {
   const [editingUser, setEditingUser] = useState<Profile | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [tierFilter, setTierFilter] = useState<string>('all');
+  // Update tierFilter type to use our new TierFilter type
+  const [tierFilter, setTierFilter] = useState<TierFilter>('all');
 
   // Fetch users with pagination
   const { data: usersData, isLoading: usersLoading } = useQuery({
@@ -92,7 +95,8 @@ const UserManagement = () => {
         
         // Apply tier filter if not 'all'
         if (tierFilter !== 'all') {
-          query = query.eq('membership_tier', tierFilter);
+          // Now this cast is safe because we've validated tierFilter isn't 'all'
+          query = query.eq('membership_tier', tierFilter as MembershipTier);
         }
         
         // Apply search filter if present
