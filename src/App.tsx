@@ -16,7 +16,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import TransactionsManagement from './pages/admin/TransactionsManagement';
 import RewardsManagement from './pages/admin/RewardsManagement';
-import DrinksList from './pages/admin/DrinksList';
+import DrinksManagement from './pages/admin/DrinksList';
 import AdminLogin from './pages/admin/Login';
 
 const queryClient = new QueryClient({
@@ -49,7 +49,7 @@ function App() {
             <Route path="/admin/users" element={<UserManagement />} />
             <Route path="/admin/transactions" element={<TransactionsManagement />} />
             <Route path="/admin/rewards" element={<RewardsManagement />} />
-            <Route path="/admin/drinks" element={<DrinksList />} />
+            <Route path="/admin/drinks" element={<DrinksManagement />} />
             
             {/* Fallback route */}
             <Route path="*" element={<NotFound />} />

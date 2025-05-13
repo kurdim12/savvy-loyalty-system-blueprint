@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useForm } from 'react-hook-form';
@@ -40,10 +39,19 @@ const drinkSchema = z.object({
 
 type DrinkFormValues = z.infer<typeof drinkSchema>;
 
-const DrinksList = () => {
+interface DrinksListProps {
+  showAddDialogProp?: boolean;
+  setShowAddDialogProp?: (open: boolean) => void;
+}
+
+const DrinksList = ({ showAddDialogProp, setShowAddDialogProp }: DrinksListProps = {}) => {
   const [selectedDrink, setSelectedDrink] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  
+  // Use prop value if provided, otherwise use local state
+  const showDialog = showAddDialogProp !== undefined ? showAddDialogProp : dialogOpen;
+  const setShowDialog = setShowAddDialogProp || setDialogOpen;
   
   const { data: drinks, isLoading } = useAllDrinks();
   const createDrink = useCreateDrink();
@@ -70,7 +78,7 @@ const DrinksList = () => {
       active: true,
     });
     setSelectedDrink(null);
-    setDialogOpen(true);
+    setShowDialog(true);
   };
   
   const openEditDialog = (drink: any) => {
@@ -82,7 +90,7 @@ const DrinksList = () => {
       active: !!drink.active,
     });
     setSelectedDrink(drink);
-    setDialogOpen(true);
+    setShowDialog(true);
   };
   
   const openDeleteDialog = (drink: any) => {
@@ -98,20 +106,22 @@ const DrinksList = () => {
         ...values
       }, {
         onSuccess: () => {
-          setDialogOpen(false);
+          toast.success(`${values.name} has been updated`);
+          setShowDialog(false);
         }
       });
     } else {
-      // Create new drink - Fix: Ensure all required fields are present
+      // Create new drink
       createDrink.mutate({
-        name: values.name, // This ensures name is always provided
+        name: values.name,
         points_earned: values.points_earned,
         category: values.category,
         price: values.price,
         active: values.active
       }, {
         onSuccess: () => {
-          setDialogOpen(false);
+          toast.success(`${values.name} has been created`);
+          setShowDialog(false);
         }
       });
     }
@@ -122,82 +132,118 @@ const DrinksList = () => {
     
     deleteDrink.mutate(selectedDrink.id, {
       onSuccess: () => {
+        toast.success(`${selectedDrink.name} has been deleted`);
         setDeleteDialogOpen(false);
       }
     });
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Manage Drinks</h2>
-        <Button onClick={openCreateDialog} className="bg-amber-700 hover:bg-amber-800">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Drink
-        </Button>
-      </div>
-      
-      {isLoading ? (
-        <div className="py-8 text-center">Loading drinks...</div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {drinks?.map((drink) => (
-            <div 
-              key={drink.id}
-              className="border rounded-lg p-4 flex items-center justify-between bg-white"
-            >
-              <div className="flex items-center gap-3">
-                <div className={`bg-amber-100 p-2 rounded-full ${!drink.active ? 'opacity-50' : ''}`}>
-                  <CoffeeIcon className="h-5 w-5 text-amber-700" />
-                </div>
-                <div>
-                  <h3 className="font-medium">{drink.name}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="secondary" className="capitalize">
-                      {drink.points_earned} points
-                    </Badge>
-                    {drink.category && (
-                      <Badge variant="outline" className="capitalize">
-                        {drink.category}
-                      </Badge>
-                    )}
-                    {drink.price && (
-                      <span className="text-sm text-amber-700">
-                        ${drink.price.toFixed(2)}
-                      </span>
-                    )}
-                    {!drink.active && (
-                      <Badge variant="outline" className="bg-gray-100">
-                        Inactive
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => openEditDialog(drink)}>
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="text-red-500" onClick={() => openDeleteDialog(drink)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
-          
-          {drinks?.length === 0 && (
-            <div className="col-span-2 py-8 text-center border rounded-lg">
-              <CoffeeIcon className="mx-auto h-10 w-10 text-amber-300 mb-2" />
-              <h3 className="text-lg font-medium">No drinks configured</h3>
-              <p className="text-muted-foreground">Add your first drink to get started</p>
-            </div>
-          )}
+  // If using as a standalone component (not in DrinksManagement page)
+  if (!showAddDialogProp) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Manage Drinks</h2>
+          <Button onClick={openCreateDialog} className="bg-amber-700 hover:bg-amber-800">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Drink
+          </Button>
         </div>
-      )}
+        
+        {/* Main drinks list content */}
+        {renderDrinksList()}
+        
+        {/* Create/Edit Dialog */}
+        {renderCreateEditDialog()}
+        
+        {/* Delete Confirmation Dialog */}
+        {renderDeleteDialog()}
+      </div>
+    );
+  }
+  
+  // If used within DrinksManagement page
+  return (
+    <>
+      {/* Main drinks list content */}
+      {renderDrinksList()}
       
       {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {renderCreateEditDialog()}
+      
+      {/* Delete Confirmation Dialog */}
+      {renderDeleteDialog()}
+    </>
+  );
+  
+  function renderDrinksList() {
+    if (isLoading) {
+      return (
+        <div className="py-8 text-center">Loading drinks...</div>
+      );
+    }
+    
+    return (
+      <div className="grid gap-4 md:grid-cols-2">
+        {drinks?.map((drink) => (
+          <div 
+            key={drink.id}
+            className="border rounded-lg p-4 flex items-center justify-between bg-white"
+          >
+            <div className="flex items-center gap-3">
+              <div className={`bg-amber-100 p-2 rounded-full ${!drink.active ? 'opacity-50' : ''}`}>
+                <CoffeeIcon className="h-5 w-5 text-amber-700" />
+              </div>
+              <div>
+                <h3 className="font-medium">{drink.name}</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="secondary" className="capitalize">
+                    {drink.points_earned} points
+                  </Badge>
+                  {drink.category && (
+                    <Badge variant="outline" className="capitalize">
+                      {drink.category}
+                    </Badge>
+                  )}
+                  {drink.price && (
+                    <span className="text-sm text-amber-700">
+                      ${drink.price.toFixed(2)}
+                    </span>
+                  )}
+                  {!drink.active && (
+                    <Badge variant="outline" className="bg-gray-100">
+                      Inactive
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" onClick={() => openEditDialog(drink)}>
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="text-red-500" onClick={() => openDeleteDialog(drink)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+        
+        {drinks?.length === 0 && (
+          <div className="col-span-2 py-8 text-center border rounded-lg">
+            <CoffeeIcon className="mx-auto h-10 w-10 text-amber-300 mb-2" />
+            <h3 className="text-lg font-medium">No drinks configured</h3>
+            <p className="text-muted-foreground">Add your first drink to get started</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+  
+  function renderCreateEditDialog() {
+    return (
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -295,7 +341,7 @@ const DrinksList = () => {
               />
               
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
                   Cancel
                 </Button>
                 <Button type="submit" className="bg-amber-700 hover:bg-amber-800">
@@ -306,8 +352,11 @@ const DrinksList = () => {
           </Form>
         </DialogContent>
       </Dialog>
-      
-      {/* Delete Confirmation Dialog */}
+    );
+  }
+  
+  function renderDeleteDialog() {
+    return (
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -331,8 +380,8 @@ const DrinksList = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    );
+  }
 };
 
 export default DrinksList;
