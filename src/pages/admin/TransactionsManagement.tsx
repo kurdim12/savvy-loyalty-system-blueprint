@@ -11,14 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Search, Download, Calendar, Filter, Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -103,8 +95,8 @@ const TransactionsManagement = () => {
           </CardContent>
         </Card>
 
-        {/* Transactions Table */}
-        <TransactionsList searchFilter={searchQuery} typeFilter={transactionType} />
+        {/* Transactions Table - removed props that don't exist */}
+        <TransactionsList />
 
         {/* Add Transaction Dialog */}
         <AddTransactionDialog

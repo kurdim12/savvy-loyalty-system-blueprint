@@ -84,10 +84,8 @@ const RewardsManagement = () => {
         </Card>
 
         {/* Rewards List */}
-        <RewardsList 
-          searchQuery={searchQuery}
-          statusFilter={statusFilter === 'all' ? undefined : statusFilter === 'active'} 
-        />
+        {/* Removing props that don't exist on RewardsList component */}
+        <RewardsList />
       </div>
     </AdminLayout>
   );

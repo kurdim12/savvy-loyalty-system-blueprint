@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,6 +34,7 @@ const UserManagement = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [showPointsDialog, setShowPointsDialog] = useState(false);
+  const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
 
   // Fetch users
   const { data: users, isLoading } = useQuery({
@@ -67,8 +67,9 @@ const UserManagement = () => {
     );
   });
 
-  const handleManagePoints = (userId: string) => {
+  const handleManagePoints = (userId: string, userName: string) => {
     setSelectedUser(userId);
+    setSelectedUserName(userName);
     setShowPointsDialog(true);
   };
 
@@ -203,7 +204,10 @@ const UserManagement = () => {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => handleManagePoints(user.id)}>
+                                <DropdownMenuItem onClick={() => handleManagePoints(
+                                  user.id, 
+                                  `${user.first_name || ''} ${user.last_name || ''}`.trim()
+                                )}>
                                   Adjust Points
                                 </DropdownMenuItem>
                                 <DropdownMenuItem>Change Rank</DropdownMenuItem>
@@ -246,10 +250,11 @@ const UserManagement = () => {
           </div>
         </div>
 
-        {/* Manage Points Dialog */}
+        {/* Manage Points Dialog - updated to use correct props */}
         {showPointsDialog && selectedUser && (
           <ManagePointsDialog
             userId={selectedUser}
+            customerName={selectedUserName}
             open={showPointsDialog}
             onOpenChange={(open) => {
               setShowPointsDialog(open);

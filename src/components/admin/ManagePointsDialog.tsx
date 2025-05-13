@@ -22,14 +22,14 @@ import { Database } from '@/integrations/supabase/types';
 interface ManagePointsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  customerId: string | null;
-  customerName: string | null;
+  userId: string;
+  customerName?: string | null;
 }
 
 const ManagePointsDialog = ({
   open,
   onOpenChange,
-  customerId,
+  userId,
   customerName,
 }: ManagePointsDialogProps) => {
   const [points, setPoints] = useState<number>(0);
@@ -50,11 +50,11 @@ const ManagePointsDialog = ({
 
   const createTransaction = useMutation({
     mutationFn: async () => {
-      if (!customerId) return;
+      if (!userId) return;
       
       // Use correct typing for the transaction data
       const transactionData = {
-        user_id: customerId,
+        user_id: userId,
         transaction_type: transactionType,
         points: points,
         notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} points manually by admin`,
@@ -71,9 +71,9 @@ const ManagePointsDialog = ({
       // Step 2: Update the user's point balance
       let updateResult;
       if (transactionType === 'earn') {
-        updateResult = await incrementPoints(customerId, points);
+        updateResult = await incrementPoints(userId, points);
       } else {
-        updateResult = await decrementPoints(customerId, points);
+        updateResult = await decrementPoints(userId, points);
       }
       
       if (updateResult.error) throw updateResult.error;
@@ -81,9 +81,9 @@ const ManagePointsDialog = ({
       return transaction;
     },
     onSuccess: () => {
-      toast.success(`Successfully ${transactionType === 'earn' ? 'added' : 'deducted'} ${points} points ${transactionType === 'earn' ? 'to' : 'from'} ${customerName}`);
+      toast.success(`Successfully ${transactionType === 'earn' ? 'added' : 'deducted'} ${points} points ${transactionType === 'earn' ? 'to' : 'from'} ${customerName || 'user'}`);
       queryClient.invalidateQueries({ queryKey: ['admin', 'customers'] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'customerTransactions', customerId] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'customerTransactions', userId] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'transactions'] });
       onOpenChange(false);
       resetForm();
@@ -108,11 +108,11 @@ const ManagePointsDialog = ({
         <DialogHeader>
           <DialogTitle>Manage Points</DialogTitle>
           <DialogDescription>
-            {customerName ? `Adjust points for ${customerName}` : 'Select a customer to adjust points'}
+            {customerName ? `Adjust points for ${customerName}` : 'Adjust points for user'}
           </DialogDescription>
         </DialogHeader>
 
-        {customerId ? (
+        {userId ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="transaction-type">Transaction Type</Label>
