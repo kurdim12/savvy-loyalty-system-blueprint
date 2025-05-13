@@ -15,7 +15,7 @@ const DrinksManagement = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Drinks Management</h1>
-            <p className="text-gray-500">Configure drinks and their point values</p>
+            <p className="text-gray-500">Configure drinks, categories, and their point values</p>
           </div>
           <Button 
             onClick={() => setShowAddDialog(true)}
@@ -30,7 +30,7 @@ const DrinksManagement = () => {
           <CardHeader>
             <CardTitle>Drinks Configuration</CardTitle>
             <CardDescription>
-              Manage the drinks available in your loyalty program and their point values
+              Manage the drinks available in your loyalty program, their categories, points, and tier requirements
             </CardDescription>
           </CardHeader>
           <CardContent>

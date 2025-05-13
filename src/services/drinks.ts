@@ -14,6 +14,7 @@ export interface Drink {
   points_earned: number;
   category: string | null;
   price: number | null;
+  membership_required?: string | null;
   active: boolean | null;
   created_at: string | null;
   updated_at: string | null;
@@ -24,6 +25,7 @@ export interface CreateDrinkInput {
   points_earned: number;
   category?: string;
   price?: number;
+  membership_required?: string;
   active?: boolean;
 }
 

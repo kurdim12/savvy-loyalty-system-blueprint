@@ -14,6 +14,7 @@ export type Drink = {
   points_earned: number;
   category?: string | null;
   price?: number | null;
+  membership_required?: string | null;
   active: boolean;
   created_at?: string;
   updated_at?: string;
@@ -24,6 +25,7 @@ export type CreateDrinkInput = {
   points_earned: number;
   category?: string;
   price?: number;
+  membership_required?: string;
   active?: boolean;
 };
 
@@ -33,6 +35,7 @@ export type UpdateDrinkInput = {
   points_earned?: number;
   category?: string;
   price?: number;
+  membership_required?: string;
   active?: boolean;
 };
 

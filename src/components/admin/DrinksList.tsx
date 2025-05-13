@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -20,6 +20,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { 
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,13 +39,28 @@ import { toast } from 'sonner';
 // Form schema for drink
 const drinkSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters'),
-  category: z.string().optional(),
+  category: z.string().min(1, 'Please select a category'),
   points_earned: z.coerce.number().min(1, 'Points must be at least 1'),
   price: z.coerce.number().min(0, 'Price cannot be negative').optional(),
+  membership_required: z.string().optional(),
   active: z.boolean().default(true),
 });
 
 type DrinkFormValues = z.infer<typeof drinkSchema>;
+
+const CATEGORIES = [
+  { label: 'White Tradition', value: 'white_tradition', defaultPoints: 4 },
+  { label: 'Black Tradition', value: 'black_tradition', defaultPoints: 3 },
+  { label: 'Raw Signature', value: 'raw_signature', defaultPoints: 5 },
+  { label: 'Raw Specialty', value: 'raw_specialty', defaultPoints: 6 },
+];
+
+const MEMBERSHIP_TIERS = [
+  { label: 'None', value: '' },
+  { label: 'Bronze', value: 'bronze' },
+  { label: 'Silver', value: 'silver' },
+  { label: 'Gold', value: 'gold' },
+];
 
 interface DrinksListProps {
   showAddDialogProp?: boolean;
@@ -65,9 +88,20 @@ const DrinksList = ({ showAddDialogProp, setShowAddDialogProp }: DrinksListProps
       category: '',
       points_earned: 5,
       price: 0,
+      membership_required: '',
       active: true,
     },
   });
+
+  // Update points based on category selection
+  useEffect(() => {
+    const category = form.watch('category');
+    const categoryData = CATEGORIES.find(cat => cat.value === category);
+    
+    if (categoryData && !selectedDrink) {
+      form.setValue('points_earned', categoryData.defaultPoints);
+    }
+  }, [form.watch('category'), form, selectedDrink]);
   
   const openCreateDialog = () => {
     form.reset({
@@ -75,6 +109,7 @@ const DrinksList = ({ showAddDialogProp, setShowAddDialogProp }: DrinksListProps
       category: '',
       points_earned: 5,
       price: 0,
+      membership_required: '',
       active: true,
     });
     setSelectedDrink(null);
@@ -87,6 +122,7 @@ const DrinksList = ({ showAddDialogProp, setShowAddDialogProp }: DrinksListProps
       category: drink.category || '',
       points_earned: drink.points_earned,
       price: drink.price || 0,
+      membership_required: drink.membership_required || '',
       active: !!drink.active,
     });
     setSelectedDrink(drink);
@@ -117,6 +153,7 @@ const DrinksList = ({ showAddDialogProp, setShowAddDialogProp }: DrinksListProps
         points_earned: values.points_earned,
         category: values.category,
         price: values.price,
+        membership_required: values.membership_required,
         active: values.active
       }, {
         onSuccess: () => {
@@ -134,6 +171,17 @@ const DrinksList = ({ showAddDialogProp, setShowAddDialogProp }: DrinksListProps
       onSuccess: () => {
         toast.success(`${selectedDrink.name} has been deleted`);
         setDeleteDialogOpen(false);
+      }
+    });
+  };
+
+  const handleToggleActive = (drink: any) => {
+    updateDrink.mutate({
+      id: drink.id,
+      active: !drink.active
+    }, {
+      onSuccess: () => {
+        toast.success(`${drink.name} is now ${!drink.active ? 'active' : 'inactive'}`);
       }
     });
   };
@@ -184,57 +232,72 @@ const DrinksList = ({ showAddDialogProp, setShowAddDialogProp }: DrinksListProps
     }
     
     return (
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {drinks?.map((drink) => (
           <div 
             key={drink.id}
-            className="border rounded-lg p-4 flex items-center justify-between bg-white"
+            className="border rounded-lg p-4 flex flex-col bg-white"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between mb-3">
               <div className={`bg-amber-100 p-2 rounded-full ${!drink.active ? 'opacity-50' : ''}`}>
                 <CoffeeIcon className="h-5 w-5 text-amber-700" />
               </div>
-              <div>
-                <h3 className="font-medium">{drink.name}</h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="secondary" className="capitalize">
-                    {drink.points_earned} points
-                  </Badge>
-                  {drink.category && (
-                    <Badge variant="outline" className="capitalize">
-                      {drink.category}
-                    </Badge>
-                  )}
-                  {drink.price && (
-                    <span className="text-sm text-amber-700">
-                      ${drink.price.toFixed(2)}
-                    </span>
-                  )}
-                  {!drink.active && (
-                    <Badge variant="outline" className="bg-gray-100">
-                      Inactive
-                    </Badge>
-                  )}
-                </div>
+              <div className="flex items-center gap-2">
+                <Switch 
+                  checked={!!drink.active} 
+                  onCheckedChange={() => handleToggleActive(drink)}
+                  aria-label={drink.active ? 'Active' : 'Inactive'}
+                />
+                <span className="text-sm text-gray-500">{drink.active ? 'Active' : 'Inactive'}</span>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={() => openEditDialog(drink)}>
-                <Pencil className="h-4 w-4" />
+            <h3 className="font-medium text-lg">{drink.name}</h3>
+            
+            <div className="flex flex-wrap items-center gap-2 mt-2 mb-4">
+              {drink.category && (
+                <Badge variant="outline" className="capitalize">
+                  {getCategoryLabel(drink.category)}
+                </Badge>
+              )}
+              <Badge variant="secondary" className="capitalize">
+                {drink.points_earned} points
+              </Badge>
+              {drink.membership_required && (
+                <Badge className={getTierBadgeClass(drink.membership_required)}>
+                  {drink.membership_required}
+                </Badge>
+              )}
+            </div>
+
+            {drink.price && (
+              <div className="text-sm text-amber-700 mt-auto mb-4">
+                ${drink.price.toFixed(2)}
+              </div>
+            )}
+            
+            <div className="flex items-center gap-2 mt-auto">
+              <Button variant="outline" size="sm" onClick={() => openEditDialog(drink)}>
+                <Pencil className="h-4 w-4 mr-1" />
+                Edit
               </Button>
-              <Button variant="ghost" size="icon" className="text-red-500" onClick={() => openDeleteDialog(drink)}>
-                <Trash2 className="h-4 w-4" />
+              <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => openDeleteDialog(drink)}>
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete
               </Button>
             </div>
           </div>
         ))}
         
         {drinks?.length === 0 && (
-          <div className="col-span-2 py-8 text-center border rounded-lg">
+          <div className="col-span-full py-8 text-center border rounded-lg">
             <CoffeeIcon className="mx-auto h-10 w-10 text-amber-300 mb-2" />
             <h3 className="text-lg font-medium">No drinks configured</h3>
             <p className="text-muted-foreground">Add your first drink to get started</p>
+            <Button onClick={openCreateDialog} className="bg-amber-700 hover:bg-amber-800 mt-4">
+              <Plus className="h-4 w-4 mr-2" />
+              Add First Drink
+            </Button>
           </div>
         )}
       </div>
@@ -244,7 +307,7 @@ const DrinksList = ({ showAddDialogProp, setShowAddDialogProp }: DrinksListProps
   function renderCreateEditDialog() {
     return (
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
               {selectedDrink ? 'Edit Drink' : 'Add New Drink'}
@@ -252,7 +315,7 @@ const DrinksList = ({ showAddDialogProp, setShowAddDialogProp }: DrinksListProps
             <DialogDescription>
               {selectedDrink 
                 ? 'Update the details for this drink' 
-                : 'Configure a new drink and set its point value'}
+                : 'Configure a new drink with its category and point value'}
             </DialogDescription>
           </DialogHeader>
           
@@ -278,11 +341,31 @@ const DrinksList = ({ showAddDialogProp, setShowAddDialogProp }: DrinksListProps
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <FormControl>
-                      <Input placeholder="tradition, signature, or specialty" {...field} />
-                    </FormControl>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectGroup>
+                          {CATEGORIES.map(category => (
+                            <SelectItem 
+                              key={category.value} 
+                              value={category.value}
+                            >
+                              {category.label} ({category.defaultPoints} pts)
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
                     <FormDescription>
-                      Optional category to group drinks
+                      Category determines the default point value
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -318,6 +401,43 @@ const DrinksList = ({ showAddDialogProp, setShowAddDialogProp }: DrinksListProps
                   )}
                 />
               </div>
+              
+              <FormField
+                control={form.control}
+                name="membership_required"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tier Required</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value || ''}
+                      value={field.value || ''}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select required tier (optional)" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectGroup>
+                          {MEMBERSHIP_TIERS.map(tier => (
+                            <SelectItem 
+                              key={tier.value || 'none'} 
+                              value={tier.value || 'none'}
+                            >
+                              {tier.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Minimum membership tier required to order this drink
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <FormField
                 control={form.control}
@@ -381,6 +501,25 @@ const DrinksList = ({ showAddDialogProp, setShowAddDialogProp }: DrinksListProps
         </DialogContent>
       </Dialog>
     );
+  }
+
+  // Helper functions
+  function getCategoryLabel(categoryValue: string): string {
+    const category = CATEGORIES.find(cat => cat.value === categoryValue);
+    return category ? category.label : categoryValue;
+  }
+
+  function getTierBadgeClass(tier: string): string {
+    switch (tier.toLowerCase()) {
+      case 'bronze':
+        return 'bg-amber-200 text-amber-800 hover:bg-amber-300';
+      case 'silver':
+        return 'bg-gray-200 text-gray-800 hover:bg-gray-300';
+      case 'gold':
+        return 'bg-yellow-200 text-yellow-800 hover:bg-yellow-300';
+      default:
+        return '';
+    }
   }
 };
 
