@@ -13,6 +13,9 @@ import NotFound from './pages/NotFound';
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
+import UserManagement from './pages/admin/UserManagement';
+import TransactionsManagement from './pages/admin/TransactionsManagement';
+import RewardsManagement from './pages/admin/RewardsManagement';
 import DrinksList from './pages/admin/DrinksList';
 import AdminLogin from './pages/admin/Login';
 
@@ -43,6 +46,9 @@ function App() {
             
             {/* Admin routes */}
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<UserManagement />} />
+            <Route path="/admin/transactions" element={<TransactionsManagement />} />
+            <Route path="/admin/rewards" element={<RewardsManagement />} />
             <Route path="/admin/drinks" element={<DrinksList />} />
             
             {/* Fallback route */}

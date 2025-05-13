@@ -4,13 +4,18 @@ import { useNavigate } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  CoffeeIcon,
-  Users,
-  GiftIcon,
   LayoutDashboard,
+  Users,
+  CoffeeIcon,
+  GiftIcon,
   ArrowRightLeft,
   BarChart4,
+  Bell,
   Settings,
+  Sparkles,
+  FileText,
+  ShieldAlert,
+  HelpCircle,
   LogOut,
   ChevronDown,
   Menu,
@@ -65,9 +70,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       icon: <Users className="h-5 w-5" />,
     },
     {
-      title: 'Drinks',
-      path: '/admin/drinks',
-      icon: <CoffeeIcon className="h-5 w-5" />,
+      title: 'Transactions',
+      path: '/admin/transactions',
+      icon: <ArrowRightLeft className="h-5 w-5" />,
     },
     {
       title: 'Rewards',
@@ -75,9 +80,24 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       icon: <GiftIcon className="h-5 w-5" />,
     },
     {
-      title: 'Transactions',
-      path: '/admin/transactions',
-      icon: <ArrowRightLeft className="h-5 w-5" />,
+      title: 'Drinks',
+      path: '/admin/drinks',
+      icon: <CoffeeIcon className="h-5 w-5" />,
+    },
+    {
+      title: 'Promotions',
+      path: '/admin/promotions',
+      icon: <Sparkles className="h-5 w-5" />,
+    },
+    {
+      title: 'Reports',
+      path: '/admin/reports',
+      icon: <FileText className="h-5 w-5" />,
+    },
+    {
+      title: 'Notifications',
+      path: '/admin/notifications',
+      icon: <Bell className="h-5 w-5" />,
     },
     {
       title: 'Analytics',
@@ -88,6 +108,16 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       title: 'Settings',
       path: '/admin/settings',
       icon: <Settings className="h-5 w-5" />,
+    },
+    {
+      title: 'Activity Logs',
+      path: '/admin/logs',
+      icon: <ShieldAlert className="h-5 w-5" />,
+    },
+    {
+      title: 'Support',
+      path: '/admin/support',
+      icon: <HelpCircle className="h-5 w-5" />,
     },
   ];
 
@@ -124,16 +154,16 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           onClick={() => setMobileMenuOpen(false)}
         >
           <div 
-            className="fixed inset-y-0 left-0 z-50 w-64 bg-white p-4"
+            className="fixed inset-y-0 left-0 z-50 w-64 overflow-y-auto bg-white p-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col h-full">
               <div className="mb-8 flex items-center px-2 py-4">
                 <CoffeeIcon className="mr-2 h-8 w-8 text-amber-700" />
-                <span className="text-xl font-bold">Coffee Admin</span>
+                <span className="text-xl font-bold">Raw Smith Admin</span>
               </div>
 
-              <nav className="flex-1 space-y-1">
+              <nav className="flex-1 space-y-1 overflow-y-auto">
                 {navItems.map((item) => (
                   <NavLink
                     key={item.path}
@@ -186,7 +216,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       <aside
         className={`${
           sidebarOpen ? 'w-64' : 'w-20'
-        } hidden border-r bg-white transition-width duration-300 md:block`}
+        } hidden border-r bg-white transition-all duration-300 md:block`}
       >
         <div className="flex h-full flex-col">
           <div
@@ -197,7 +227,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             <div className={`flex items-center ${!sidebarOpen && 'justify-center w-full'}`}>
               <CoffeeIcon className="h-8 w-8 text-amber-700" />
               {sidebarOpen && (
-                <span className="ml-2 text-xl font-bold">Coffee Admin</span>
+                <span className="ml-2 text-xl font-bold">Raw Smith Admin</span>
               )}
             </div>
             {sidebarOpen && (
@@ -223,7 +253,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             </Button>
           )}
 
-          <nav className="flex-1 space-y-1 px-3 py-4">
+          <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
@@ -289,7 +319,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col">
-        <main className="flex-1 px-4 py-8 md:px-6 lg:px-8">
+        <main className="flex-1 px-4 py-8 md:px-6 lg:px-8 overflow-y-auto">
           {children}
         </main>
       </div>
