@@ -8,11 +8,13 @@ import { toast } from 'sonner';
 interface LayoutProps {
   children: ReactNode;
   requireTier?: 'bronze' | 'silver' | 'gold';
+  adminOnly?: boolean;
 }
 
 export default function Layout({ 
   children, 
-  requireTier
+  requireTier,
+  adminOnly
 }: LayoutProps) {
   const { user, loading, isAdmin, isUser, session, membershipTier, profile } = useAuth();
   const navigate = useNavigate();
@@ -53,15 +55,29 @@ export default function Layout({
     );
   }
 
+  // Handle admin-only routes
+  if (adminOnly) {
+    if (!user) {
+      toast.error('Please sign in to access the admin area');
+      return <Navigate to="/admin/login" replace />;
+    }
+    
+    if (!isAdmin) {
+      toast.error('Access denied. You do not have admin privileges.');
+      return <Navigate to="/auth" replace />;
+    }
+    
+    // Admin is authenticated, continue
+  } 
   // For regular user routes
-  if (!user) {
+  else if (!user) {
     toast.error('Please sign in to access this page');
     return <Navigate to="/auth" replace />;
   }
 
   // If admin tries to access user routes - we'll allow it, but this could be changed
   // to redirect to admin dashboard if preferred
-  if (isAdmin) {
+  if (isAdmin && !adminOnly) {
     // Uncomment below to redirect admins to admin dashboard
     // toast.info('Redirecting to admin dashboard');
     // return <Navigate to="/admin/dashboard" replace />;
@@ -80,7 +96,7 @@ export default function Layout({
   }
 
   // Check membership tier requirement if specified
-  if (requireTier && profile) {
+  if (requireTier && profile && !adminOnly) {
     const tierValues: Record<string, number> = {
       'bronze': 1,
       'silver': 2,
