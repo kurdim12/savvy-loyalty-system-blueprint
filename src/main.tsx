@@ -8,7 +8,6 @@ import { Toaster } from './components/ui/toaster.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import { Toaster as SonnerToaster } from 'sonner';
 import { supabase } from './integrations/supabase/client';
-import { AuthChangeEvent } from '@supabase/supabase-js';
 
 // Create a client
 const queryClient = new QueryClient();
