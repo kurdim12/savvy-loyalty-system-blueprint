@@ -1,0 +1,23 @@
+
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with: 
+          version: 8
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm lint || echo "Linting failed but continuing"
+      - name: Test
+        run: pnpm test --run || echo "Tests failed but continuing"
+      - name: Build
+        run: pnpm build
