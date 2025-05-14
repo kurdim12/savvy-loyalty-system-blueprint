@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -32,6 +31,7 @@ import { Search, Eye, CreditCard, Award, Phone, Mail, Calendar, User } from 'luc
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
+import RankChanger from './RankChanger';
 
 export interface Customer {
   id: string;
@@ -49,9 +49,10 @@ export interface Customer {
 interface CustomersListProps {
   onManagePoints?: (customerId: string, customerName: string) => void;
   onSelectCustomer?: (customerId: string) => void;
+  onRankChange?: (customerId: string, newRank: Database['public']['Enums']['membership_tier']) => void;
 }
 
-const CustomersList = ({ onManagePoints, onSelectCustomer }: CustomersListProps) => {
+const CustomersList = ({ onManagePoints, onSelectCustomer, onRankChange }: CustomersListProps) => {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -263,12 +264,20 @@ const CustomersList = ({ onManagePoints, onSelectCustomer }: CustomersListProps)
                     </TableCell>
                     <TableCell>{customer.email}</TableCell>
                     <TableCell>
-                      <Badge className="capitalize" variant={
-                        customer.membership_tier === 'gold' ? 'default' :
-                        customer.membership_tier === 'silver' ? 'outline' : 'secondary'
-                      }>
-                        {customer.membership_tier}
-                      </Badge>
+                      {onRankChange ? (
+                        <RankChanger 
+                          customerId={customer.id}
+                          currentRank={customer.membership_tier}
+                          onRankChange={onRankChange}
+                        />
+                      ) : (
+                        <Badge className="capitalize" variant={
+                          customer.membership_tier === 'gold' ? 'default' :
+                          customer.membership_tier === 'silver' ? 'outline' : 'secondary'
+                        }>
+                          {customer.membership_tier}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell>{customer.current_points}</TableCell>
                     <TableCell>

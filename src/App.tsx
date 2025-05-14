@@ -6,6 +6,7 @@ import Profile from './pages/Profile';
 import Rewards from './pages/Rewards';
 import NotFound from './pages/NotFound';
 import Index from './pages/Index';
+import CommunityPage from './pages/CommunityPage';
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -51,6 +52,11 @@ function App() {
       <Route path="/rewards" element={
         <UserRoute>
           <Rewards />
+        </UserRoute>
+      } />
+      <Route path="/community" element={
+        <UserRoute>
+          <CommunityPage />
         </UserRoute>
       } />
       

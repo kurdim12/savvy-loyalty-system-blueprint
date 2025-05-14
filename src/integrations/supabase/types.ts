@@ -87,6 +87,77 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          author: string | null
+          body: string
+          created_at: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          author?: string | null
+          body: string
+          created_at?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          author?: string | null
+          body?: string
+          created_at?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_author_fkey"
+            columns: ["author"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          created_at: string | null
+          id: string
+          thread_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string | null
+          id?: string
+          thread_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string | null
+          id?: string
+          thread_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           birthday: string | null
@@ -291,6 +362,35 @@ export type Database = {
         }
         Relationships: []
       }
+      threads: {
+        Row: {
+          created_at: string | null
+          id: string
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "threads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           created_at: string
@@ -341,6 +441,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_create_reward: {
+        Args: { name: string; cost: number; category: string; stock: number }
+        Returns: undefined
+      }
+      admin_delete_reward: {
+        Args: { rid: string }
+        Returns: undefined
+      }
+      admin_update_reward: {
+        Args: {
+          rid: string
+          name: string
+          cost: number
+          category: string
+          stock: number
+        }
+        Returns: undefined
+      }
       decrement_points: {
         Args: { user_id: string; point_amount: number }
         Returns: undefined
@@ -375,6 +493,10 @@ export type Database = {
       }
       redeem_points: {
         Args: { uid: string; reward_id: string; points: number }
+        Returns: undefined
+      }
+      set_user_tier: {
+        Args: { uid: string; new_tier: string }
         Returns: undefined
       }
       update_community_goal_points: {

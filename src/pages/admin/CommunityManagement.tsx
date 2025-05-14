@@ -1,547 +1,367 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
+import AdminLayout from '@/components/admin/AdminLayout';
+import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Eye, Trash2, Search, ChevronLeft, ChevronRight, MessageSquare, Users, Calendar } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter,
+  DialogDescription
+} from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
 import { toast } from 'sonner';
+import { 
+  Megaphone, 
+  MessageSquare, 
+  Plus, 
+  AlertCircle, 
+  CheckCircle, 
+  Trash2,
+  PenSquare
+} from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-// Types for community posts and comments
-interface CommunityPost {
+interface Event {
   id: string;
-  title?: string;
-  content: string;
+  title: string;
+  body: string;
   created_at: string;
-  author_id: string;
-  author: {
-    first_name?: string;
-    last_name?: string;
-    email: string;
-  };
-  comment_count?: number;
 }
-
-interface CommunityComment {
-  id: string;
-  content: string;
-  created_at: string;
-  user_id: string;
-  author: {
-    first_name?: string;
-    last_name?: string;
-    email: string;
-  };
-}
-
-const ITEMS_PER_PAGE = 10;
 
 const CommunityManagement = () => {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
-  const [showDeletePostDialog, setShowDeletePostDialog] = useState(false);
-  const [showDeleteCommentDialog, setShowDeleteCommentDialog] = useState(false);
-  const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null);
+  const [isNewAnnouncementOpen, setIsNewAnnouncementOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<string | null>(null);
+  
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
 
-  // Fetch community posts
-  const { data: posts, isLoading } = useQuery({
-    queryKey: ['admin', 'community', 'posts', currentPage, searchQuery],
+  // Fetch events
+  const { data: events, isLoading: eventsLoading } = useQuery({
+    queryKey: ['admin-events'],
     queryFn: async () => {
-      try {
-        const from = (currentPage - 1) * ITEMS_PER_PAGE;
-        const to = from + ITEMS_PER_PAGE - 1;
-        
-        let query = supabase
-          .from('community_goals')
-          .select(`
-            id, 
-            name,
-            description, 
-            created_at
-          `)
-          .order('created_at', { ascending: false })
-          .range(from, to);
-        
-        if (searchQuery) {
-          query = query.ilike('name', `%${searchQuery}%`);
-        }
-        
-        const { data, error } = await query;
-        
-        if (error) throw error;
-        
-        // This is a mock implementation since we're using community_goals as a placeholder
-        // In a real implementation, we would have a proper community posts table
-        return data.map(post => ({
-          id: post.id,
-          title: post.name,
-          content: post.description || 'No content',
-          created_at: post.created_at,
-          author_id: 'mock-author-id',
-          author: {
-            first_name: 'Community',
-            last_name: 'User',
-            email: 'community@example.com'
-          },
-          comment_count: Math.floor(Math.random() * 10) // Mock comment count
-        })) as CommunityPost[];
-      } catch (error) {
-        console.error('Error fetching community posts:', error);
-        return [];
-      }
-    },
-    refetchInterval: 60000 // Refetch every minute
-  });
-
-  // Fetch post comments when a post is selected
-  const { data: comments, isLoading: commentsLoading } = useQuery({
-    queryKey: ['admin', 'community', 'post', selectedPost?.id, 'comments'],
-    queryFn: async () => {
-      if (!selectedPost?.id) return [];
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .order('created_at', { ascending: false });
       
-      try {
-        // This is a mock implementation since we don't have a real comments table
-        // In a real implementation, we would query the comments table
-        
-        // Generate 0-5 mock comments for the selected post
-        const commentCount = Math.floor(Math.random() * 6);
-        const mockComments: CommunityComment[] = [];
-        
-        for (let i = 0; i < commentCount; i++) {
-          mockComments.push({
-            id: `mock-comment-${i}-${selectedPost.id}`,
-            content: `This is a mock comment ${i + 1} on post ${selectedPost.id}`,
-            created_at: new Date(Date.now() - Math.random() * 10000000).toISOString(),
-            user_id: `mock-user-${i}`,
-            author: {
-              first_name: `User`,
-              last_name: `${i + 1}`,
-              email: `user${i + 1}@example.com`
-            }
-          });
-        }
-        
-        return mockComments.sort((a, b) => 
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-      } catch (error) {
-        console.error('Error fetching comments:', error);
-        return [];
-      }
-    },
-    enabled: !!selectedPost?.id
-  });
-
-  // Delete post mutation
-  const deletePost = useMutation({
-    mutationFn: async (postId: string) => {
-      try {
-        // In a real implementation, you would delete the actual post
-        // For now, we'll just show a toast
-        toast.success('Post would be deleted in a real implementation');
-      } catch (error) {
-        console.error('Error deleting post:', error);
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'community', 'posts'] });
-      setSelectedPost(null);
-      setShowDeletePostDialog(false);
-      toast.success('Post deleted successfully');
-    },
-    onError: () => {
-      toast.error('Failed to delete post');
+      if (error) throw error;
+      return data as Event[];
     }
   });
 
-  // Delete comment mutation
-  const deleteComment = useMutation({
-    mutationFn: async (commentId: string) => {
-      try {
-        // In a real implementation, you would delete the actual comment
-        // For now, we'll just show a toast
-        toast.success('Comment would be deleted in a real implementation');
-      } catch (error) {
-        console.error('Error deleting comment:', error);
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      if (selectedPost?.id) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['admin', 'community', 'post', selectedPost.id, 'comments'] 
+  // Create announcement mutation
+  const createAnnouncementMutation = useMutation({
+    mutationFn: async ({ title, body }: { title: string; body: string }) => {
+      if (!user) throw new Error("You must be logged in as admin");
+      
+      const { error } = await supabase
+        .from('events')
+        .insert({ 
+          title, 
+          body, 
+          author: user.id 
         });
-      }
-      setShowDeleteCommentDialog(false);
-      setSelectedCommentId(null);
-      toast.success('Comment deleted successfully');
+      
+      if (error) throw error;
     },
-    onError: () => {
-      toast.error('Failed to delete comment');
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-events'] });
+      setIsNewAnnouncementOpen(false);
+      setTitle("");
+      setBody("");
+      toast.success(
+        <div className="flex items-center gap-2">
+          <CheckCircle className="h-4 w-4" />
+          <span>Announcement published successfully</span>
+        </div>
+      );
+    },
+    onError: (error: any) => {
+      toast.error(
+        <div className="flex items-center gap-2">
+          <AlertCircle className="h-4 w-4" />
+          <span>{`Error creating announcement: ${error.message}`}</span>
+        </div>
+      );
     }
   });
 
-  const handleDeletePost = () => {
-    if (selectedPost) {
-      deletePost.mutate(selectedPost.id);
+  // Delete announcement mutation
+  const deleteAnnouncementMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-events'] });
+      setEventToDelete(null);
+      toast.success("Announcement deleted successfully");
+    },
+    onError: (error: any) => {
+      toast.error(`Error deleting announcement: ${error.message}`);
+    }
+  });
+
+  const handleCreateAnnouncement = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !body.trim()) {
+      toast.error("Please provide both a title and content");
+      return;
+    }
+    
+    createAnnouncementMutation.mutate({ title, body });
+  };
+
+  const confirmDelete = (id: string) => {
+    setEventToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDelete = () => {
+    if (eventToDelete) {
+      deleteAnnouncementMutation.mutate(eventToDelete);
+      setIsDeleteDialogOpen(false);
     }
   };
 
-  const handleDeleteComment = () => {
-    if (selectedCommentId) {
-      deleteComment.mutate(selectedCommentId);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
   };
 
-  const truncateText = (text: string, maxLength: number) => {
-    if (!text) return '';
-    if (text.length <= maxLength) return text;
-    return `${text.substring(0, maxLength)}...`;
-  };
-
-  const getUserInitials = (first?: string, last?: string) => {
-    const f = first ? first.charAt(0).toUpperCase() : '?';
-    const l = last ? last.charAt(0).toUpperCase() : '';
-    return f + (l || '');
-  };
-  
-  const getAuthorName = (author: {first_name?: string, last_name?: string, email: string}) => {
-    if (author.first_name || author.last_name) {
-      return `${author.first_name || ''} ${author.last_name || ''}`.trim();
-    }
-    return author.email.split('@')[0];
-  };
-
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Community Management</h1>
-            <p className="text-gray-500">Monitor and moderate community content</p>
+            <h2 className="text-3xl font-bold tracking-tight">Community Management</h2>
+            <p className="text-muted-foreground">
+              Manage announcements and community discussions.
+            </p>
           </div>
+          <Button onClick={() => setIsNewAnnouncementOpen(true)}>
+            <Megaphone className="mr-2 h-4 w-4" />
+            New Announcement
+          </Button>
         </div>
+
+        <Separator />
         
-        {selectedPost ? (
+        <div className="grid gap-6">
           <div>
-            <Button 
-              variant="outline" 
-              className="mb-4" 
-              onClick={() => setSelectedPost(null)}
-            >
-              <ChevronLeft className="mr-2 h-4 w-4" />
-              Back to All Posts
-            </Button>
-            
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>{selectedPost.title || 'Untitled Post'}</CardTitle>
-                    <div className="flex items-center mt-2 space-x-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100">
-                        <span className="text-sm font-semibold text-amber-700">
-                          {getUserInitials(selectedPost.author.first_name, selectedPost.author.last_name)}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="font-medium">{getAuthorName(selectedPost.author)}</div>
-                        <div className="text-sm text-muted-foreground">
-                          Posted on {formatDate(selectedPost.created_at)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <Button 
-                    variant="destructive" 
-                    size="icon" 
-                    onClick={() => setShowDeletePostDialog(true)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="prose max-w-none">
-                  <p className="whitespace-pre-wrap">{selectedPost.content}</p>
-                </div>
-                
-                <div className="border-t pt-4 mt-6">
-                  <h3 className="font-medium text-lg mb-4 flex items-center">
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Comments ({comments?.length || 0})
-                  </h3>
-                  
-                  {commentsLoading ? (
-                    <div className="flex items-center justify-center h-24">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-500"></div>
-                    </div>
-                  ) : comments && comments.length > 0 ? (
-                    <div className="space-y-4">
-                      {comments.map(comment => (
-                        <div key={comment.id} className="flex space-x-4">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100">
-                            <span className="text-sm font-semibold text-gray-600">
-                              {getUserInitials(comment.author.first_name, comment.author.last_name)}
-                            </span>
-                          </div>
-                          <div className="flex-1 space-y-1">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <span className="font-medium">{getAuthorName(comment.author)}</span>
-                                <span className="text-xs text-muted-foreground ml-2">
-                                  {formatDate(comment.created_at)}
-                                </span>
-                              </div>
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
-                                className="h-6 w-6 text-red-500 hover:text-red-700"
-                                onClick={() => {
-                                  setSelectedCommentId(comment.id);
-                                  setShowDeleteCommentDialog(true);
-                                }}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                            <p className="text-sm">{comment.content}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-center py-8 text-gray-500">No comments on this post</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          <>
-            {/* Search and filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-grow">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search posts..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1); // Reset to first page on search
-                  }}
-                />
-              </div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium">Recent Announcements</h3>
             </div>
             
-            {/* Posts Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Community Posts</CardTitle>
-                <CardDescription>
-                  Manage and moderate user-generated content
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="flex items-center justify-center h-60">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500"></div>
-                  </div>
-                ) : posts && posts.length > 0 ? (
-                  <>
-                    <div className="rounded-md border overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Post</TableHead>
-                            <TableHead>Author</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Comments</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {posts.map(post => (
-                            <TableRow key={post.id}>
-                              <TableCell>
-                                <div>
-                                  <div className="font-medium">{post.title || 'Untitled'}</div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {truncateText(post.content, 50)}
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center space-x-2">
-                                  <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
-                                    <span className="text-xs font-medium text-amber-700">
-                                      {getUserInitials(post.author.first_name, post.author.last_name)}
-                                    </span>
-                                  </div>
-                                  <span className="text-sm">{getAuthorName(post.author)}</span>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center">
-                                  <Calendar className="mr-2 h-3 w-3 text-muted-foreground" />
-                                  {formatDate(post.created_at)}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center">
-                                  <MessageSquare className="mr-2 h-3 w-3 text-muted-foreground" />
-                                  {post.comment_count || 0}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex space-x-2">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon"
-                                    onClick={() => setSelectedPost(post)}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon"
-                                    className="text-red-500 hover:text-red-700"
-                                    onClick={() => {
-                                      setSelectedPost(post);
-                                      setShowDeletePostDialog(true);
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                    
-                    {/* Pagination */}
-                    <div className="flex items-center justify-end space-x-2 mt-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <div className="text-sm">
-                        Page {currentPage}
+            <div className="space-y-4">
+              {eventsLoading ? (
+                <Card>
+                  <CardContent className="text-center py-8">
+                    Loading announcements...
+                  </CardContent>
+                </Card>
+              ) : events && events.length > 0 ? (
+                events.map(event => (
+                  <Card key={event.id}>
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <CardTitle>{event.title}</CardTitle>
+                        <div className="flex space-x-2">
+                          <Button variant="ghost" size="sm">
+                            <PenSquare className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => confirmDelete(event.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(prev => prev + 1)}
-                        disabled={!posts || posts.length < ITEMS_PER_PAGE}
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-10">
-                    <Users className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="font-medium text-gray-900 mb-1">No Posts Found</h3>
-                    <p className="text-muted-foreground">
-                      {searchQuery ? 
-                        "No posts match your search criteria." : 
-                        "There are no community posts yet."}
+                      <CardDescription>
+                        Posted on {formatDate(event.created_at)}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="prose prose-sm">
+                        <p>{event.body}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card>
+                  <CardContent className="text-center py-8">
+                    <Megaphone className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium">No Announcements Yet</h3>
+                    <p className="text-muted-foreground mt-1">
+                      Create your first announcement to keep your customers informed.
                     </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </>
-        )}
-        
-        {/* Delete Post Confirmation Dialog */}
-        <Dialog open={showDeletePostDialog} onOpenChange={setShowDeletePostDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete Post</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete this post? This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowDeletePostDialog(false)}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleDeletePost}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Post
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        
-        {/* Delete Comment Confirmation Dialog */}
-        <Dialog open={showDeleteCommentDialog} onOpenChange={setShowDeleteCommentDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete Comment</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete this comment? This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowDeleteCommentDialog(false)}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleDeleteComment}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Comment
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                    <Button 
+                      className="mt-4" 
+                      onClick={() => setIsNewAnnouncementOpen(true)}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Announcement
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+          
+          <Separator />
+          
+          <div>
+            <h3 className="text-lg font-medium mb-4">Community Statistics</h3>
+            <div className="grid md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="py-4">
+                  <CardTitle className="text-base">Active Discussions</CardTitle>
+                </CardHeader>
+                <CardContent className="py-0">
+                  <div className="text-2xl font-bold">--</div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="py-4">
+                  <CardTitle className="text-base">Total Messages</CardTitle>
+                </CardHeader>
+                <CardContent className="py-0">
+                  <div className="text-2xl font-bold">--</div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="py-4">
+                  <CardTitle className="text-base">Active Participants</CardTitle>
+                </CardHeader>
+                <CardContent className="py-0">
+                  <div className="text-2xl font-bold">--</div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
+      
+      {/* New Announcement Dialog */}
+      <Dialog open={isNewAnnouncementOpen} onOpenChange={setIsNewAnnouncementOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>New Announcement</DialogTitle>
+            <DialogDescription>
+              Create a new announcement for all users to see.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleCreateAnnouncement} className="space-y-4">
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium mb-1">
+                Announcement Title
+              </label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Title of your announcement"
+                required
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="content" className="block text-sm font-medium mb-1">
+                Content
+              </label>
+              <Textarea
+                id="content"
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                placeholder="Details of your announcement"
+                rows={5}
+                required
+              />
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsNewAnnouncementOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createAnnouncementMutation.isPending || !title.trim() || !body.trim()}
+              >
+                {createAnnouncementMutation.isPending ? "Publishing..." : "Publish"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Confirmation */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Announcement</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this announcement? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };
