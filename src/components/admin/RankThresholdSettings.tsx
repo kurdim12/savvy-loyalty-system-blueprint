@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { Json } from '@/integrations/supabase/types';
 
 interface RankThresholds {
   silver: number;
@@ -39,7 +41,17 @@ export function RankThresholdSettings() {
         throw error;
       }
       
-      return data?.setting_value as RankThresholds || DEFAULT_THRESHOLDS;
+      // Ensure the data.setting_value conforms to our RankThresholds interface
+      const rawValue = data?.setting_value as Json;
+      if (typeof rawValue === 'object' && rawValue !== null && !Array.isArray(rawValue) && 
+          'silver' in rawValue && 'gold' in rawValue) {
+        return {
+          silver: Number(rawValue.silver),
+          gold: Number(rawValue.gold)
+        };
+      }
+      
+      return DEFAULT_THRESHOLDS;
     }
   });
 
@@ -62,12 +74,18 @@ export function RankThresholdSettings() {
       
       let result;
       
+      // Convert thresholds to a format that's compatible with the Json type
+      const jsonThresholds = {
+        silver: thresholds.silver,
+        gold: thresholds.gold
+      } as Json;
+      
       // If settings exist, update them
       if (existingSettings?.id) {
         result = await supabase
           .from('settings')
           .update({
-            setting_value: thresholds,
+            setting_value: jsonThresholds,
             updated_at: new Date().toISOString()
           })
           .eq('id', existingSettings.id);
@@ -77,7 +95,7 @@ export function RankThresholdSettings() {
           .from('settings')
           .insert({
             setting_name: 'rank_thresholds',
-            setting_value: thresholds
+            setting_value: jsonThresholds
           });
       }
       
