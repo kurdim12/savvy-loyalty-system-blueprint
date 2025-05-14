@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,7 +31,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Search, Download, Calendar, Filter, Plus, Coffee, Dollar, Tabs, CreditCard 
+  Search, Download, Calendar, Filter, Plus, Coffee, DollarSign, CreditCard 
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
@@ -467,7 +466,7 @@ const TransactionsManagement = () => {
                         Drink Based
                       </TabsTrigger>
                       <TabsTrigger value="amount" className="flex items-center gap-1">
-                        <Dollar className="h-4 w-4" />
+                        <DollarSign className="h-4 w-4" />
                         Amount Based
                       </TabsTrigger>
                     </TabsList>
