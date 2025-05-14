@@ -291,7 +291,8 @@ const TransactionsManagement = () => {
       return;
     }
     
-    if (pointsMethod === 'custom' && (formData.customPoints === null || formData.customPoints === undefined)) {
+    // FIX: This is where the error was. Changed from "custom" to checking if it's a transaction_type adjustment
+    if (formData.transactionType === 'adjustment' && (formData.customPoints === null || formData.customPoints === undefined)) {
       toast.error('Please enter custom points');
       return;
     }
