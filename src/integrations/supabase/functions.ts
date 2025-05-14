@@ -1,6 +1,7 @@
+
 // Helper functions for Supabase database interaction
 
-import { supabase } from './client';
+import { supabase, requireAuth, requireAdmin } from './client';
 import type { Database } from './types';
 
 // User Points & Visits
@@ -569,12 +570,12 @@ export async function deleteUser(userId: string) {
  * @param requireAuth If true, throws an error if not an admin
  * @returns Boolean indicating if the user is an admin
  */
-export async function checkAdminAccess(requireAuth: boolean = false): Promise<boolean> {
+export async function checkAdminAccess(requireAuthentication: boolean = false): Promise<boolean> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
-      if (requireAuth) throw new Error('Authentication required');
+      if (requireAuthentication) throw new Error('Authentication required');
       return false;
     }
     
@@ -586,19 +587,19 @@ export async function checkAdminAccess(requireAuth: boolean = false): Promise<bo
       
     if (error || !profile) {
       console.error('Error checking admin access:', error);
-      if (requireAuth) throw new Error('Profile not found');
+      if (requireAuthentication) throw new Error('Profile not found');
       return false;
     }
     
     const isAdmin = profile.role === 'admin';
-    if (requireAuth && !isAdmin) {
+    if (requireAuthentication && !isAdmin) {
       throw new Error('Admin access required');
     }
     
     return isAdmin;
   } catch (err) {
     console.error('Error checking admin access:', err);
-    if (requireAuth) throw err;
+    if (requireAuthentication) throw err;
     return false;
   }
 }
