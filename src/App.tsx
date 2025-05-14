@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
@@ -34,84 +34,83 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <AuthProvider>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/auth" element={
-              <PublicRoute>
-                <Auth />
-              </PublicRoute>
-            } />
-            
-            <Route path="/admin/login" element={
-              <PublicRoute>
-                <AdminLogin />
-              </PublicRoute>
-            } />
-            
-            {/* Authenticated User routes */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={
-              <UserRoute>
-                <Dashboard />
-              </UserRoute>
-            } />
-            <Route path="/profile" element={
-              <UserRoute>
-                <Profile />
-              </UserRoute>
-            } />
-            <Route path="/rewards" element={
-              <UserRoute>
-                <Rewards />
-              </UserRoute>
-            } />
-            
-            {/* Admin routes */}
-            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="/admin/dashboard" element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            } />
-            <Route path="/admin/users" element={
-              <AdminRoute>
-                <UserManagement />
-              </AdminRoute>
-            } />
-            <Route path="/admin/transactions" element={
-              <AdminRoute>
-                <TransactionsManagement />
-              </AdminRoute>
-            } />
-            <Route path="/admin/rewards" element={
-              <AdminRoute>
-                <RewardsManagement />
-              </AdminRoute>
-            } />
-            <Route path="/admin/drinks" element={
-              <AdminRoute>
-                <DrinksManagement />
-              </AdminRoute>
-            } />
-            <Route path="/admin/community" element={
-              <AdminRoute>
-                <CommunityManagement />
-              </AdminRoute>
-            } />
-            <Route path="/admin/settings" element={
-              <AdminRoute>
-                <SettingsManagement />
-              </AdminRoute>
-            } />
-            
-            {/* Fallback route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster richColors position="top-center" />
-        </AuthProvider>
-      </Router>
+      {/* Removed the Router component from here since it's already in main.tsx */}
+      <AuthProvider>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/auth" element={
+            <PublicRoute>
+              <Auth />
+            </PublicRoute>
+          } />
+          
+          <Route path="/admin/login" element={
+            <PublicRoute>
+              <AdminLogin />
+            </PublicRoute>
+          } />
+          
+          {/* Authenticated User routes */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={
+            <UserRoute>
+              <Dashboard />
+            </UserRoute>
+          } />
+          <Route path="/profile" element={
+            <UserRoute>
+              <Profile />
+            </UserRoute>
+          } />
+          <Route path="/rewards" element={
+            <UserRoute>
+              <Rewards />
+            </UserRoute>
+          } />
+          
+          {/* Admin routes */}
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/dashboard" element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          } />
+          <Route path="/admin/users" element={
+            <AdminRoute>
+              <UserManagement />
+            </AdminRoute>
+          } />
+          <Route path="/admin/transactions" element={
+            <AdminRoute>
+              <TransactionsManagement />
+            </AdminRoute>
+          } />
+          <Route path="/admin/rewards" element={
+            <AdminRoute>
+              <RewardsManagement />
+            </AdminRoute>
+          } />
+          <Route path="/admin/drinks" element={
+            <AdminRoute>
+              <DrinksManagement />
+            </AdminRoute>
+          } />
+          <Route path="/admin/community" element={
+            <AdminRoute>
+              <CommunityManagement />
+            </AdminRoute>
+          } />
+          <Route path="/admin/settings" element={
+            <AdminRoute>
+              <SettingsManagement />
+            </AdminRoute>
+          } />
+          
+          {/* Fallback route */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Toaster richColors position="top-center" />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
