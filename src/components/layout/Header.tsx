@@ -43,6 +43,17 @@ const Header = () => {
               Rewards
             </NavLink>
             <NavLink 
+              to="/community" 
+              className={({ isActive }) => 
+                `flex items-center px-3 py-2 rounded-md transition-colors ${
+                  isActive ? 'bg-[#6F4E37] text-white' : 'hover:bg-[#6F4E37]'
+                }`
+              }
+            >
+              <Coffee className="h-4 w-4 mr-2" />
+              Community
+            </NavLink>
+            <NavLink 
               to="/profile" 
               className={({ isActive }) => 
                 `flex items-center px-3 py-2 rounded-md transition-colors ${
