@@ -8,15 +8,15 @@ import { Toaster } from './components/ui/toaster.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import { Toaster as SonnerToaster } from 'sonner';
 import { supabase } from './integrations/supabase/client';
-// Remove the import that's causing the issue
-// import { AuthChangeEvent } from '@supabase/supabase-js';
+// Import the specific enum
+import { AuthChangeEvent } from '@supabase/supabase-js';
 
 // Create a client
 const queryClient = new QueryClient();
 
 // Listen for signup events to award welcome bonus
 supabase.auth.onAuthStateChange(async (event, session) => {
-  // Use string literal instead of enum
+  // Compare with the string value that matches what Supabase expects
   if (event === 'SIGNED_UP' && session?.user) {
     try {
       // Defer the execution to avoid potential deadlocks
