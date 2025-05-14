@@ -35,7 +35,6 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Removed the Router component from here since it's already in main.tsx */}
       <AuthProvider>
         <Routes>
           {/* Public routes */}

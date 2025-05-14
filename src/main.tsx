@@ -12,11 +12,9 @@ import { supabase } from './integrations/supabase/client';
 // Create a client
 const queryClient = new QueryClient();
 
-// Listen for signup events to award welcome bonus
+// Listen for auth events to award welcome bonus
 supabase.auth.onAuthStateChange(async (event, session) => {
-  // Check if the event is a sign-up event - using string literal type directly
-  // Valid events in Supabase v2 are: 'INITIAL_SESSION', 'SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED', 'USER_UPDATED'
-  // The event parameter is already properly typed by the Supabase SDK
+  // Check if the event is a sign-in event - valid events in Supabase v2
   if (event === 'SIGNED_IN' && session?.user) {
     try {
       // Check if this might be a new signup by looking for an existing profile
