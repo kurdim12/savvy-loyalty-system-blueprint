@@ -31,9 +31,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Download, Calendar, Filter, Plus, Coffee } from 'lucide-react';
+import { 
+  Search, Download, Calendar, Filter, Plus, Coffee, Dollar, Tabs, CreditCard 
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
+import { Tabs as UITabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 // Import and use the TransactionsList component
 import TransactionsList from '@/components/admin/TransactionsList';
@@ -57,8 +60,11 @@ interface TransactionFormData {
   drinkId: string | null;
   customPoints: number | null;
   notes: string;
+  transactionType: 'earn' | 'redeem' | 'adjustment';
+  amount: number | null; // For dollar-based points
 }
 
+// Pre-defined options for drinks
 const DRINK_OPTIONS: DrinkOption[] = [
   { name: 'White Tradition', points: 4, category: 'white' },
   { name: 'Black Tradition', points: 3, category: 'black' },
@@ -75,11 +81,37 @@ const TransactionsManagement = () => {
     customerId: '',
     drinkId: null,
     customPoints: null,
-    notes: ''
+    notes: '',
+    transactionType: 'earn',
+    amount: null
   });
   const [customerOptions, setCustomerOptions] = useState<CustomerOption[]>([]);
   const [searchingCustomers, setSearchingCustomers] = useState(false);
   const [customerSearch, setCustomerSearch] = useState('');
+  const [pointsMethod, setPointsMethod] = useState<'drink' | 'amount'>('drink');
+  
+  // Fetch drinks from the database
+  const { data: drinksData } = useQuery({
+    queryKey: ['drinks'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('drinks')
+        .select('*')
+        .eq('active', true);
+      
+      if (error) {
+        console.error('Error fetching drinks:', error);
+        throw error;
+      }
+      
+      return data || DRINK_OPTIONS.map(drink => ({
+        id: drink.name,
+        name: drink.name,
+        points_earned: drink.points,
+        category: drink.category
+      }));
+    }
+  });
   
   // Fetch customers for the dropdown
   useEffect(() => {
@@ -126,15 +158,24 @@ const TransactionsManagement = () => {
         let points = 0;
         let notes = data.notes;
         
-        if (data.drinkId) {
+        if (pointsMethod === 'drink' && data.drinkId) {
           // Get points from selected drink
-          const selectedDrink = DRINK_OPTIONS.find(drink => drink.name === data.drinkId);
-          points = selectedDrink?.points || 0;
+          if (drinksData?.length) {
+            const selectedDrink = drinksData.find(drink => drink.name === data.drinkId);
+            points = selectedDrink?.points_earned || 0;
+          } else {
+            const selectedDrink = DRINK_OPTIONS.find(drink => drink.name === data.drinkId);
+            points = selectedDrink?.points || 0;
+          }
           notes = notes || `${data.drinkId} purchase`;
+        } else if (pointsMethod === 'amount' && data.amount !== null) {
+          // $1 = 1 point
+          points = Math.floor(data.amount);
+          notes = notes || `$${data.amount} purchase (${points} points)`;
         } else if (data.customPoints !== null) {
           points = data.customPoints;
         } else {
-          throw new Error('Either a drink or custom points must be provided');
+          throw new Error('Either a drink, amount, or custom points must be provided');
         }
         
         // Create a transaction record
@@ -143,7 +184,7 @@ const TransactionsManagement = () => {
           .insert({
             user_id: data.customerId,
             points: points,
-            transaction_type: 'earn',
+            transaction_type: data.transactionType,
             notes: notes
           });
         
@@ -172,14 +213,66 @@ const TransactionsManagement = () => {
       customerId: '',
       drinkId: null,
       customPoints: null,
-      notes: ''
+      notes: '',
+      transactionType: 'earn',
+      amount: null
     });
     setCustomerSearch('');
     setCustomerOptions([]);
+    setPointsMethod('drink');
   };
   
   const handleExport = () => {
     toast.success('Exporting transactions data');
+    
+    // Get all transactions
+    supabase
+      .from('transactions')
+      .select(`
+        *,
+        profiles:user_id(first_name, last_name, email)
+      `)
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) {
+          toast.error('Failed to export data');
+          return;
+        }
+        
+        if (!data || data.length === 0) {
+          toast.error('No transactions to export');
+          return;
+        }
+        
+        // Create CSV content
+        const headers = ['ID', 'User', 'Email', 'Points', 'Type', 'Notes', 'Date'];
+        const rows = data.map(transaction => [
+          transaction.id,
+          `${transaction.profiles?.first_name || ''} ${transaction.profiles?.last_name || ''}`,
+          transaction.profiles?.email || '',
+          transaction.points,
+          transaction.transaction_type,
+          transaction.notes || '',
+          new Date(transaction.created_at).toLocaleString()
+        ]);
+        
+        // Combine headers and rows
+        const csvContent = [
+          headers.join(','),
+          ...rows.map(row => row.join(','))
+        ].join('\n');
+        
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', `transactions-${new Date().toISOString()}.csv`);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
   };
   
   const handleCreateTransaction = () => {
@@ -189,8 +282,18 @@ const TransactionsManagement = () => {
       return;
     }
     
-    if (!formData.drinkId && (formData.customPoints === null || formData.customPoints === undefined)) {
-      toast.error('Please select a drink or enter custom points');
+    if (pointsMethod === 'drink' && !formData.drinkId) {
+      toast.error('Please select a drink');
+      return;
+    }
+    
+    if (pointsMethod === 'amount' && (formData.amount === null || formData.amount <= 0)) {
+      toast.error('Please enter a valid purchase amount');
+      return;
+    }
+    
+    if (pointsMethod === 'custom' && (formData.customPoints === null || formData.customPoints === undefined)) {
+      toast.error('Please enter custom points');
       return;
     }
     
@@ -272,10 +375,11 @@ const TransactionsManagement = () => {
             <DialogHeader>
               <DialogTitle>Add New Transaction</DialogTitle>
               <DialogDescription>
-                Record a new transaction for a customer. Choose either a drink or enter custom points.
+                Record a new transaction for a customer.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            
+            <div className="py-4 space-y-4">
               {/* Customer Selector */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <label htmlFor="customer" className="text-right font-medium">
@@ -323,67 +427,144 @@ const TransactionsManagement = () => {
                 </div>
               </div>
               
-              {/* Drink Selector */}
+              {/* Transaction Type */}
               <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="drink" className="text-right font-medium">
-                  Drink (Optional)
+                <label htmlFor="transaction-type" className="text-right font-medium">
+                  Transaction Type
                 </label>
                 <div className="col-span-3">
                   <Select 
-                    value={formData.drinkId || ''} 
-                    onValueChange={(value) => {
-                      if (value) {
-                        // Clear custom points when selecting a drink
-                        setFormData({
-                          ...formData,
-                          drinkId: value,
-                          customPoints: null
-                        });
-                      } else {
-                        setFormData({
-                          ...formData,
-                          drinkId: null
-                        });
-                      }
+                    value={formData.transactionType} 
+                    onValueChange={(value: 'earn' | 'redeem' | 'adjustment') => {
+                      setFormData({
+                        ...formData,
+                        transactionType: value
+                      });
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a drink" />
+                      <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
-                      {DRINK_OPTIONS.map(drink => (
-                        <SelectItem key={drink.name} value={drink.name}>
-                          {drink.name} ({drink.points} pts)
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="earn">Earn Points</SelectItem>
+                      <SelectItem value="redeem">Redeem Points</SelectItem>
+                      <SelectItem value="adjustment">Manual Adjustment</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               
-              {/* Custom Points */}
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="points" className="text-right font-medium">
-                  Custom Points
+              {/* Points Entry Method Tabs */}
+              <div className="grid grid-cols-4 items-start gap-4">
+                <label className="text-right font-medium pt-2">
+                  Points Method
                 </label>
                 <div className="col-span-3">
-                  <Input
-                    id="points"
-                    type="number"
-                    placeholder="Enter points"
-                    value={formData.customPoints === null ? '' : formData.customPoints}
-                    onChange={(e) => {
-                      const value = e.target.value ? parseInt(e.target.value) : null;
-                      setFormData({
-                        ...formData,
-                        customPoints: value,
-                        drinkId: value !== null ? null : formData.drinkId // Clear drink selection when entering custom points
-                      });
-                    }}
-                    disabled={formData.drinkId !== null}
-                  />
+                  <UITabs defaultValue="drink" value={pointsMethod} onValueChange={(v) => setPointsMethod(v as 'drink' | 'amount')}>
+                    <TabsList className="grid grid-cols-2 mb-2">
+                      <TabsTrigger value="drink" className="flex items-center gap-1">
+                        <Coffee className="h-4 w-4" />
+                        Drink Based
+                      </TabsTrigger>
+                      <TabsTrigger value="amount" className="flex items-center gap-1">
+                        <Dollar className="h-4 w-4" />
+                        Amount Based
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="drink" className="mt-0">
+                      <Select 
+                        value={formData.drinkId || ''} 
+                        onValueChange={(value) => {
+                          if (value) {
+                            // Clear custom points when selecting a drink
+                            setFormData({
+                              ...formData,
+                              drinkId: value,
+                              customPoints: null,
+                              amount: null
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              drinkId: null
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a drink" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {drinksData ? 
+                            drinksData.map(drink => (
+                              <SelectItem key={drink.id} value={drink.name}>
+                                {drink.name} ({drink.points_earned} pts)
+                              </SelectItem>
+                            ))
+                            :
+                            DRINK_OPTIONS.map(drink => (
+                              <SelectItem key={drink.name} value={drink.name}>
+                                {drink.name} ({drink.points} pts)
+                              </SelectItem>
+                            ))
+                          }
+                        </SelectContent>
+                      </Select>
+                    </TabsContent>
+                    
+                    <TabsContent value="amount" className="mt-0">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg">$</span>
+                        <Input
+                          type="number"
+                          placeholder="Enter purchase amount"
+                          value={formData.amount === null ? '' : formData.amount}
+                          onChange={(e) => {
+                            const value = e.target.value ? parseFloat(e.target.value) : null;
+                            setFormData({
+                              ...formData,
+                              amount: value,
+                              drinkId: null, // Clear drink selection when entering amount
+                              customPoints: null // Clear custom points
+                            });
+                          }}
+                        />
+                        <span className="text-sm text-muted-foreground">(1 point per $)</span>
+                      </div>
+                    </TabsContent>
+                  </UITabs>
                 </div>
               </div>
+              
+              {/* Custom Points (for adjustments) */}
+              {formData.transactionType === 'adjustment' && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="points" className="text-right font-medium">
+                    Custom Points
+                  </label>
+                  <div className="col-span-3">
+                    <Input
+                      id="points"
+                      type="number"
+                      placeholder="Enter points (+/-)"
+                      value={formData.customPoints === null ? '' : formData.customPoints}
+                      onChange={(e) => {
+                        const value = e.target.value ? parseInt(e.target.value) : null;
+                        setFormData({
+                          ...formData,
+                          customPoints: value,
+                          drinkId: null, // Clear drink selection
+                          amount: null // Clear amount
+                        });
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Use positive numbers to add points, negative to deduct
+                    </p>
+                  </div>
+                </div>
+              )}
               
               {/* Notes */}
               <div className="grid grid-cols-4 items-start gap-4">
@@ -409,10 +590,15 @@ const TransactionsManagement = () => {
               </Button>
               <Button 
                 onClick={handleCreateTransaction}
-                disabled={!formData.customerId || (formData.drinkId === null && formData.customPoints === null)}
+                disabled={
+                  !formData.customerId || 
+                  (pointsMethod === 'drink' && !formData.drinkId) ||
+                  (pointsMethod === 'amount' && (formData.amount === null || formData.amount <= 0)) ||
+                  (formData.transactionType === 'adjustment' && formData.customPoints === null)
+                }
                 className="bg-amber-700 hover:bg-amber-800"
               >
-                <Coffee className="mr-2 h-4 w-4" />
+                <CreditCard className="mr-2 h-4 w-4" />
                 Record Transaction
               </Button>
             </DialogFooter>

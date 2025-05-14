@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -20,11 +20,13 @@ const DEFAULT_THRESHOLDS = {
 };
 
 export function RankThresholdSettings() {
+  const queryClient = useQueryClient();
   const [thresholds, setThresholds] = useState<RankThresholds>(DEFAULT_THRESHOLDS);
   const [isEditing, setIsEditing] = useState(false);
+  const [originalThresholds, setOriginalThresholds] = useState<RankThresholds>(DEFAULT_THRESHOLDS);
 
   // Fetch current rank threshold settings
-  const { data: settingsData, isLoading, refetch } = useQuery({
+  const { data: settingsData, isLoading } = useQuery({
     queryKey: ['admin', 'rankThresholds'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -38,6 +40,7 @@ export function RankThresholdSettings() {
         if (error.code === 'PGRST116') {
           return DEFAULT_THRESHOLDS;
         }
+        console.error("Error fetching rank thresholds:", error);
         throw error;
       }
       
@@ -59,6 +62,7 @@ export function RankThresholdSettings() {
   useEffect(() => {
     if (settingsData) {
       setThresholds(settingsData);
+      setOriginalThresholds(settingsData);
     }
   }, [settingsData]);
 
@@ -106,7 +110,10 @@ export function RankThresholdSettings() {
     onSuccess: () => {
       toast.success('Rank thresholds updated successfully');
       setIsEditing(false);
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['admin', 'rankThresholds'] });
+      // Also invalidate any queries that might depend on these thresholds
+      queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
     onError: (error: any) => {
       toast.error(`Failed to update rank thresholds: ${error.message}`);
@@ -129,7 +136,7 @@ export function RankThresholdSettings() {
   };
 
   const handleCancel = () => {
-    setThresholds(settingsData || DEFAULT_THRESHOLDS);
+    setThresholds(originalThresholds);
     setIsEditing(false);
   };
 

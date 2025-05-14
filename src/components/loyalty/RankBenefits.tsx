@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -9,9 +9,11 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CrownIcon, Award } from 'lucide-react';
+import { CrownIcon, Award, TrendingUp } from 'lucide-react';
 import { getDiscountRate } from '@/integrations/supabase/functions';
 import { Database } from '@/integrations/supabase/types';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 type MembershipTier = Database['public']['Enums']['membership_tier'];
 
@@ -24,6 +26,38 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
   currentPoints, 
   membershipTier 
 }) => {
+  const [rankThresholds, setRankThresholds] = useState({
+    silver: 200,
+    gold: 550
+  });
+
+  // Fetch current rank thresholds from settings
+  const { data: thresholdSettings } = useQuery({
+    queryKey: ['rankThresholds'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('setting_value')
+        .eq('setting_name', 'rank_thresholds')
+        .single();
+      
+      if (error) {
+        // Return defaults if not found or error
+        console.error('Error fetching rank thresholds:', error);
+        return { silver: 200, gold: 550 };
+      }
+      
+      return data.setting_value as {silver: number, gold: number};
+    },
+    staleTime: 60000 // Cache for 1 minute
+  });
+
+  useEffect(() => {
+    if (thresholdSettings) {
+      setRankThresholds(thresholdSettings);
+    }
+  }, [thresholdSettings]);
+
   // Calculate rank progression
   let nextTier = '';
   let pointsToNextTier = 0;
@@ -31,13 +65,13 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
   
   if (membershipTier === 'bronze') {
     nextTier = 'silver';
-    pointsToNextTier = Math.max(0, 200 - currentPoints);
+    pointsToNextTier = Math.max(0, rankThresholds.silver - currentPoints);
     // Fix the progress calculation to properly show percentage
-    progress = currentPoints > 0 ? Math.min((currentPoints / 200) * 100, 100) : 0;
+    progress = currentPoints > 0 ? Math.min((currentPoints / rankThresholds.silver) * 100, 100) : 0;
   } else if (membershipTier === 'silver') {
     nextTier = 'gold';
-    pointsToNextTier = Math.max(0, 550 - currentPoints);
-    progress = Math.min(((currentPoints - 200) / (550 - 200)) * 100, 100);
+    pointsToNextTier = Math.max(0, rankThresholds.gold - currentPoints);
+    progress = Math.min(((currentPoints - rankThresholds.silver) / (rankThresholds.gold - rankThresholds.silver)) * 100, 100);
   } else {
     // For gold members
     nextTier = 'gold';
@@ -49,7 +83,7 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
   const tierBenefits = {
     bronze: {
       icon: <Badge className="h-8 w-8 rounded-full p-1 bg-amber-100 text-amber-700 border-amber-300">B</Badge>,
-      points: '0-199',
+      points: `0-${rankThresholds.silver - 1}`,
       discount: '10%',
       color: 'bg-amber-100',
       textColor: 'text-amber-700',
@@ -57,7 +91,7 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
     },
     silver: {
       icon: <Badge className="h-8 w-8 rounded-full p-1 bg-gray-200 text-gray-700 border-gray-400">S</Badge>,
-      points: '200-549',
+      points: `${rankThresholds.silver}-${rankThresholds.gold - 1}`,
       discount: '15%',
       color: 'bg-gray-100',
       textColor: 'text-gray-700',
@@ -65,7 +99,7 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
     },
     gold: {
       icon: <CrownIcon className="h-6 w-6 text-yellow-500" />,
-      points: '550+',
+      points: `${rankThresholds.gold}+`,
       discount: '25%',
       color: 'bg-yellow-50',
       textColor: 'text-yellow-700',
@@ -97,6 +131,14 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
           <Badge className="bg-amber-100 text-amber-900 capitalize">
             {currentTierInfo.discount} discount
           </Badge>
+        </div>
+
+        <div className="flex items-center justify-between bg-amber-50 rounded-md p-3">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-amber-700" />
+            <span className="font-medium">Current Balance</span>
+          </div>
+          <span className="text-lg font-bold text-amber-800">{currentPoints} points</span>
         </div>
         
         {/* Benefits list */}
