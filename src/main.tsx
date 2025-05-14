@@ -14,9 +14,9 @@ import { AuthChangeEvent } from '@supabase/supabase-js';
 const queryClient = new QueryClient();
 
 // Listen for signup events to award welcome bonus
-supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
-  // Type assertion to compare with the enum value
-  if (event === 'SIGNED_UP' && session?.user) {
+supabase.auth.onAuthStateChange(async (event, session) => {
+  // Use the enum value as a string type for comparison
+  if (event === AuthChangeEvent.SIGNED_UP && session?.user) {
     try {
       // Defer the execution to avoid potential deadlocks
       setTimeout(async () => {
