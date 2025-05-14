@@ -7,7 +7,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from './components/ui/toaster.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import { Toaster as SonnerToaster } from 'sonner';
-import { supabase } from './integrations/supabase/client';
 import { BrowserRouter } from 'react-router-dom';
 
 // Create a client
@@ -20,62 +19,64 @@ window.addEventListener('error', (event) => {
   console.error('Global error caught:', event.error);
 });
 
-// Listen for auth events to award welcome bonus
-supabase.auth.onAuthStateChange(async (event, session) => {
-  console.log('Auth state change detected:', event);
+// Create an error boundary component to catch errors
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }> {
+  state = { hasError: false, error: null };
   
-  // Check if the event is a sign-in event
-  if (event === 'SIGNED_IN' && session?.user) {
-    try {
-      console.log('User signed in, checking for welcome bonus eligibility');
-      
-      // Defer execution to avoid potential deadlocks
-      setTimeout(async () => {
-        try {
-          // Check if this might be a new signup by looking for an existing profile
-          const { data: existingProfile } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('id', session.user.id)
-            .single();
-            
-          if (!existingProfile) {
-            console.log('New user signed up, awarding welcome bonus');
-            
-            // Add welcome bonus points
-            await supabase.rpc('increment_points', {
-              user_id: session.user.id,
-              point_amount: 10
-            });
-            
-            // Create a transaction record for the bonus
-            await supabase.from('transactions').insert({
-              user_id: session.user.id,
-              points: 10,
-              transaction_type: 'earn',
-              notes: 'Welcome bonus'
-            });
-          }
-        } catch (error) {
-          console.error('Error in deferred welcome bonus process:', error);
-        }
-      }, 1000);
-    } catch (error) {
-      console.error('Error handling sign-in event:', error);
-    }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
   }
-});
+  
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error('App crashed:', error, errorInfo);
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-[#FAF6F0] p-4">
+          <div className="text-center p-6 max-w-md bg-white rounded-lg shadow-lg">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h1>
+            <div className="bg-gray-100 p-4 rounded mb-4 overflow-auto max-h-60 text-left">
+              <pre className="text-sm text-gray-800">{this.state.error?.toString()}</pre>
+            </div>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-[#8B4513] text-white rounded hover:bg-[#6F4E37] transition-colors"
+            >
+              Reload Page
+            </button>
+            <p className="mt-4 text-sm text-gray-600">
+              If the problem persists, please clear your browser cache and try again.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    
+    return this.props.children;
+  }
+}
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <SonnerToaster position="top-right" expand={false} richColors />
-          <Toaster />
-          <App />
-        </AuthProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
-  </React.StrictMode>,
-)
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM fully loaded, rendering React application');
+  
+  const root = ReactDOM.createRoot(document.getElementById('root')!);
+  
+  root.render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <AuthProvider>
+            <QueryClientProvider client={queryClient}>
+              <SonnerToaster position="top-right" expand={false} richColors />
+              <Toaster />
+              <App />
+            </QueryClientProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </ErrorBoundary>
+    </React.StrictMode>,
+  );
+});

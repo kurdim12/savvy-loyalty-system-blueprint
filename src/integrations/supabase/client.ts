@@ -1,10 +1,22 @@
+
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
+// Supabase project configuration
 const SUPABASE_URL = "https://egeufofnkpvwbmffgoxw.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnZXVmb2Zua3B2d2JtZmZnb3h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxODE3NDUsImV4cCI6MjA2MTc1Nzc0NX0.rQbKbndK2BB-oDfp0_v4xrpYAXizNgpFOQMfxbzhQ-A";
 
-// Create the Supabase client with enhanced security configuration
+// Get the app URL for auth redirects (defaults to current URL in production or localhost in dev)
+const getRedirectURL = () => {
+  if (typeof window !== 'undefined') {
+    // Use current origin in production
+    return window.location.origin;
+  }
+  // Fallback for non-browser environments
+  return 'http://localhost:8080';
+};
+
+// Create the Supabase client with enhanced security and persistence configuration
 export const supabase = createClient<Database>(
   SUPABASE_URL, 
   SUPABASE_PUBLISHABLE_KEY,
@@ -17,7 +29,6 @@ export const supabase = createClient<Database>(
       flowType: 'pkce', // More secure authentication flow
     },
     global: {
-      // Implement rate limiting protection
       headers: {
         'X-Client-Info': 'raw-smith-loyalty@1.0.0',
       },
@@ -83,159 +94,6 @@ export const secureSignOut = async () => {
     window.location.href = '/auth';
   }
 };
-
-// Input sanitization for protection against injection
-export const sanitizeInput = (input: string): string => {
-  if (!input) return '';
-  
-  // Basic sanitization (can be enhanced with a dedicated library)
-  return input
-    .trim()
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-};
-
-// Role-based API access check
-export async function checkUserRole(): Promise<{ isAdmin: boolean, isUser: boolean, userId: string | null }> {
-  try {
-    // Get current session
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session?.user) {
-      return { isAdmin: false, isUser: false, userId: null };
-    }
-    
-    // Get user profile including role
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single();
-      
-    if (error || !profile) {
-      console.error('Error fetching user role:', error);
-      return { isAdmin: false, isUser: false, userId: session.user.id };
-    }
-    
-    return { 
-      isAdmin: profile.role === 'admin', 
-      isUser: profile.role === 'customer',
-      userId: session.user.id 
-    };
-  } catch (error) {
-    console.error('Error checking user role:', error);
-    return { isAdmin: false, isUser: false, userId: null };
-  }
-}
-
-// Enhanced function to increment points that supports community features
-export async function incrementPointsWithReason(
-  userId: string, 
-  pointAmount: number, 
-  reason: string, 
-  communityEventId?: string
-) {
-  if (!userId || typeof pointAmount !== 'number' || isNaN(pointAmount)) {
-    return { error: new Error('Invalid user ID or point amount') };
-  }
-
-  // Sanitize input for security
-  const sanitizedReason = sanitizeInput(reason);
-  const sanitizedPointAmount = Math.max(0, pointAmount);
-  
-  // Create a transaction record with more details
-  const { error: transactionError } = await supabase
-    .from('transactions')
-    .insert({
-      user_id: userId,
-      points: sanitizedPointAmount,
-      transaction_type: 'earn' as Database['public']['Enums']['transaction_type'],
-      notes: sanitizedReason,
-      community_event_id: communityEventId || null
-    });
-    
-  if (transactionError) {
-    console.error('Error creating transaction record:', transactionError);
-    return { error: transactionError };
-  }
-  
-  // Call the existing incrementPoints function for database update
-  const { error } = await incrementPointsInDB(userId, sanitizedPointAmount);
-  
-  return { error };
-}
-
-// Renamed to avoid naming conflict
-async function incrementPointsInDB(userId: string, pointAmount: number) {
-  if (!userId || typeof pointAmount !== 'number' || isNaN(pointAmount)) {
-    return { error: new Error('Invalid user ID or point amount') };
-  }
-
-  // Sanitize input - ensure pointAmount is a positive number
-  const sanitizedPointAmount = Math.max(0, pointAmount);
-  
-  // Get current profile data
-  const { data: profile, error: fetchError } = await supabase
-    .from('profiles')
-    .select('current_points, visits')
-    .eq('id', userId)
-    .single();
-  
-  if (fetchError || !profile) {
-    console.error('Error fetching profile:', fetchError);
-    return { error: fetchError || new Error('User not found') };
-  }
-  
-  // Calculate new values
-  const newPoints = profile.current_points + sanitizedPointAmount;
-  const newVisits = sanitizedPointAmount > 0 ? profile.visits + 1 : profile.visits;
-  
-  // Determine tier based on new points using the correct type
-  let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
-  if (newPoints >= 550) {
-    newTier = 'gold';
-  } else if (newPoints >= 200) {
-    newTier = 'silver';
-  }
-  
-  // Update profile
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update({
-      current_points: newPoints,
-      visits: newVisits,
-      membership_tier: newTier,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', userId);
-    
-  return { error: updateError };
-}
-
-// Create a middleware-like function to verify admin access
-export async function requireAdmin() {
-  const { isAdmin } = await checkUserRole();
-  if (!isAdmin) {
-    throw new Error('Access denied. Admin rights required.');
-  }
-  return true;
-}
-
-// Create a middleware-like function to verify user authentication
-export async function requireAuth() {
-  const { userId, isAdmin, isUser } = await checkUserRole();
-  if (!userId) {
-    throw new Error('Authentication required.');
-  }
-  
-  if (!isAdmin && !isUser) {
-    throw new Error('Valid user role required.');
-  }
-  
-  return true;
-}
 
 // Export additional helper functions from functions.ts
 export { 

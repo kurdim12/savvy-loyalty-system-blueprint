@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { CoffeeIcon, User, Mail, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,10 +21,9 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [initialCheckDone, setInitialCheckDone] = useState(false);
   
-  // Emergency debug
   console.log('Auth page rendering', { 
     user: user ? 'exists' : 'null', 
     pathname: location.pathname 
@@ -31,35 +31,31 @@ const Auth = () => {
 
   // Set a maximum wait time for initial auth check
   useEffect(() => {
-    console.log('Setting up auth check timeout');
+    console.log('Auth: Setting up auth check timeout');
     const timeout = setTimeout(() => {
-      console.log('Auth check timeout reached, allowing page to render');
+      console.log('Auth: Auth check timeout reached, allowing page to render');
       setAuthChecked(true);
-      setInitialCheckDone(true);
     }, 2000);
     
     return () => clearTimeout(timeout);
   }, []);
   
-  // Check if we're already logged in
+  // Check if user is already logged in
   useEffect(() => {
     const checkAuth = async () => {
-      console.log("Auth page: Checking if already authenticated");
+      console.log("Auth: Checking if already authenticated");
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
         // If we have a session and a user, we're already logged in
         if (session?.user) {
-          console.log("Auth page: User already authenticated, will redirect");
-          setTimeout(() => {
-            navigate('/dashboard', { replace: true });
-          }, 100);
+          console.log("Auth: User already authenticated, will redirect to dashboard");
+          navigate('/dashboard', { replace: true });
         }
       } catch (error) {
-        console.error("Auth page: Error checking session:", error);
+        console.error("Auth: Error checking session:", error);
       } finally {
         setAuthChecked(true);
-        setInitialCheckDone(true);
       }
     };
     
@@ -68,18 +64,19 @@ const Auth = () => {
 
   // Redirect if user is already authenticated
   useEffect(() => {
-    if (user && initialCheckDone) {
-      console.log("Auth page: User state detected, redirecting to dashboard");
+    if (user) {
+      console.log("Auth: User state detected, redirecting to dashboard");
       navigate('/dashboard', { replace: true });
     }
-  }, [user, navigate, initialCheckDone]);
+  }, [user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
     
     try {
-      console.log("Auth page: Attempting to sign in");
+      console.log("Auth: Attempting to sign in");
       // Clean up existing auth state first
       cleanupAuthState();
       
@@ -89,27 +86,27 @@ const Auth = () => {
         password
       });
       
-      if (error) {
-        console.error("Sign in error:", error);
-        throw error;
-      }
+      if (error) throw error;
+      
+      if (!data.user) throw new Error("No user returned from sign in");
       
       toast.success("Signed in successfully");
-      console.log("Auth page: Sign in successful, will refresh profile and redirect");
+      console.log("Auth: Sign in successful, will refresh profile and redirect");
       
       // Refresh profile to ensure we have the latest data
       if (refreshProfile) {
         try {
           await refreshProfile();
         } catch (err) {
-          console.error("Error refreshing profile:", err);
+          console.error("Auth: Error refreshing profile:", err);
         }
       }
       
-      // Use window.location for a full page refresh to clear any stale state
-      window.location.href = '/dashboard';
+      // Redirect to dashboard
+      navigate('/dashboard', { replace: true });
     } catch (error: any) {
-      console.error('Error signing in:', error);
+      console.error('Auth: Error signing in:', error);
+      setError(error.message || "Failed to sign in. Please check your credentials.");
       toast.error(error.message || "Failed to sign in. Please check your credentials.");
     } finally {
       setIsLoading(false);
@@ -119,15 +116,17 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
     
     if (!firstName || !lastName) {
       toast.error("Please provide your first and last name");
+      setError("First name and last name are required");
       setIsLoading(false);
       return;
     }
     
     try {
-      console.log("Auth page: Attempting to sign up");
+      console.log("Auth: Attempting to sign up");
       // Clean up existing auth state first
       cleanupAuthState();
       
@@ -144,9 +143,10 @@ const Auth = () => {
       });
       
       if (error) throw error;
+      if (!data.user) throw new Error("No user returned from sign up");
       
       toast.success("Account created successfully! You can now sign in.");
-      console.log("Auth page: Sign up successful");
+      console.log("Auth: Sign up successful");
       
       // Clear form
       setEmail('');
@@ -154,7 +154,8 @@ const Auth = () => {
       setFirstName('');
       setLastName('');
     } catch (error: any) {
-      console.error('Error signing up:', error);
+      console.error('Auth: Error signing up:', error);
+      setError(error.message || "Failed to create account. Please try again.");
       toast.error(error.message || "Failed to create account. Please try again.");
     } finally {
       setIsLoading(false);
@@ -198,6 +199,12 @@ const Auth = () => {
           <TabsContent value="signin">
             <form onSubmit={handleSignIn}>
               <CardContent className="space-y-4 pt-4">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+                
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <div className="relative">
@@ -246,6 +253,12 @@ const Auth = () => {
           <TabsContent value="signup">
             <form onSubmit={handleSignUp}>
               <CardContent className="space-y-4 pt-4">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>

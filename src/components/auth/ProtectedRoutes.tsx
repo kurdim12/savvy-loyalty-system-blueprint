@@ -1,6 +1,6 @@
 
 import { ReactNode, useState, useEffect } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -8,11 +8,9 @@ import { toast } from 'sonner';
 export function UserRoute({ children }: { children: ReactNode }) {
   const { user, loading, isUser, isAdmin } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const [isPageReady, setIsPageReady] = useState(false);
-  const [loadTimeout, setLoadTimeout] = useState(false);
-
-  console.log("UserRoute: Initializing with auth state:", { 
+  
+  console.log("UserRoute: Init with auth state:", { 
     user: user ? 'exists' : 'null', 
     loading, 
     isUser, 
@@ -21,11 +19,9 @@ export function UserRoute({ children }: { children: ReactNode }) {
 
   // Emergency timeout to prevent indefinite loading
   useEffect(() => {
-    console.log('UserRoute: Setting up emergency timeout');
     const timeoutId = setTimeout(() => {
       console.log('UserRoute: Emergency timeout reached, forcing display');
       setIsPageReady(true);
-      setLoadTimeout(true);
     }, 2000);
 
     return () => clearTimeout(timeoutId);
@@ -39,18 +35,8 @@ export function UserRoute({ children }: { children: ReactNode }) {
     }
   }, [loading]);
 
-  // Redirect if timeout but no user
-  useEffect(() => {
-    if (loadTimeout && !user && !loading) {
-      console.log('UserRoute: Loading timed out with no user, redirecting to auth');
-      toast.error('Please sign in to access this page');
-      navigate('/auth', { replace: true });
-    }
-  }, [loadTimeout, user, loading, navigate]);
-
   // Emergency page loading state
   if (!isPageReady) {
-    console.log('UserRoute: Showing loading state');
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center p-6">
@@ -97,11 +83,9 @@ export function UserRoute({ children }: { children: ReactNode }) {
 export function AdminRoute({ children }: { children: ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const [isPageReady, setIsPageReady] = useState(false);
-  const [loadTimeout, setLoadTimeout] = useState(false);
-
-  console.log("AdminRoute: Initializing with auth state:", { 
+  
+  console.log("AdminRoute: Init with auth state:", { 
     user: user ? 'exists' : 'null',
     loading, 
     isAdmin 
@@ -109,11 +93,9 @@ export function AdminRoute({ children }: { children: ReactNode }) {
 
   // Emergency timeout to prevent indefinite loading
   useEffect(() => {
-    console.log('AdminRoute: Setting up emergency timeout');
     const timeoutId = setTimeout(() => {
       console.log('AdminRoute: Emergency timeout reached, forcing display');
       setIsPageReady(true);
-      setLoadTimeout(true);
     }, 2000);
 
     return () => clearTimeout(timeoutId);
@@ -126,19 +108,9 @@ export function AdminRoute({ children }: { children: ReactNode }) {
       setIsPageReady(true);
     }
   }, [loading]);
-  
-  // Redirect if timeout but no user
-  useEffect(() => {
-    if (loadTimeout && !user && !loading) {
-      console.log('AdminRoute: Loading timed out with no user, redirecting to admin login');
-      toast.error('Please sign in to access the admin area');
-      navigate('/admin/login', { replace: true });
-    }
-  }, [loadTimeout, user, loading, navigate]);
 
   // Emergency page loading state
   if (!isPageReady) {
-    console.log('AdminRoute: Showing loading state');
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center p-6">
@@ -179,7 +151,7 @@ export function PublicRoute({ children }: { children: ReactNode }) {
   const { user, isAdmin, isUser, loading } = useAuth();
   const [isPageReady, setIsPageReady] = useState(false);
   
-  console.log("PublicRoute: Initializing with auth state:", { 
+  console.log("PublicRoute: Init with auth state:", { 
     user: user ? 'exists' : 'null', 
     loading, 
     isAdmin, 
@@ -188,7 +160,6 @@ export function PublicRoute({ children }: { children: ReactNode }) {
   
   // Emergency timeout to prevent indefinite loading
   useEffect(() => {
-    console.log('PublicRoute: Setting up emergency timeout');
     const timeoutId = setTimeout(() => {
       console.log('PublicRoute: Emergency timeout reached, forcing display');
       setIsPageReady(true);
@@ -207,7 +178,6 @@ export function PublicRoute({ children }: { children: ReactNode }) {
 
   // Emergency page loading state
   if (!isPageReady) {
-    console.log('PublicRoute: Showing loading state');
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center">

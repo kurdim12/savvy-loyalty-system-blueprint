@@ -1,16 +1,39 @@
 
 project_id = "egeufofnkpvwbmffgoxw"
 
-[functions.create-admin]
-verify_jwt = false
+[api]
+enabled = true
+port = 54321
+
+[db]
+port = 54322
+
+[functions]
+port = 54323
+
+[inbucket]
+port = 54324
+
+[studio]
+port = 54325
+
+[storage]
+port = 54326
 
 [auth]
 enable_strong_password = false
 enable_mfa = true
 mfa_remember_days = 14
 mfa_methods = ["totp", "email"]
-sms_autoconfirm = true # Enable SMS autoconfirm for easier phone number verification
-site_url = "https://egeufofnkpvwbmffgoxw.lovable.app" # Set site URL to Lovable app URL
-additional_redirect_urls = ["https://egeufofnkpvwbmffgoxw.lovable.app", "http://localhost:5173", "http://localhost:8080"] # Add project URL and all local development ports
+sms_autoconfirm = true
+site_url = "https://egeufofnkpvwbmffgoxw.lovable.app"
+additional_redirect_urls = [
+  "https://egeufofnkpvwbmffgoxw.lovable.app", 
+  "http://localhost:5173", 
+  "http://localhost:8080"
+]
 disable_signup = false
-cookie.secure = true
+cookie_secure = true
+
+[functions.create-admin]
+verify_jwt = false

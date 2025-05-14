@@ -4,7 +4,6 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase, cleanupAuthState } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
-import { useNavigate, useLocation } from 'react-router-dom';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -21,7 +20,7 @@ interface AuthContextType {
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
 
-const AUTH_SESSION_CHECK_INTERVAL = 60000; // 1 minute
+const AUTH_CHECK_TIMEOUT_MS = 5000; // 5 seconds max for auth check
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -31,47 +30,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [authInitialized, setAuthInitialized] = useState<boolean>(false);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const location = useLocation();
   
   const membershipTier = profile?.membership_tier || 'bronze';
   const isAdmin = profile?.role === 'admin';
-  // Explicit check for user role
   const isUser = profile?.role === 'customer';
 
-  // Emergency auth initialization
+  // Initialize authentication
   useEffect(() => {
-    console.log('EMERGENCY AUTH: Attempting to initialize authentication...');
+    console.log('AuthContext: Initializing authentication...');
     
     // Force auth resolution after timeout
     const timeoutId = setTimeout(() => {
-      console.log('EMERGENCY TIMEOUT: Force completing auth check after 3 seconds');
+      console.log('AuthContext: Force completing auth check after timeout');
       setLoading(false);
       setAuthInitialized(true);
-    }, 3000);
+    }, AUTH_CHECK_TIMEOUT_MS);
     
-    // Cleanup Supabase auth state to prevent conflicts
-    cleanupAuthState();
-    
-    let subscribed = true;
-    
-    // Set up auth state listener
+    let mounted = true;
+
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
-        console.log('Auth event received:', event);
+        console.log('AuthContext: Auth event received:', event);
         
-        // Only update if component is still mounted
-        if (!subscribed) return;
+        if (!mounted) return;
         
         // Update session and user state
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
-        // Using setTimeout with 0ms delay to avoid deadlocks with Supabase client
+        // Using setTimeout to avoid deadlocks with Supabase client
         if (newSession?.user) {
           setTimeout(() => {
-            if (subscribed) {
+            if (mounted) {
               fetchUserProfile(newSession.user.id);
             }
           }, 0);
@@ -81,72 +72,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // Get initial session once
+    // THEN check for existing session
     const getInitialSession = async () => {
       try {
-        console.log('Getting initial session');
+        console.log('AuthContext: Getting initial session');
         const { data: { session: currentSession } } = await supabase.auth.getSession();
-        console.log('Initial session found:', currentSession ? 'Yes' : 'No');
+        console.log('AuthContext: Initial session found:', currentSession ? 'Yes' : 'No');
         
-        if (subscribed) {
-          setSession(currentSession);
-          setUser(currentSession?.user ?? null);
-          
-          if (currentSession?.user) {
-            await fetchUserProfile(currentSession.user.id);
-          }
-          
-          setTimeout(() => {
-            if (subscribed) {
-              setLoading(false);
-              setAuthInitialized(true);
-            }
-          }, 500);
+        if (!mounted) return;
+        
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        if (currentSession?.user) {
+          await fetchUserProfile(currentSession.user.id);
         }
+        
+        setLoading(false);
+        setAuthInitialized(true);
       } catch (error) {
-        console.error('Error getting initial session:', error);
-        setAuthError(error instanceof Error ? error.message : 'Unknown auth error');
+        console.error('AuthContext: Error getting initial session:', error);
         
-        if (subscribed) {
-          setTimeout(() => {
-            setLoading(false);
-            setAuthInitialized(true);
-          }, 500);
-        }
+        if (!mounted) return;
+        
+        setLoading(false);
+        setAuthInitialized(true);
       }
     };
 
     getInitialSession();
 
     return () => {
-      subscribed = false;
+      mounted = false;
       subscription?.unsubscribe();
       clearTimeout(timeoutId);
     };
   }, []);
 
-  // Use a separate effect for redirects to avoid race conditions
-  useEffect(() => {
-    if (!loading && authInitialized) {
-      console.log('Auth state ready, current path:', location.pathname);
-      
-      // Handle public routes that should redirect logged in users
-      const isPublicRoute = location.pathname === '/auth' || location.pathname === '/admin/login';
-      
-      if (isPublicRoute && user && profile) {
-        console.log('User is logged in on a public route, redirecting');
-        if (isAdmin) {
-          navigate('/admin/dashboard', { replace: true });
-        } else if (isUser) {
-          navigate('/dashboard', { replace: true });
-        }
-      }
-    }
-  }, [loading, user, profile, location.pathname, isAdmin, isUser, navigate, authInitialized]);
-
   const fetchUserProfile = async (userId: string) => {
     try {
-      console.log('Fetching profile for user:', userId);
+      console.log('AuthContext: Fetching profile for user:', userId);
       
       const { data, error } = await supabase
         .from('profiles')
@@ -155,23 +120,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('AuthContext: Error fetching profile:', error);
         
         // Check if the error is because the profile wasn't found
         if (error.code === 'PGRST116') {
-          console.log('Profile not found, attempting to create it');
+          console.log('AuthContext: Profile not found, attempting to create it');
           await createUserProfile(userId);
-          return;
         }
         return;
       }
 
       if (data) {
-        console.log('Profile fetched successfully');
+        console.log('AuthContext: Profile fetched successfully');
         setProfile(data as Profile);
       }
     } catch (error) {
-      console.error('Unexpected error fetching profile:', error);
+      console.error('AuthContext: Unexpected error fetching profile:', error);
     }
   };
   
@@ -182,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: userData } = await supabase.auth.getUser(userId);
       
       if (!userData?.user) {
-        console.error('Could not get user data for profile creation');
+        console.error('AuthContext: Could not get user data for profile creation');
         return;
       }
       
@@ -203,18 +167,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
         
       if (error) {
-        console.error('Error creating user profile:', error);
+        console.error('AuthContext: Error creating user profile:', error);
         toast.error('Could not create user profile. Please try again or contact support.');
         return;
       }
       
       if (newProfile) {
-        console.log('New profile created');
+        console.log('AuthContext: New profile created');
         setProfile(newProfile as Profile);
         toast.success('Welcome! Your profile has been created.');
       }
     } catch (error) {
-      console.error('Error in profile creation:', error);
+      console.error('AuthContext: Error in profile creation:', error);
     }
   };
 
@@ -244,7 +208,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      console.log('Signing out user...');
+      console.log('AuthContext: Signing out user...');
+      
       // Clean up auth state first
       cleanupAuthState();
       
@@ -256,11 +221,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setSession(null);
       
-      console.log('Signed out successfully, redirecting...');
-      // Force page reload
+      console.log('AuthContext: Signed out successfully, redirecting...');
+      
+      // Force page reload for a clean state
       window.location.href = '/auth';
     } catch (error) {
-      console.error('Error during sign out:', error);
+      console.error('AuthContext: Error during sign out:', error);
+      
       // Force reload anyway as fallback
       window.location.href = '/auth';
     }

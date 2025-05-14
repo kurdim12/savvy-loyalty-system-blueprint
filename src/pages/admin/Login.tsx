@@ -6,8 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { verifyAdminCredentials } from '@/integrations/supabase/functions';
+import { supabase, cleanupAuthState } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,7 +25,7 @@ const ADMIN_PASSWORD = "rawsmith123";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { isAdmin, user, refreshProfile } = useAuth();
+  const { user, isAdmin, refreshProfile } = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [accountCreated, setAccountCreated] = useState<boolean>(false);
@@ -43,38 +42,27 @@ const AdminLogin = () => {
 
   // Check authentication status once
   useEffect(() => {
-    let mounted = true;
+    console.log('AdminLogin: Checking auth status', { user, isAdmin });
     
     const checkAuth = async () => {
-      if (isAdmin && user) {
+      if (user && isAdmin) {
+        console.log('AdminLogin: User is already logged in as admin, redirecting to admin dashboard');
         navigate('/admin', { replace: true });
       } else {
-        if (mounted) {
-          setAuthCheckComplete(true);
-        }
+        setAuthCheckComplete(true);
       }
     };
+    
+    // Set a timeout to ensure we don't block indefinitely
+    const timeoutId = setTimeout(() => {
+      console.log('AdminLogin: Auth check timed out');
+      setAuthCheckComplete(true);
+    }, 3000);
     
     checkAuth();
     
-    return () => {
-      mounted = false;
-    };
-  }, [isAdmin, user, navigate]);
-
-  const cleanupAuthState = () => {
-    localStorage.removeItem('supabase.auth.token');
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        localStorage.removeItem(key);
-      }
-    });
-    Object.keys(sessionStorage || {}).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        sessionStorage.removeItem(key);
-      }
-    });
-  };
+    return () => clearTimeout(timeoutId);
+  }, [user, isAdmin, navigate]);
 
   const handleCreateAdmin = async () => {
     if (loading) return;
@@ -87,6 +75,7 @@ const AdminLogin = () => {
       cleanupAuthState();
       
       // Call the edge function to create an admin user
+      console.log('AdminLogin: Creating admin account...');
       const { data, error } = await supabase.functions.invoke('create-admin', {
         method: 'POST',
       });
@@ -95,7 +84,7 @@ const AdminLogin = () => {
         throw error;
       }
       
-      if (data.success) {
+      if (data?.success) {
         setAccountCreated(true);
         toast.success('Admin account created successfully!');
         
@@ -103,10 +92,10 @@ const AdminLogin = () => {
         form.setValue('email', ADMIN_EMAIL);
         form.setValue('password', ADMIN_PASSWORD);
       } else {
-        throw new Error(data.error || 'Unknown error occurred');
+        throw new Error(data?.error || 'Unknown error occurred');
       }
     } catch (err: any) {
-      console.error('Error creating admin:', err);
+      console.error('AdminLogin: Error creating admin:', err);
       setError('Failed to create admin account. Please try again.');
       toast.error('Failed to create admin account');
     } finally {
@@ -124,44 +113,44 @@ const AdminLogin = () => {
       // Clean up existing state
       cleanupAuthState();
       
-      // Try to sign in with these credentials
-      let result = await verifyAdminCredentials(values.email, values.password);
+      console.log('AdminLogin: Attempting login with:', values.email);
       
-      // If admin login fails due to invalid credentials, try to create the account
-      // but only if using the default admin credentials
-      if (!result.success && 
-          values.email === ADMIN_EMAIL && 
-          values.password === ADMIN_PASSWORD) {
-        
-        // Try to create the admin account
-        const { data, error } = await supabase.functions.invoke('create-admin', {
-          method: 'POST',
-        });
-        
-        if (!error && data.success) {
-          toast.success('Admin account created! Logging you in...');
-          
-          // Try logging in again after account creation
-          result = await verifyAdminCredentials(ADMIN_EMAIL, ADMIN_PASSWORD);
-        }
+      // Sign in with provided credentials
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
+      });
+      
+      if (error) {
+        throw error;
       }
       
-      if (result.success) {
-        // Refresh profile to ensure admin status is reflected
-        await refreshProfile();
-        toast.success('Logged in as admin');
-        
-        // Use location.href for complete page refresh
-        window.location.href = '/admin';
-      } else {
-        console.error('Login error:', result.error);
-        setError(result.error || 'Invalid credentials');
-        toast.error(result.error || 'Login failed');
+      if (!data.user) {
+        throw new Error('Login failed: No user returned');
       }
+      
+      // Refresh profile to get role info
+      await refreshProfile();
+      
+      // Verify admin status after profile refresh
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+      
+      if (profileData?.role !== 'admin') {
+        throw new Error('Access denied: Not an admin account');
+      }
+      
+      toast.success('Logged in successfully as admin');
+      
+      // Navigate to admin dashboard
+      window.location.href = '/admin';
     } catch (err: any) {
-      console.error('Login error:', err);
-      setError('An unexpected error occurred');
-      toast.error('Login failed');
+      console.error('AdminLogin: Login error:', err);
+      setError(err.message || 'Login failed');
+      toast.error(err.message || 'Login failed');
     } finally {
       setLoading(false);
     }

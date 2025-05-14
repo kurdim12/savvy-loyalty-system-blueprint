@@ -17,10 +17,9 @@ export default function Layout({
   requireTier,
   adminOnly
 }: LayoutProps) {
-  const { user, loading, isAdmin, isUser, session, membershipTier, profile } = useAuth();
+  const { user, loading, isAdmin, isUser, membershipTier, profile } = useAuth();
   const navigate = useNavigate();
   const [pageReady, setPageReady] = useState(false);
-  const [initialLoad, setInitialLoad] = useState(true);
   
   console.log("Layout mounting, auth state:", { 
     user: user ? 'exists' : 'null', 
@@ -31,11 +30,9 @@ export default function Layout({
 
   // Emergency timeout for loading
   useEffect(() => {
-    console.log("Setting emergency timeout for layout");
     const maxLoadingTime = setTimeout(() => {
       console.log("Maximum loading time reached, forcing display");
       setPageReady(true);
-      setInitialLoad(false);
     }, 2000); // 2 seconds max loading time
     
     return () => clearTimeout(maxLoadingTime);
@@ -46,12 +43,11 @@ export default function Layout({
     if (!loading) {
       console.log("Loading complete, setting page ready");
       setPageReady(true);
-      setInitialLoad(false);
     }
   }, [loading]);
 
   // Show skeleton loading state during initial load
-  if ((loading || !pageReady) && initialLoad) {
+  if ((loading || !pageReady)) {
     console.log("Showing loading skeleton");
     return (
       <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
@@ -74,7 +70,7 @@ export default function Layout({
     );
   }
 
-  // If loading timed out but we still don't have a user, redirect to auth
+  // If loading completed but we still don't have a user, redirect to auth
   if (!user && !loading && pageReady) {
     console.log("No user found, redirecting to auth");
     toast.error('Please sign in to continue');
