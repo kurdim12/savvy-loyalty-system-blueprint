@@ -8,6 +8,7 @@ import { Toaster } from './components/ui/toaster.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import { Toaster as SonnerToaster } from 'sonner';
 import { supabase } from './integrations/supabase/client';
+import { BrowserRouter } from 'react-router-dom';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -52,12 +53,14 @@ supabase.auth.onAuthStateChange(async (event, session) => {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <SonnerToaster position="top-right" expand={false} richColors />
-        <Toaster />
-        <App />
-      </AuthProvider>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <SonnerToaster position="top-right" expand={false} richColors />
+          <Toaster />
+          <App />
+        </AuthProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   </React.StrictMode>,
 )
