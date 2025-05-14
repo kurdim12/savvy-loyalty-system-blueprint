@@ -21,6 +21,7 @@ export default function Layout({
   const navigate = useNavigate();
   const [pageReady, setPageReady] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [authCheckComplete, setAuthCheckComplete] = useState(false);
 
   // Set a maximum wait time for loading to prevent indefinite loading screens
   useEffect(() => {
@@ -29,8 +30,9 @@ export default function Layout({
         console.log("Maximum loading time reached, forcing display");
         setPageReady(true);
         setInitialLoad(false);
+        setAuthCheckComplete(true);
       }
-    }, 5000); // 5 seconds max loading time
+    }, 3000); // 3 seconds max loading time
     
     return () => clearTimeout(maxLoadingTime);
   }, [loading]);
@@ -42,6 +44,7 @@ export default function Layout({
       const readyTimer = setTimeout(() => {
         setPageReady(true);
         setInitialLoad(false);
+        setAuthCheckComplete(true);
       }, 300);
       
       return () => clearTimeout(readyTimer);
@@ -83,6 +86,24 @@ export default function Layout({
         <Header />
         <main className="flex-1 p-4 md:p-6 container mx-auto">
           <DashboardSkeleton />
+        </main>
+        <footer className="py-4 px-6 text-center text-sm text-[#6F4E37] border-t border-[#8B4513]/10">
+          &copy; {new Date().getFullYear()} Raw Smith Coffee Loyalty Program
+        </footer>
+      </div>
+    );
+  }
+
+  // Wait until auth check is complete before evaluating access
+  if (!authCheckComplete) {
+    return (
+      <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
+        <Header />
+        <main className="flex-1 p-4 md:p-6 container mx-auto flex items-center justify-center">
+          <div className="text-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent mx-auto mb-4"></div>
+            <p className="text-[#8B4513]">Verifying access...</p>
+          </div>
         </main>
         <footer className="py-4 px-6 text-center text-sm text-[#6F4E37] border-t border-[#8B4513]/10">
           &copy; {new Date().getFullYear()} Raw Smith Coffee Loyalty Program

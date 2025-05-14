@@ -17,9 +17,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isUser: boolean; // Added for explicit role check
   refreshProfile: () => Promise<void>;
-  // Remove communityPoints as a separate property
   membershipTier: Database['public']['Enums']['membership_tier'];
-  // Add updateProfile function
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
 
@@ -33,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [authInitialized, setAuthInitialized] = useState<boolean>(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -46,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (authInitialized) return;
     
     let subscribed = true;
+    console.log('Getting initial session');
     
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         console.log('Getting initial session');
         const { data: { session: currentSession } } = await supabase.auth.getSession();
-        console.log('Initial session:', currentSession);
+        console.log('Initial session:', currentSession ? 'Found' : 'Not found');
         
         if (subscribed) {
           setSession(currentSession);
@@ -92,14 +92,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (currentSession?.user) {
             await fetchUserProfile(currentSession.user.id);
           }
-          setLoading(false);
-          setAuthInitialized(true);
+          
+          setTimeout(() => {
+            if (subscribed) {
+              setLoading(false);
+              setAuthInitialized(true);
+            }
+          }, 500); // Small delay to ensure state updates properly
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
+        setAuthError(error instanceof Error ? error.message : 'Unknown auth error');
+        
         if (subscribed) {
-          setLoading(false);
-          setAuthInitialized(true);
+          setTimeout(() => {
+            setLoading(false);
+            setAuthInitialized(true);
+          }, 500);
         }
       }
     };
@@ -116,11 +125,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [authInitialized]);
 
+  // Force auth resolution after timeout
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.log('Auth initialization timeout reached, forcing completion');
+        setLoading(false);
+        setAuthInitialized(true);
+      }
+    }, 5000); // 5 seconds maximum loading time
+    
+    return () => clearTimeout(timeoutId);
+  }, [loading]);
+
   // Redirect based on auth state change - separate from auth initialization
   useEffect(() => {
-    if (!loading) {
+    if (!loading && authInitialized) {
       console.log('Auth state ready, location:', location.pathname);
-      console.log('User state:', { user, profile });
+      console.log('User state:', { 
+        user: user ? 'Present' : 'Not present', 
+        profile: profile ? 'Present' : 'Not present',
+        isAdmin, 
+        isUser 
+      });
       
       // Handle public routes that should redirect logged in users
       const isPublicRoute = location.pathname === '/auth' || location.pathname === '/admin/login';
@@ -133,27 +160,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           navigate('/dashboard', { replace: true });
         }
       }
-      
-      // Handle protected routes that require login
-      const isProtectedCustomerRoute = 
-        location.pathname.startsWith('/dashboard') || 
-        location.pathname.startsWith('/profile') || 
-        location.pathname.startsWith('/rewards');
-        
-      const isProtectedAdminRoute = location.pathname.startsWith('/admin') && 
-        location.pathname !== '/admin/login';
-      
-      if (isProtectedCustomerRoute && (!user || !profile)) {
-        console.log('User not logged in for protected customer route, redirecting to auth');
-        navigate('/auth', { replace: true });
-      }
-      
-      if (isProtectedAdminRoute && (!user || !isAdmin)) {
-        console.log('User not admin for protected admin route, redirecting to admin login');
-        navigate('/admin/login', { replace: true });
-      }
     }
-  }, [loading, user, profile, location.pathname, isAdmin, isUser, navigate]);
+  }, [loading, user, profile, location.pathname, isAdmin, isUser, navigate, authInitialized]);
 
   // Check if the session is about to expire
   const checkSessionExpiration = () => {
@@ -180,7 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUserProfile = async (userId: string) => {
     try {
       console.log('Fetching profile for user:', userId);
-      // Apply rate limiting by adding a small delay
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -200,7 +208,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data) {
-        console.log('Profile fetched successfully:', data);
+        console.log('Profile fetched successfully');
         setProfile(data as Profile);
       }
     } catch (error) {
@@ -242,7 +250,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       if (newProfile) {
-        console.log('New profile created:', newProfile);
+        console.log('New profile created');
         setProfile(newProfile as Profile);
         toast.success('Welcome! Your profile has been created.');
       }
@@ -292,8 +300,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     
-    // Direct admin users to admin login, regular users to main auth page
-    // Use replace:true to avoid adding to history
+    // Use window.location for a full page refresh to ensure clean state
     if (location.pathname.startsWith('/admin')) {
       window.location.href = '/admin/login';
     } else {
