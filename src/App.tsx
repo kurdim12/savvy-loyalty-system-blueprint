@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Rewards from './pages/Rewards';
 import NotFound from './pages/NotFound';
+import Index from './pages/Index';
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -38,6 +39,7 @@ function App() {
       <AuthProvider>
         <Routes>
           {/* Public routes */}
+          <Route path="/" element={<Index />} />
           <Route path="/auth" element={
             <PublicRoute>
               <Auth />
@@ -51,7 +53,6 @@ function App() {
           } />
           
           {/* Authenticated User routes */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={
             <UserRoute>
               <Dashboard />
