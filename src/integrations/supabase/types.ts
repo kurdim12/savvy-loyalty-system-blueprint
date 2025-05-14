@@ -345,6 +345,10 @@ export type Database = {
         Args: { user_id: string; point_amount: number }
         Returns: undefined
       }
+      earn_points: {
+        Args: { uid: string; points: number; notes?: string }
+        Returns: undefined
+      }
       get_community_goal_points: {
         Args: { p_goal_id: string }
         Returns: number
@@ -364,6 +368,14 @@ export type Database = {
       is_admin: {
         Args: Record<PropertyKey, never> | { uid: string }
         Returns: boolean
+      }
+      recalculate_points: {
+        Args: { uid: string }
+        Returns: undefined
+      }
+      redeem_points: {
+        Args: { uid: string; reward_id: string; points: number }
+        Returns: undefined
       }
       update_community_goal_points: {
         Args: { p_goal_id: string; p_amount: number }

@@ -1,4 +1,3 @@
-
 // Helper functions for Supabase database interaction
 
 import { supabase, requireAuth, requireAdmin } from './client';
@@ -89,45 +88,19 @@ export async function incrementPoints(userId: string, pointAmount: number) {
     // Sanitize input - ensure pointAmount is a positive number
     const sanitizedPointAmount = Math.max(0, pointAmount);
     
-    // Get current profile data
-    const { data: profile, error: fetchError } = await supabase
-      .from('profiles')
-      .select('current_points, visits')
-      .eq('id', userId)
-      .single();
+    // Call our newly created RPC function to safely increment points
+    const { error } = await supabase.rpc('earn_points', { 
+      uid: userId, 
+      points: sanitizedPointAmount,
+      notes: 'Points earned'
+    });
     
-    if (fetchError || !profile) {
-      console.error('Error fetching profile:', fetchError);
-      return { error: fetchError || new Error('User not found') };
+    if (error) {
+      console.error('Error incrementing points:', error);
+      return { error };
     }
     
-    // Get the rank thresholds from settings
-    const rankThresholds = await getRankThresholds();
-    
-    // Calculate new values
-    const newPoints = profile.current_points + sanitizedPointAmount;
-    const newVisits = sanitizedPointAmount > 0 ? profile.visits + 1 : profile.visits;
-    
-    // Determine tier based on new points using the correct type and thresholds from settings
-    let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
-    if (newPoints >= rankThresholds.gold) {
-      newTier = 'gold';
-    } else if (newPoints >= rankThresholds.silver) {
-      newTier = 'silver';
-    }
-    
-    // Update profile
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        current_points: newPoints,
-        visits: newVisits,
-        membership_tier: newTier,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', userId);
-      
-    return { error: updateError };
+    return { error: null };
   } catch (error) {
     console.error('Authentication error incrementing points:', error);
     return { error };
@@ -150,43 +123,39 @@ export async function decrementPoints(userId: string, pointAmount: number) {
     // Sanitize input - ensure pointAmount is a positive number
     const sanitizedPointAmount = Math.max(0, pointAmount);
     
-    // Get current profile data
+    // Get current points before decrementing
     const { data: profile, error: fetchError } = await supabase
       .from('profiles')
       .select('current_points')
       .eq('id', userId)
       .single();
-    
+      
     if (fetchError || !profile) {
       console.error('Error fetching profile:', fetchError);
       return { error: fetchError || new Error('User not found') };
     }
     
-    // Calculate new points (never below 0)
-    const newPoints = Math.max(0, profile.current_points - sanitizedPointAmount);
-    
-    // Get the rank thresholds from settings
-    const rankThresholds = await getRankThresholds();
-    
-    // Update profile and possibly adjust membership tier
-    let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
-    if (newPoints >= rankThresholds.gold) {
-      newTier = 'gold';
-    } else if (newPoints >= rankThresholds.silver) {
-      newTier = 'silver';
+    // Check if user has enough points
+    if (profile.current_points < sanitizedPointAmount) {
+      return { error: new Error('Insufficient points') };
     }
     
-    // Update profile
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        current_points: newPoints,
-        membership_tier: newTier,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', userId);
+    // First create a transaction with 'redeem' type
+    const { error } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: userId,
+        transaction_type: 'redeem',
+        points: sanitizedPointAmount,
+        notes: 'Points redeemed'
+      });
       
-    return { error: updateError };
+    if (error) {
+      console.error('Error decrementing points:', error);
+      return { error };
+    }
+    
+    return { error: null };
   } catch (error) {
     console.error('Authentication error decrementing points:', error);
     return { error };
@@ -249,14 +218,6 @@ export async function contributeToGoal(userId: string, goalId: string, points: n
     if (updateGoalError) {
       console.error('Error updating community goal points:', updateGoalError);
       return { error: updateGoalError };
-    }
-    
-    // Deduct points from user
-    const { error: deductPointsError } = await decrementPoints(userId, points);
-    
-    if (deductPointsError) {
-      console.error('Error deducting points:', deductPointsError);
-      return { error: deductPointsError };
     }
     
     return { success: true };
