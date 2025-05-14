@@ -6,11 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { CoffeeIcon, Award, Clock, AlertTriangle, Users } from 'lucide-react';
+import { CoffeeIcon, Award, Clock, AlertTriangle, Users, Wallet } from 'lucide-react';
 import CommunityGoalsList from '@/components/community/CommunityGoalsList';
 import ReferFriend from '@/components/loyalty/ReferFriend';
 import RankBenefits from '@/components/loyalty/RankBenefits';
 import { getDiscountRate } from '@/integrations/supabase/functions';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const { profile } = useAuth();
@@ -81,6 +82,12 @@ const Dashboard = () => {
     });
   };
 
+  // Function to copy points to clipboard
+  const copyPointsToClipboard = () => {
+    navigator.clipboard.writeText(currentPoints.toString());
+    toast.success('Points copied to clipboard!');
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -90,15 +97,40 @@ const Dashboard = () => {
             <p className="text-[#6F4E37]">Here's an overview of your loyalty status.</p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-center gap-2">
             <Badge variant="outline" className="bg-[#FFF8DC] text-[#8B4513] border-[#8B4513]/30 px-3 py-1">
               {currentMembership.charAt(0).toUpperCase() + currentMembership.slice(1)} Member
             </Badge>
-            <Badge className="bg-[#8B4513] text-white px-3 py-1">
-              {currentPoints} Points
+            <Badge 
+              className="bg-[#8B4513] text-white px-3 py-1 flex items-center gap-1 cursor-pointer hover:bg-[#6F4E37] transition-colors" 
+              onClick={copyPointsToClipboard}
+            >
+              <Wallet className="h-4 w-4" />
+              <span className="font-bold">{currentPoints}</span> Available Points
             </Badge>
           </div>
         </div>
+
+        {/* Points Card - Added to highlight available points */}
+        <Card className="border-[#8B4513]/20 bg-gradient-to-r from-[#FFF8DC] to-[#FFFDF7]">
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row justify-between items-center">
+              <div className="flex items-center gap-3 mb-3 sm:mb-0">
+                <div className="bg-[#8B4513] rounded-full p-3">
+                  <Wallet className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-[#8B4513]">Available Points</h3>
+                  <p className="text-[#6F4E37]">Use these for rewards & discounts</p>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-[#8B4513]">{currentPoints}</div>
+                <p className="text-sm text-[#6F4E37]">Current Balance</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Membership Status Card */}
