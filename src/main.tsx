@@ -14,7 +14,7 @@ const queryClient = new QueryClient();
 
 // Listen for signup events to award welcome bonus
 supabase.auth.onAuthStateChange(async (event, session) => {
-  // Compare event as a string literal since it comes as a string from Supabase
+  // Compare event as a string directly - event is already a string
   if (event === 'SIGNED_UP' && session?.user) {
     try {
       // Defer the execution to avoid potential deadlocks
