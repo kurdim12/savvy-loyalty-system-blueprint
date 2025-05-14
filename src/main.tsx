@@ -8,13 +8,14 @@ import { Toaster } from './components/ui/toaster.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import { Toaster as SonnerToaster } from 'sonner';
 import { supabase } from './integrations/supabase/client';
+import { AuthChangeEvent } from '@supabase/supabase-js';
 
 // Create a client
 const queryClient = new QueryClient();
 
 // Listen for signup events to award welcome bonus
-supabase.auth.onAuthStateChange(async (event, session) => {
-  // Compare with the string literal directly since event is a string
+supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
+  // Type assertion to compare with the enum value
   if (event === 'SIGNED_UP' && session?.user) {
     try {
       // Defer the execution to avoid potential deadlocks
