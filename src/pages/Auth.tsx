@@ -21,6 +21,25 @@ const Auth = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [authChecked, setAuthChecked] = useState(false);
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
+  
+  // Emergency debug
+  console.log('Auth page rendering', { 
+    user: user ? 'exists' : 'null', 
+    pathname: location.pathname 
+  });
+
+  // Set a maximum wait time for initial auth check
+  useEffect(() => {
+    console.log('Setting up auth check timeout');
+    const timeout = setTimeout(() => {
+      console.log('Auth check timeout reached, allowing page to render');
+      setAuthChecked(true);
+      setInitialCheckDone(true);
+    }, 2000);
+    
+    return () => clearTimeout(timeout);
+  }, []);
   
   // Check if we're already logged in
   useEffect(() => {
@@ -32,7 +51,6 @@ const Auth = () => {
         // If we have a session and a user, we're already logged in
         if (session?.user) {
           console.log("Auth page: User already authenticated, will redirect");
-          // Add small timeout to prevent immediate redirect
           setTimeout(() => {
             navigate('/dashboard', { replace: true });
           }, 100);
@@ -41,6 +59,7 @@ const Auth = () => {
         console.error("Auth page: Error checking session:", error);
       } finally {
         setAuthChecked(true);
+        setInitialCheckDone(true);
       }
     };
     
@@ -49,11 +68,11 @@ const Auth = () => {
 
   // Redirect if user is already authenticated
   useEffect(() => {
-    if (user && authChecked) {
+    if (user && initialCheckDone) {
       console.log("Auth page: User state detected, redirecting to dashboard");
       navigate('/dashboard', { replace: true });
     }
-  }, [user, navigate, authChecked]);
+  }, [user, navigate, initialCheckDone]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +89,10 @@ const Auth = () => {
         password
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Sign in error:", error);
+        throw error;
+      }
       
       toast.success("Signed in successfully");
       console.log("Auth page: Sign in successful, will refresh profile and redirect");
@@ -139,12 +161,19 @@ const Auth = () => {
     }
   };
 
+  // Emergency debugging mode - show info while page is loading
   if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAF6F0]">
-        <div className="text-center">
+        <div className="text-center p-6 max-w-md">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#8B4513]">Checking authentication status...</p>
+          <p className="text-[#8B4513] mb-4">Verifying authentication status...</p>
+          <div className="mt-6 p-4 bg-[#f0f0f0] rounded text-left text-sm">
+            <p className="font-semibold mb-2">Debug Info:</p>
+            <p>Current URL: {window.location.pathname}</p>
+            <p>Time: {new Date().toLocaleTimeString()}</p>
+            <p>Auth Checked: {authChecked ? 'Yes' : 'No'}</p>
+          </div>
         </div>
       </div>
     );
@@ -270,6 +299,7 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      minLength={6}
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">

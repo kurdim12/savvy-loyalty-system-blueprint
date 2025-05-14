@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
@@ -37,22 +36,34 @@ export const supabase = createClient<Database>(
 
 // Thorough cleanup function for auth state
 export const cleanupAuthState = () => {
-  // Remove standard auth tokens
-  localStorage.removeItem('supabase.auth.token');
+  console.log("Cleaning up auth state");
   
-  // Remove all Supabase auth keys from localStorage
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      localStorage.removeItem(key);
+  try {
+    // Remove standard auth tokens
+    localStorage.removeItem('supabase.auth.token');
+    
+    // Remove all Supabase auth keys from localStorage
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        console.log(`Removing auth key: ${key}`);
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Try to remove from sessionStorage if it exists
+    if (typeof sessionStorage !== 'undefined') {
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          console.log(`Removing session key: ${key}`);
+          sessionStorage.removeItem(key);
+        }
+      });
     }
-  });
-  
-  // Remove from sessionStorage if in use
-  Object.keys(sessionStorage || {}).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      sessionStorage.removeItem(key);
-    }
-  });
+    
+    console.log("Auth state cleanup complete");
+  } catch (err) {
+    console.error("Error during auth state cleanup:", err);
+  }
 };
 
 // Secure sign out function to prevent session issues

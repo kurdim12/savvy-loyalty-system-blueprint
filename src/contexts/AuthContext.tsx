@@ -15,7 +15,7 @@ interface AuthContextType {
   loading: boolean;
   signOut: () => Promise<void>;
   isAdmin: boolean;
-  isUser: boolean; // Added for explicit role check
+  isUser: boolean;
   refreshProfile: () => Promise<void>;
   membershipTier: Database['public']['Enums']['membership_tier'];
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
@@ -40,32 +40,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Explicit check for user role
   const isUser = profile?.role === 'customer';
 
-  // Initialize auth state only once
+  // Emergency auth initialization
   useEffect(() => {
-    if (authInitialized) return;
+    console.log('EMERGENCY AUTH: Attempting to initialize authentication...');
+    
+    // Force auth resolution after timeout
+    const timeoutId = setTimeout(() => {
+      console.log('EMERGENCY TIMEOUT: Force completing auth check after 3 seconds');
+      setLoading(false);
+      setAuthInitialized(true);
+    }, 3000);
+    
+    // Cleanup Supabase auth state to prevent conflicts
+    cleanupAuthState();
     
     let subscribed = true;
-    console.log('Getting initial session');
     
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
+        console.log('Auth event received:', event);
+        
         // Only update if component is still mounted
         if (!subscribed) return;
         
-        console.log('Auth state changed:', event);
-        
-        // Don't update state frequently for the same session
-        setSession(prevSession => {
-          if (prevSession?.user?.id === newSession?.user?.id) {
-            return prevSession; // Don't update if it's the same user
-          }
-          return newSession;
-        });
-        
+        // Update session and user state
+        setSession(newSession);
         setUser(newSession?.user ?? null);
 
-        // Using setTimeout with 0ms delay to avoid potential deadlocks with Supabase client
+        // Using setTimeout with 0ms delay to avoid deadlocks with Supabase client
         if (newSession?.user) {
           setTimeout(() => {
             if (subscribed) {
@@ -78,12 +81,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // Get initial session only once
+    // Get initial session once
     const getInitialSession = async () => {
       try {
         console.log('Getting initial session');
         const { data: { session: currentSession } } = await supabase.auth.getSession();
-        console.log('Initial session:', currentSession ? 'Found' : 'Not found');
+        console.log('Initial session found:', currentSession ? 'Yes' : 'No');
         
         if (subscribed) {
           setSession(currentSession);
@@ -98,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setLoading(false);
               setAuthInitialized(true);
             }
-          }, 500); // Small delay to ensure state updates properly
+          }, 500);
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
@@ -115,39 +118,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     getInitialSession();
 
-    // Set up session expiration monitoring with a reasonable interval
-    const intervalId = setInterval(checkSessionExpiration, AUTH_SESSION_CHECK_INTERVAL);
-
     return () => {
       subscribed = false;
-      subscription.unsubscribe();
-      clearInterval(intervalId);
+      subscription?.unsubscribe();
+      clearTimeout(timeoutId);
     };
-  }, [authInitialized]);
+  }, []);
 
-  // Force auth resolution after timeout
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (loading) {
-        console.log('Auth initialization timeout reached, forcing completion');
-        setLoading(false);
-        setAuthInitialized(true);
-      }
-    }, 5000); // 5 seconds maximum loading time
-    
-    return () => clearTimeout(timeoutId);
-  }, [loading]);
-
-  // Redirect based on auth state change - separate from auth initialization
+  // Use a separate effect for redirects to avoid race conditions
   useEffect(() => {
     if (!loading && authInitialized) {
-      console.log('Auth state ready, location:', location.pathname);
-      console.log('User state:', { 
-        user: user ? 'Present' : 'Not present', 
-        profile: profile ? 'Present' : 'Not present',
-        isAdmin, 
-        isUser 
-      });
+      console.log('Auth state ready, current path:', location.pathname);
       
       // Handle public routes that should redirect logged in users
       const isPublicRoute = location.pathname === '/auth' || location.pathname === '/admin/login';
@@ -163,28 +144,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [loading, user, profile, location.pathname, isAdmin, isUser, navigate, authInitialized]);
 
-  // Check if the session is about to expire
-  const checkSessionExpiration = () => {
-    if (session?.expires_at) {
-      const expiresAt = session.expires_at;
-      const now = Math.floor(Date.now() / 1000);
-      const timeRemaining = expiresAt - now;
-      
-      // If token is about to expire in next 5 minutes, try to refresh it
-      if (timeRemaining < 300 && timeRemaining > 0) {
-        console.log('Session about to expire, attempting refresh');
-        supabase.auth.refreshSession();
-      }
-      
-      // If token is expired, force logout
-      if (timeRemaining <= 0) {
-        console.log('Session expired');
-        toast.error('Your session has expired. Please sign in again.');
-        signOut();
-      }
-    }
-  };
-
   const fetchUserProfile = async (userId: string) => {
     try {
       console.log('Fetching profile for user:', userId);
@@ -192,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId as string)
+        .eq('id', userId)
         .single();
 
       if (error) {
@@ -265,7 +224,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Add the updateProfile function
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user?.id) {
       throw new Error('User not authenticated');
@@ -285,25 +243,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    // Clean up auth state first
-    cleanupAuthState();
-    
     try {
-      // Attempt global sign out for complete logout
+      console.log('Signing out user...');
+      // Clean up auth state first
+      cleanupAuthState();
+      
+      // Attempt global sign out
       await supabase.auth.signOut({ scope: 'global' });
+      
+      // Clear state
+      setProfile(null);
+      setUser(null);
+      setSession(null);
+      
+      console.log('Signed out successfully, redirecting...');
+      // Force page reload
+      window.location.href = '/auth';
     } catch (error) {
       console.error('Error during sign out:', error);
-    }
-    
-    // Clear state
-    setProfile(null);
-    setUser(null);
-    setSession(null);
-    
-    // Use window.location for a full page refresh to ensure clean state
-    if (location.pathname.startsWith('/admin')) {
-      window.location.href = '/admin/login';
-    } else {
+      // Force reload anyway as fallback
       window.location.href = '/auth';
     }
   };

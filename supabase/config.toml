@@ -11,6 +11,6 @@ mfa_remember_days = 14
 mfa_methods = ["totp", "email"]
 sms_autoconfirm = true # Enable SMS autoconfirm for easier phone number verification
 site_url = "https://egeufofnkpvwbmffgoxw.lovable.app" # Set site URL to Lovable app URL
-additional_redirect_urls = ["https://egeufofnkpvwbmffgoxw.lovable.app", "http://localhost:5173"] # Add project URL and localhost
+additional_redirect_urls = ["https://egeufofnkpvwbmffgoxw.lovable.app", "http://localhost:5173", "http://localhost:8080"] # Add project URL and all local development ports
 disable_signup = false
 cookie.secure = true
