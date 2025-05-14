@@ -22,24 +22,33 @@ export default function Layout({
   const [pageReady, setPageReady] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
   const [authCheckComplete, setAuthCheckComplete] = useState(false);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+
+  console.log("Layout mounting, auth state:", { 
+    user: user ? 'exists' : 'null', 
+    isAdmin, 
+    isUser, 
+    loading, 
+    authCheckComplete 
+  });
 
   // Set a maximum wait time for loading to prevent indefinite loading screens
   useEffect(() => {
     const maxLoadingTime = setTimeout(() => {
-      if (loading) {
-        console.log("Maximum loading time reached, forcing display");
-        setPageReady(true);
-        setInitialLoad(false);
-        setAuthCheckComplete(true);
-      }
+      console.log("Maximum loading time reached, forcing display");
+      setPageReady(true);
+      setInitialLoad(false);
+      setAuthCheckComplete(true);
+      setLoadingTimeout(true);
     }, 3000); // 3 seconds max loading time
     
     return () => clearTimeout(maxLoadingTime);
-  }, [loading]);
+  }, []);
 
   // Update page ready state when loading completes
   useEffect(() => {
     if (!loading) {
+      console.log("Loading complete, setting page ready");
       // Add a small delay to ensure all data is processed
       const readyTimer = setTimeout(() => {
         setPageReady(true);
@@ -79,8 +88,22 @@ export default function Layout({
     return () => clearInterval(intervalId);
   }, [user, navigate, session]);
 
+  // Log state for debugging
+  useEffect(() => {
+    console.log("Layout state updated:", {
+      user: user ? 'exists' : 'null',
+      isAdmin,
+      isUser,
+      loading,
+      pageReady,
+      authCheckComplete,
+      loadingTimeout
+    });
+  }, [user, isAdmin, isUser, loading, pageReady, authCheckComplete, loadingTimeout]);
+
   // Show skeleton loading state during initial load
   if ((loading || !pageReady) && initialLoad) {
+    console.log("Showing loading skeleton");
     return (
       <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
         <Header />
@@ -94,8 +117,16 @@ export default function Layout({
     );
   }
 
+  // If loading timed out but we still don't have a user, redirect to auth
+  if (loadingTimeout && !user && !loading) {
+    console.log("Loading timed out without user, redirecting to auth");
+    toast.error('Please sign in to continue');
+    return <Navigate to="/auth" replace />;
+  }
+
   // Wait until auth check is complete before evaluating access
   if (!authCheckComplete) {
+    console.log("Auth check not complete, showing verification screen");
     return (
       <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
         <Header />
@@ -114,6 +145,7 @@ export default function Layout({
 
   // Handle admin-only routes
   if (adminOnly) {
+    console.log("Handling admin-only route check");
     if (!user) {
       toast.error('Please sign in to access the admin area');
       return <Navigate to="/admin/login" replace />;
@@ -125,35 +157,38 @@ export default function Layout({
     }
     
     // Admin is authenticated, continue
+    console.log("Admin authentication successful");
   } 
   // For regular user routes
   else if (!user) {
+    console.log("No user found, redirecting to auth");
     toast.error('Please sign in to access this page');
     return <Navigate to="/auth" replace />;
   }
 
-  // If admin tries to access user routes - we'll allow it, but this could be changed
-  // to redirect to admin dashboard if preferred
+  // If admin tries to access user routes - we'll allow it
   if (isAdmin && !adminOnly) {
-    // Uncomment below to redirect admins to admin dashboard
-    // toast.info('Redirecting to admin dashboard');
-    // return <Navigate to="/admin/dashboard" replace />;
+    console.log("Admin accessing user route - allowed");
+    // We allow this, but could redirect if preferred
   }
   
-  // Ensure only users can access user routes
+  // Check if user has a valid role
   if (!isUser && !isAdmin) {
+    console.log("No valid role found (neither user nor admin)");
     toast.error('Access denied. Contact support if you think this is a mistake.');
     return <Navigate to="/auth" replace />;
   }
 
   // Additional security: Verify session existence
   if (!session) {
+    console.log("Session missing, redirecting to auth");
     toast.error('Session information missing. Please sign in again.');
     return <Navigate to="/auth" replace />;
   }
 
   // Check membership tier requirement if specified
   if (requireTier && profile && !adminOnly) {
+    console.log("Checking membership tier requirement:", requireTier);
     const tierValues: Record<string, number> = {
       'bronze': 1,
       'silver': 2,
@@ -164,11 +199,13 @@ export default function Layout({
     const requiredTierValue = tierValues[requireTier] || 0;
     
     if (userTierValue < requiredTierValue) {
+      console.log("Insufficient membership tier");
       toast.error(`This page requires ${requireTier} tier membership or higher`);
       return <Navigate to="/dashboard" replace />;
     }
   }
 
+  console.log("All checks passed, rendering content");
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
       <Header />

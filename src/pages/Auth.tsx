@@ -1,39 +1,66 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase, cleanupAuthState } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { CoffeeIcon, User, Mail, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const location = useLocation();
+  const { user, refreshProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [authChecked, setAuthChecked] = useState(false);
   
+  // Check if we're already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      console.log("Auth page: Checking if already authenticated");
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        // If we have a session and a user, we're already logged in
+        if (session?.user) {
+          console.log("Auth page: User already authenticated, will redirect");
+          // Add small timeout to prevent immediate redirect
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 100);
+        }
+      } catch (error) {
+        console.error("Auth page: Error checking session:", error);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
+
   // Redirect if user is already authenticated
-  React.useEffect(() => {
-    if (user) {
-      console.log("User already authenticated, redirecting to dashboard");
-      navigate('/dashboard');
+  useEffect(() => {
+    if (user && authChecked) {
+      console.log("Auth page: User state detected, redirecting to dashboard");
+      navigate('/dashboard', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, authChecked]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
+      console.log("Auth page: Attempting to sign in");
       // Clean up existing auth state first
       cleanupAuthState();
       
@@ -45,20 +72,23 @@ const Auth = () => {
       
       if (error) throw error;
       
-      toast({
-        title: "Success!",
-        description: "You have successfully signed in.",
-      });
+      toast.success("Signed in successfully");
+      console.log("Auth page: Sign in successful, will refresh profile and redirect");
       
-      // Redirect to dashboard
-      navigate('/dashboard');
+      // Refresh profile to ensure we have the latest data
+      if (refreshProfile) {
+        try {
+          await refreshProfile();
+        } catch (err) {
+          console.error("Error refreshing profile:", err);
+        }
+      }
+      
+      // Use window.location for a full page refresh to clear any stale state
+      window.location.href = '/dashboard';
     } catch (error: any) {
       console.error('Error signing in:', error);
-      toast({
-        title: "Error signing in",
-        description: error.message || "Please check your credentials and try again.",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Failed to sign in. Please check your credentials.");
     } finally {
       setIsLoading(false);
     }
@@ -69,16 +99,13 @@ const Auth = () => {
     setIsLoading(true);
     
     if (!firstName || !lastName) {
-      toast({
-        title: "Missing information",
-        description: "Please provide your first and last name.",
-        variant: "destructive",
-      });
+      toast.error("Please provide your first and last name");
       setIsLoading(false);
       return;
     }
     
     try {
+      console.log("Auth page: Attempting to sign up");
       // Clean up existing auth state first
       cleanupAuthState();
       
@@ -96,10 +123,8 @@ const Auth = () => {
       
       if (error) throw error;
       
-      toast({
-        title: "Account created!",
-        description: "Welcome to Raw Smith Loyalty Program! You can now sign in.",
-      });
+      toast.success("Account created successfully! You can now sign in.");
+      console.log("Auth page: Sign up successful");
       
       // Clear form
       setEmail('');
@@ -108,15 +133,22 @@ const Auth = () => {
       setLastName('');
     } catch (error: any) {
       console.error('Error signing up:', error);
-      toast({
-        title: "Error creating account",
-        description: error.message || "Please try again with different credentials.",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Failed to create account. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF6F0]">
+        <div className="text-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-[#8B4513]">Checking authentication status...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#FAF6F0] p-4">
