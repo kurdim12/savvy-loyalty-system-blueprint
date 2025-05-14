@@ -1,17 +1,42 @@
 
-import { ReactNode } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Component for routes that require user authentication
 export function UserRoute({ children }: { children: ReactNode }) {
   const { user, loading, isUser, isAdmin } = useAuth();
   const location = useLocation();
+  const [isPageReady, setIsPageReady] = useState(false);
 
-  if (loading) {
+  // Add timeout to prevent indefinite loading
+  useEffect(() => {
+    // Set a timeout to show content regardless of auth state if it takes too long
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.log('Auth loading timeout reached, forcing page display');
+        setIsPageReady(true);
+      }
+    }, 5000); // 5 seconds max loading time
+
+    return () => clearTimeout(timeoutId);
+  }, [loading]);
+
+  // If auth is done loading, or timeout reached, update page ready state
+  useEffect(() => {
+    if (!loading || isPageReady) {
+      setIsPageReady(true);
+    }
+  }, [loading, isPageReady]);
+
+  if (loading && !isPageReady) {
     return <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent"></div>
+      <div className="space-y-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent"></div>
+        <p className="text-[#8B4513] text-sm">Loading authentication...</p>
+      </div>
     </div>;
   }
 
@@ -45,10 +70,34 @@ export function UserRoute({ children }: { children: ReactNode }) {
 export function AdminRoute({ children }: { children: ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
   const location = useLocation();
+  const [isPageReady, setIsPageReady] = useState(false);
 
-  if (loading) {
+  // Add timeout to prevent indefinite loading
+  useEffect(() => {
+    // Set a timeout to show content regardless of auth state if it takes too long
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.log('Auth loading timeout reached, forcing page display');
+        setIsPageReady(true);
+      }
+    }, 5000); // 5 seconds max loading time
+
+    return () => clearTimeout(timeoutId);
+  }, [loading]);
+
+  // If auth is done loading, or timeout reached, update page ready state
+  useEffect(() => {
+    if (!loading || isPageReady) {
+      setIsPageReady(true);
+    }
+  }, [loading, isPageReady]);
+
+  if (loading && !isPageReady) {
     return <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent"></div>
+      <div className="space-y-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent"></div>
+        <p className="text-[#8B4513] text-sm">Loading admin access...</p>
+      </div>
     </div>;
   }
 
@@ -70,10 +119,34 @@ export function AdminRoute({ children }: { children: ReactNode }) {
 // Component for public routes that should redirect authenticated users
 export function PublicRoute({ children }: { children: ReactNode }) {
   const { user, isAdmin, isUser, loading } = useAuth();
+  const [isPageReady, setIsPageReady] = useState(false);
   
-  if (loading) {
+  // Add timeout to prevent indefinite loading
+  useEffect(() => {
+    // Set a timeout to show content regardless of auth state if it takes too long
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.log('Auth loading timeout reached, forcing page display');
+        setIsPageReady(true);
+      }
+    }, 5000); // 5 seconds max loading time
+
+    return () => clearTimeout(timeoutId);
+  }, [loading]);
+
+  // If auth is done loading, or timeout reached, update page ready state
+  useEffect(() => {
+    if (!loading || isPageReady) {
+      setIsPageReady(true);
+    }
+  }, [loading, isPageReady]);
+
+  if (loading && !isPageReady) {
     return <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent"></div>
+      <div className="space-y-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent"></div>
+        <p className="text-[#8B4513] text-sm">Loading...</p>
+      </div>
     </div>;
   }
 

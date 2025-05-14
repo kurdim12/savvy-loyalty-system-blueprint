@@ -1,9 +1,10 @@
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from './Header';
 import { toast } from 'sonner';
+import { FullPageSkeleton, DashboardSkeleton } from '@/components/ui/skeleton';
 
 interface LayoutProps {
   children: ReactNode;
@@ -18,6 +19,34 @@ export default function Layout({
 }: LayoutProps) {
   const { user, loading, isAdmin, isUser, session, membershipTier, profile } = useAuth();
   const navigate = useNavigate();
+  const [pageReady, setPageReady] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
+
+  // Set a maximum wait time for loading to prevent indefinite loading screens
+  useEffect(() => {
+    const maxLoadingTime = setTimeout(() => {
+      if (loading) {
+        console.log("Maximum loading time reached, forcing display");
+        setPageReady(true);
+        setInitialLoad(false);
+      }
+    }, 5000); // 5 seconds max loading time
+    
+    return () => clearTimeout(maxLoadingTime);
+  }, [loading]);
+
+  // Update page ready state when loading completes
+  useEffect(() => {
+    if (!loading) {
+      // Add a small delay to ensure all data is processed
+      const readyTimer = setTimeout(() => {
+        setPageReady(true);
+        setInitialLoad(false);
+      }, 300);
+      
+      return () => clearTimeout(readyTimer);
+    }
+  }, [loading]);
 
   // Check authentication session expiration
   useEffect(() => {
@@ -47,10 +76,17 @@ export default function Layout({
     return () => clearInterval(intervalId);
   }, [user, navigate, session]);
 
-  if (loading) {
+  // Show skeleton loading state during initial load
+  if ((loading || !pageReady) && initialLoad) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent"></div>
+      <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
+        <Header />
+        <main className="flex-1 p-4 md:p-6 container mx-auto">
+          <DashboardSkeleton />
+        </main>
+        <footer className="py-4 px-6 text-center text-sm text-[#6F4E37] border-t border-[#8B4513]/10">
+          &copy; {new Date().getFullYear()} Raw Smith Coffee Loyalty Program
+        </footer>
       </div>
     );
   }
