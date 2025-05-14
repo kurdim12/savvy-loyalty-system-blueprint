@@ -16,6 +16,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
 
@@ -26,6 +33,20 @@ interface ManagePointsDialogProps {
   customerName?: string | null;
 }
 
+interface DrinkCategory {
+  id: string;
+  name: string;
+  points: number;
+}
+
+// Drink categories with their respective point values
+const drinkCategories: DrinkCategory[] = [
+  { id: 'white-tradition', name: 'White Tradition', points: 4 },
+  { id: 'black-tradition', name: 'Black Tradition', points: 3 },
+  { id: 'raw-signature', name: 'Raw Signature', points: 5 },
+  { id: 'raw-specialty', name: 'Raw Specialty', points: 6 }
+];
+
 const ManagePointsDialog = ({
   open,
   onOpenChange,
@@ -35,6 +56,9 @@ const ManagePointsDialog = ({
   const [points, setPoints] = useState<number>(0);
   const [transactionType, setTransactionType] = useState<Database['public']['Enums']['transaction_type']>('earn');
   const [notes, setNotes] = useState<string>('');
+  const [pointsCalculationMethod, setPointsCalculationMethod] = useState<'custom' | 'drink' | 'amount'>('custom');
+  const [selectedDrink, setSelectedDrink] = useState<string>('');
+  const [amountSpent, setAmountSpent] = useState<number>(0);
   const queryClient = useQueryClient();
 
   const handlePointsChange = (value: string) => {
@@ -46,17 +70,29 @@ const ManagePointsDialog = ({
     setPoints(0);
     setTransactionType('earn');
     setNotes('');
+    setPointsCalculationMethod('custom');
+    setSelectedDrink('');
+    setAmountSpent(0);
   };
 
   const createTransaction = useMutation({
     mutationFn: async () => {
       if (!userId) return;
       
+      // Calculate final points based on selected method
+      let finalPoints = points;
+      if (pointsCalculationMethod === 'drink' && selectedDrink) {
+        const selectedCategory = drinkCategories.find(d => d.id === selectedDrink);
+        finalPoints = selectedCategory?.points || 0;
+      } else if (pointsCalculationMethod === 'amount') {
+        finalPoints = Math.floor(amountSpent);
+      }
+      
       // Use correct typing for the transaction data
       const transactionData = {
         user_id: userId,
         transaction_type: transactionType,
-        points: points,
+        points: finalPoints,
         notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} points manually by admin`,
       } as unknown as Database['public']['Tables']['transactions']['Insert'];
       
@@ -71,9 +107,9 @@ const ManagePointsDialog = ({
       // Step 2: Update the user's point balance
       let updateResult;
       if (transactionType === 'earn') {
-        updateResult = await incrementPoints(userId, points);
+        updateResult = await incrementPoints(userId, finalPoints);
       } else {
-        updateResult = await decrementPoints(userId, points);
+        updateResult = await decrementPoints(userId, finalPoints);
       }
       
       if (updateResult.error) throw updateResult.error;
@@ -95,11 +131,35 @@ const ManagePointsDialog = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (points <= 0) {
+    
+    // Validate points based on selected method
+    if (pointsCalculationMethod === 'custom' && points <= 0) {
       toast.error('Points must be a positive number');
       return;
     }
+    
+    if (pointsCalculationMethod === 'drink' && !selectedDrink) {
+      toast.error('Please select a drink');
+      return;
+    }
+    
+    if (pointsCalculationMethod === 'amount' && amountSpent <= 0) {
+      toast.error('Amount spent must be greater than 0');
+      return;
+    }
+    
     createTransaction.mutate();
+  };
+
+  // Update points when drink is selected
+  const handleDrinkChange = (value: string) => {
+    setSelectedDrink(value);
+    if (value) {
+      const drink = drinkCategories.find(d => d.id === value);
+      if (drink) {
+        setPoints(drink.points);
+      }
+    }
   };
 
   return (
@@ -133,17 +193,78 @@ const ManagePointsDialog = ({
               </RadioGroup>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="points">Points</Label>
-              <Input
-                id="points"
-                type="number"
-                min="1"
-                value={points}
-                onChange={(e) => handlePointsChange(e.target.value)}
-                required
-              />
-            </div>
+            {transactionType === 'earn' && (
+              <div className="space-y-2">
+                <Label htmlFor="points-method">Points Calculation Method</Label>
+                <Select 
+                  value={pointsCalculationMethod} 
+                  onValueChange={(value) => setPointsCalculationMethod(value as 'custom' | 'drink' | 'amount')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select points calculation method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="custom">Custom Points</SelectItem>
+                    <SelectItem value="drink">Points by Drink</SelectItem>
+                    <SelectItem value="amount">Points by Amount ($1 = 1pt)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {transactionType === 'earn' && pointsCalculationMethod === 'drink' && (
+              <div className="space-y-2">
+                <Label htmlFor="drink">Drink Selection</Label>
+                <Select value={selectedDrink} onValueChange={handleDrinkChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a drink" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {drinkCategories.map(drink => (
+                      <SelectItem key={drink.id} value={drink.id}>
+                        {drink.name} ({drink.points} points)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {transactionType === 'earn' && pointsCalculationMethod === 'amount' && (
+              <div className="space-y-2">
+                <Label htmlFor="amount-spent">Amount Spent ($)</Label>
+                <Input
+                  id="amount-spent"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={amountSpent}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value);
+                    setAmountSpent(isNaN(value) ? 0 : value);
+                    setPoints(Math.floor(isNaN(value) ? 0 : value));
+                  }}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  This will award {Math.floor(amountSpent)} points ($1 = 1 point)
+                </p>
+              </div>
+            )}
+
+            {(transactionType === 'redeem' || pointsCalculationMethod === 'custom') && (
+              <div className="space-y-2">
+                <Label htmlFor="points">Points</Label>
+                <Input
+                  id="points"
+                  type="number"
+                  min="1"
+                  value={points}
+                  onChange={(e) => handlePointsChange(e.target.value)}
+                  required
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes (Optional)</Label>

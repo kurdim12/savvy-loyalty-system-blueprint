@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { incrementPoints, decrementPoints } from '@/integrations/supabase/functions';
@@ -43,7 +44,7 @@ interface DrinkCategory {
   points: number;
 }
 
-// Drink categories data - This would be moved to the database in a real implementation
+// Drink categories with their respective point values
 const drinkCategories: DrinkCategory[] = [
   { id: 'white-tradition', name: 'White Tradition', points: 4 },
   { id: 'black-tradition', name: 'Black Tradition', points: 3 },
@@ -58,6 +59,8 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [notes, setNotes] = useState('');
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [pointsCalculationMethod, setPointsCalculationMethod] = useState<'drink' | 'amount'>('drink');
+  const [amountSpent, setAmountSpent] = useState<number>(0);
   
   const queryClient = useQueryClient();
   
@@ -89,7 +92,15 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
     mutationFn: async () => {
       if (!customerId) throw new Error('Customer is required');
       
-      const finalPoints = points || (selectedCategory ? drinkCategories.find(c => c.id === selectedCategory)?.points || 0 : 0);
+      let finalPoints = 0;
+      
+      // Calculate points based on selected method
+      if (pointsCalculationMethod === 'drink') {
+        finalPoints = points || (selectedCategory ? drinkCategories.find(c => c.id === selectedCategory)?.points || 0 : 0);
+      } else {
+        // Amount-based: $1 = 1 point
+        finalPoints = Math.floor(amountSpent);
+      }
       
       if (finalPoints <= 0) {
         throw new Error('Points must be greater than 0');
@@ -142,6 +153,8 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
     setSelectedCategory('');
     setNotes('');
     setCustomerSearchQuery('');
+    setPointsCalculationMethod('drink');
+    setAmountSpent(0);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -229,22 +242,62 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
           </div>
           
           {transactionType === 'earn' && (
-            <div className="space-y-2">
-              <Label htmlFor="drink-category">Drink Category</Label>
-              <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select drink category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Custom amount</SelectItem>
-                  {drinkCategories.map(category => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name} ({category.points} points)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="points-method">Points Calculation Method</Label>
+                <Select 
+                  value={pointsCalculationMethod} 
+                  onValueChange={(value) => setPointsCalculationMethod(value as 'drink' | 'amount')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select points calculation method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="drink">Points by Drink</SelectItem>
+                    <SelectItem value="amount">Points by Amount ($1 = 1pt)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {pointsCalculationMethod === 'drink' ? (
+                <div className="space-y-2">
+                  <Label htmlFor="drink-category">Drink Category</Label>
+                  <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select drink category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Custom amount</SelectItem>
+                      {drinkCategories.map(category => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name} ({category.points} points)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="amount-spent">Amount Spent ($)</Label>
+                  <Input
+                    id="amount-spent"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={amountSpent}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value);
+                      setAmountSpent(isNaN(value) ? 0 : value);
+                      setPoints(Math.floor(isNaN(value) ? 0 : value));
+                    }}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This will award {Math.floor(amountSpent)} points ($1 = 1 point)
+                  </p>
+                </div>
+              )}
+            </>
           )}
           
           <div className="space-y-2">
@@ -256,6 +309,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
               value={points}
               onChange={(e) => setPoints(parseInt(e.target.value) || 0)}
               required
+              disabled={pointsCalculationMethod === 'amount'}
             />
           </div>
           

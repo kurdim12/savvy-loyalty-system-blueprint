@@ -43,6 +43,27 @@ export async function getUserVisits(userId: string): Promise<number> {
   }
 }
 
+// Get the current rank thresholds from settings
+async function getRankThresholds(): Promise<{silver: number, gold: number}> {
+  try {
+    const { data, error } = await supabase
+      .from('settings')
+      .select('setting_value')
+      .eq('setting_name', 'rank_thresholds')
+      .single();
+    
+    if (error) {
+      // Return defaults if not found or error
+      return { silver: 200, gold: 550 };
+    }
+    
+    return data.setting_value as {silver: number, gold: number};
+  } catch (error) {
+    // Return defaults on any error
+    return { silver: 200, gold: 550 };
+  }
+}
+
 // Create helper functions to match the SQL functions we created
 export async function incrementPoints(userId: string, pointAmount: number) {
   // Only allow authenticated users to access this
@@ -68,15 +89,18 @@ export async function incrementPoints(userId: string, pointAmount: number) {
       return { error: fetchError || new Error('User not found') };
     }
     
+    // Get the rank thresholds from settings
+    const rankThresholds = await getRankThresholds();
+    
     // Calculate new values
     const newPoints = profile.current_points + sanitizedPointAmount;
     const newVisits = sanitizedPointAmount > 0 ? profile.visits + 1 : profile.visits;
     
-    // Determine tier based on new points using the correct type
+    // Determine tier based on new points using the correct type and thresholds from settings
     let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
-    if (newPoints >= 550) {
+    if (newPoints >= rankThresholds.gold) {
       newTier = 'gold';
-    } else if (newPoints >= 200) {
+    } else if (newPoints >= rankThresholds.silver) {
       newTier = 'silver';
     }
     
@@ -125,11 +149,14 @@ export async function decrementPoints(userId: string, pointAmount: number) {
     // Calculate new points (never below 0)
     const newPoints = Math.max(0, profile.current_points - sanitizedPointAmount);
     
+    // Get the rank thresholds from settings
+    const rankThresholds = await getRankThresholds();
+    
     // Update profile and possibly adjust membership tier
     let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
-    if (newPoints >= 550) {
+    if (newPoints >= rankThresholds.gold) {
       newTier = 'gold';
-    } else if (newPoints >= 200) {
+    } else if (newPoints >= rankThresholds.silver) {
       newTier = 'silver';
     }
     
@@ -436,25 +463,28 @@ export async function deleteDrink(id: string) {
 /**
  * Helper function to calculate if a redemption would cause a rank downgrade
  */
-export function wouldCauseRankDowngrade(currentPoints: number, pointsToRedeem: number): {
+export async function wouldCauseRankDowngrade(currentPoints: number, pointsToRedeem: number): Promise<{
   wouldDowngrade: boolean;
   currentTier: Database['public']['Enums']['membership_tier'];
   newTier: Database['public']['Enums']['membership_tier'];
-} {
+}> {
+  // Get the rank thresholds from settings
+  const rankThresholds = await getRankThresholds();
+  
   // Determine current tier
   let currentTier: Database['public']['Enums']['membership_tier'] = 'bronze';
-  if (currentPoints >= 550) {
+  if (currentPoints >= rankThresholds.gold) {
     currentTier = 'gold';
-  } else if (currentPoints >= 200) {
+  } else if (currentPoints >= rankThresholds.silver) {
     currentTier = 'silver';
   }
   
   // Calculate new tier after redemption
   const newPoints = Math.max(0, currentPoints - pointsToRedeem);
   let newTier: Database['public']['Enums']['membership_tier'] = 'bronze';
-  if (newPoints >= 550) {
+  if (newPoints >= rankThresholds.gold) {
     newTier = 'gold';
-  } else if (newPoints >= 200) {
+  } else if (newPoints >= rankThresholds.silver) {
     newTier = 'silver';
   }
   
