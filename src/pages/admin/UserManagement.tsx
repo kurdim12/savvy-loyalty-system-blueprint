@@ -88,7 +88,7 @@ const UserManagement = () => {
         <ManagePointsDialog
           open={isPointsDialogOpen}
           onOpenChange={setIsPointsDialogOpen}
-          customerId={selectedCustomer.id}
+          userId={selectedCustomer.id}
           customerName={selectedCustomer.name}
         />
       )}
