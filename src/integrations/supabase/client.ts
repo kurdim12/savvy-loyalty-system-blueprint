@@ -95,6 +95,58 @@ export const secureSignOut = async () => {
   }
 };
 
+/**
+ * Sanitize input to prevent XSS and injection attacks
+ * @param input The input to sanitize
+ * @returns Sanitized input
+ */
+export const sanitizeInput = (input: string): string => {
+  if (!input) return '';
+  
+  // Basic sanitization for XSS prevention
+  return input
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;')
+    .trim();
+};
+
+/**
+ * Utility function to require admin role, throws error if not admin
+ * @throws Error if user is not an admin
+ */
+export const requireAdmin = async (): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('Authentication required');
+  }
+  
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+    
+  if (error || !profile || profile.role !== 'admin') {
+    throw new Error('Admin access required');
+  }
+};
+
+/**
+ * Utility function to require authentication, throws error if not authenticated
+ * @throws Error if user is not authenticated
+ */
+export const requireAuth = async (): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('Authentication required');
+  }
+};
+
 // Export additional helper functions from functions.ts
 export { 
   getUserPoints,

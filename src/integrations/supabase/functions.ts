@@ -1,14 +1,17 @@
-
 // Helper functions for Supabase database interaction
 
-import { supabase, requireAdmin, requireAuth } from './client';
+import { supabase } from './client';
 import type { Database } from './types';
 
 // User Points & Visits
 export async function getUserPoints(userId: string): Promise<number> {
   // Only allow authenticated users to access this
   try {
-    await requireAuth();
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
     
     const { data, error } = await supabase.rpc('get_user_points', { user_id: userId });
     
@@ -27,7 +30,11 @@ export async function getUserPoints(userId: string): Promise<number> {
 export async function getUserVisits(userId: string): Promise<number> {
   // Only allow authenticated users to access this
   try {
-    await requireAuth();
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
     
     const { data, error } = await supabase.rpc('get_user_visits', { user_id: userId });
     
@@ -68,7 +75,11 @@ async function getRankThresholds(): Promise<{silver: number, gold: number}> {
 export async function incrementPoints(userId: string, pointAmount: number) {
   // Only allow authenticated users to access this
   try {
-    await requireAuth();
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
     
     if (!userId || typeof pointAmount !== 'number' || isNaN(pointAmount)) {
       return { error: new Error('Invalid user ID or point amount') };
@@ -125,7 +136,11 @@ export async function incrementPoints(userId: string, pointAmount: number) {
 export async function decrementPoints(userId: string, pointAmount: number) {
   // Only allow authenticated users to access this
   try {
-    await requireAuth();
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
     
     if (!userId || typeof pointAmount !== 'number' || isNaN(pointAmount)) {
       return { error: new Error('Invalid user ID or point amount') };
@@ -181,7 +196,11 @@ export async function decrementPoints(userId: string, pointAmount: number) {
 export async function contributeToGoal(userId: string, goalId: string, points: number) {
   // Only allow authenticated users to access this
   try {
-    await requireAuth();
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
     
     if (!userId || !goalId || typeof points !== 'number' || isNaN(points) || points <= 0) {
       return { error: new Error('Invalid parameters for contribution') };
@@ -542,5 +561,44 @@ export async function deleteUser(userId: string) {
   } catch (error) {
     console.error('Authentication error deleting user:', error);
     return { error: error instanceof Error ? error : new Error('Unknown error') };
+  }
+}
+
+/**
+ * Check if a user is an admin
+ * @param requireAuth If true, throws an error if not an admin
+ * @returns Boolean indicating if the user is an admin
+ */
+export async function checkAdminAccess(requireAuth: boolean = false): Promise<boolean> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      if (requireAuth) throw new Error('Authentication required');
+      return false;
+    }
+    
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+      
+    if (error || !profile) {
+      console.error('Error checking admin access:', error);
+      if (requireAuth) throw new Error('Profile not found');
+      return false;
+    }
+    
+    const isAdmin = profile.role === 'admin';
+    if (requireAuth && !isAdmin) {
+      throw new Error('Admin access required');
+    }
+    
+    return isAdmin;
+  } catch (err) {
+    console.error('Error checking admin access:', err);
+    if (requireAuth) throw err;
+    return false;
   }
 }
