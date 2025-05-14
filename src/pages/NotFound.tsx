@@ -1,26 +1,20 @@
 
-import { Link } from "react-router-dom";
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 const NotFound = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
-  }, [location.pathname]);
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#FAF6F0]">
-      <div className="text-center p-6 max-w-md">
-        <h1 className="text-4xl font-bold mb-4 text-[#8B4513]">404</h1>
-        <p className="text-xl text-[#6F4E37] mb-6">Oops! Page not found</p>
-        <Link to="/" className="bg-[#8B4513] text-white px-4 py-2 rounded hover:bg-[#6F4E37] transition-colors">
-          Return to Home
-        </Link>
+      <div className="text-center p-8">
+        <h1 className="text-6xl font-bold text-[#8B4513] mb-4">404</h1>
+        <h2 className="text-2xl font-semibold text-[#6F4E37] mb-6">Page Not Found</h2>
+        <p className="text-[#6F4E37] mb-8">
+          The page you are looking for doesn't exist or has been moved.
+        </p>
+        <Button asChild className="bg-[#8B4513] hover:bg-[#6F4E37]">
+          <Link to="/">Return Home</Link>
+        </Button>
       </div>
     </div>
   );

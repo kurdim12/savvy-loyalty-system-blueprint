@@ -1,8 +1,5 @@
 
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'sonner';
-import { AuthProvider } from './contexts/AuthContext';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
@@ -22,15 +19,6 @@ import AdminLogin from './pages/admin/Login';
 
 // Auth route protection
 import { AdminRoute, UserRoute, PublicRoute } from './components/auth/ProtectedRoutes';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false
-    }
-  }
-});
 
 function App() {
   return (

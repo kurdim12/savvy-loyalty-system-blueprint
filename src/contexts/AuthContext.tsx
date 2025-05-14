@@ -81,7 +81,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Get initial session only once
     const getInitialSession = async () => {
       try {
+        console.log('Getting initial session');
         const { data: { session: currentSession } } = await supabase.auth.getSession();
+        console.log('Initial session:', currentSession);
+        
         if (subscribed) {
           setSession(currentSession);
           setUser(currentSession?.user ?? null);
@@ -115,10 +118,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Redirect based on auth state change - separate from auth initialization
   useEffect(() => {
-    if (!loading && user && profile) {
-      checkAndRedirectBasedOnRole(profile.role);
+    if (!loading) {
+      console.log('Auth state ready, location:', location.pathname);
+      console.log('User state:', { user, profile });
+      
+      // Handle public routes that should redirect logged in users
+      const isPublicRoute = location.pathname === '/auth' || location.pathname === '/admin/login';
+      
+      if (isPublicRoute && user && profile) {
+        console.log('User is logged in on a public route, redirecting');
+        if (isAdmin) {
+          navigate('/admin/dashboard', { replace: true });
+        } else if (isUser) {
+          navigate('/dashboard', { replace: true });
+        }
+      }
+      
+      // Handle protected routes that require login
+      const isProtectedCustomerRoute = 
+        location.pathname.startsWith('/dashboard') || 
+        location.pathname.startsWith('/profile') || 
+        location.pathname.startsWith('/rewards');
+        
+      const isProtectedAdminRoute = location.pathname.startsWith('/admin') && 
+        location.pathname !== '/admin/login';
+      
+      if (isProtectedCustomerRoute && (!user || !profile)) {
+        console.log('User not logged in for protected customer route, redirecting to auth');
+        navigate('/auth', { replace: true });
+      }
+      
+      if (isProtectedAdminRoute && (!user || !isAdmin)) {
+        console.log('User not admin for protected admin route, redirecting to admin login');
+        navigate('/admin/login', { replace: true });
+      }
     }
-  }, [loading, user, profile, location.pathname]);
+  }, [loading, user, profile, location.pathname, isAdmin, isUser, navigate]);
 
   // Check if the session is about to expire
   const checkSessionExpiration = () => {
@@ -144,6 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       // Apply rate limiting by adding a small delay
       const { data, error } = await supabase
         .from('profiles')
@@ -164,6 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data) {
+        console.log('Profile fetched successfully:', data);
         setProfile(data as Profile);
       }
     } catch (error) {
@@ -205,32 +242,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       if (newProfile) {
+        console.log('New profile created:', newProfile);
         setProfile(newProfile as Profile);
         toast.success('Welcome! Your profile has been created.');
       }
     } catch (error) {
       console.error('Error in profile creation:', error);
-    }
-  };
-
-  // Redirect users based on their role - with debounce to prevent rapid redirects
-  const checkAndRedirectBasedOnRole = (role: string) => {
-    const currentPath = location.pathname;
-    
-    // Admin accessing user routes - redirect to admin dashboard
-    if (role === 'admin' && 
-        !currentPath.startsWith('/admin') && 
-        !currentPath.startsWith('/auth') &&
-        currentPath !== '/') {
-      toast.info('Redirecting to admin dashboard');
-      navigate('/admin/dashboard', { replace: true });
-    }
-    
-    // User accessing admin routes - redirect to user dashboard
-    if (role === 'customer' && 
-        currentPath.startsWith('/admin')) {
-      toast.error('Access denied. You do not have permission to view this page.');
-      navigate('/dashboard', { replace: true });
     }
   };
 
