@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Database } from '@/integrations/supabase/types';
 import { debounce } from '@/lib/utils';
 
+// Define allowed tier types
+const allowedTiers = ["bronze", "silver", "gold"] as const;
 type MembershipTier = Database['public']['Enums']['membership_tier'];
 
 interface RankChangerProps {
@@ -19,32 +21,44 @@ const RankChanger = ({ currentRank, customerId, onRankChange }: RankChangerProps
     onRankChange(customerId, value);
   }, 300);
 
+  // Ensure we have a valid tier value
+  const tier: MembershipTier | undefined = 
+    allowedTiers.includes(currentRank as any) ? currentRank : undefined;
+
+  // Handle tier change
   const handleRankChange = (value: string) => {
-    debouncedRankChange(value as MembershipTier);
+    if (allowedTiers.includes(value as any)) {
+      debouncedRankChange(value as MembershipTier);
+    }
   };
 
   return (
-    <Select defaultValue={currentRank} onValueChange={handleRankChange}>
+    <Select value={tier} onValueChange={handleRankChange}>
       <SelectTrigger className="w-[120px]">
         <SelectValue>
-          <Badge className="capitalize" variant={
-            currentRank === 'gold' ? 'default' :
-            currentRank === 'silver' ? 'outline' : 'secondary'
-          }>
-            {currentRank}
-          </Badge>
+          {tier ? (
+            <Badge className="capitalize" variant={
+              tier === 'gold' ? 'default' :
+              tier === 'silver' ? 'outline' : 'secondary'
+            }>
+              {tier}
+            </Badge>
+          ) : (
+            "Select"
+          )}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="bronze">
-          <Badge variant="secondary" className="capitalize">Bronze</Badge>
-        </SelectItem>
-        <SelectItem value="silver">
-          <Badge variant="outline" className="capitalize">Silver</Badge>
-        </SelectItem>
-        <SelectItem value="gold">
-          <Badge className="capitalize">Gold</Badge>
-        </SelectItem>
+        {allowedTiers.map((t) => (
+          <SelectItem key={t} value={t}>
+            <Badge variant={
+              t === 'gold' ? 'default' :
+              t === 'silver' ? 'outline' : 'secondary'
+            } className="capitalize">
+              {t}
+            </Badge>
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );

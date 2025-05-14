@@ -9,6 +9,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle } from 'lucide-react';
+import { Database } from '@/integrations/supabase/types';
+
+// Define tier point thresholds
+const tierPoints: Record<string, number> = {
+  bronze: 0,
+  silver: 200,
+  gold: 550,
+};
 
 const UserManagement = () => {
   const { user } = useAuth();
@@ -24,7 +32,7 @@ const UserManagement = () => {
     setIsPointsDialogOpen(true);
   };
 
-  const handleRankChange = async (customerId: string, newRank: 'bronze' | 'silver' | 'gold') => {
+  const handleRankChange = async (customerId: string, newRank: Database['public']['Enums']['membership_tier']) => {
     try {
       if (!user) return;
       
