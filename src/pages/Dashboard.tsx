@@ -13,7 +13,7 @@ import RankBenefits from '@/components/loyalty/RankBenefits';
 import { getDiscountRate } from '@/integrations/supabase/functions';
 
 const Dashboard = () => {
-  const { profile, communityPoints } = useAuth();
+  const { profile } = useAuth();
   
   const { data: recentTransactions } = useQuery({
     queryKey: ['recentTransactions'],
@@ -51,21 +51,21 @@ const Dashboard = () => {
 
   // Calculate next tier progress
   const currentMembership = profile?.membership_tier || 'bronze';
-  const currentVisits = profile?.visits || 0;
+  const currentPoints = profile?.current_points || 0;
   
   let nextTier = '';
-  let visitsNeeded = 0;
-  let progress = 0;
   let pointsToNextTier = 0;
+  let progress = 0;
 
   if (currentMembership === 'bronze') {
     nextTier = 'silver';
-    pointsToNextTier = Math.max(0, 200 - (profile?.current_points || 0));
-    progress = Math.min(((profile?.current_points || 0) / 200) * 100, 100);
+    pointsToNextTier = Math.max(0, 200 - currentPoints);
+    // Fix the progress calculation to properly show percentage
+    progress = currentPoints > 0 ? Math.min((currentPoints / 200) * 100, 100) : 0;
   } else if (currentMembership === 'silver') {
     nextTier = 'gold';
-    pointsToNextTier = Math.max(0, 550 - (profile?.current_points || 0));
-    progress = Math.min(((profile?.current_points || 0) - 200) / (550 - 200) * 100, 100);
+    pointsToNextTier = Math.max(0, 550 - currentPoints);
+    progress = Math.min(((currentPoints - 200) / (550 - 200)) * 100, 100);
   } else {
     // For gold members
     nextTier = 'gold';
@@ -95,7 +95,7 @@ const Dashboard = () => {
               {currentMembership.charAt(0).toUpperCase() + currentMembership.slice(1)} Member
             </Badge>
             <Badge className="bg-[#8B4513] text-white px-3 py-1">
-              {profile?.current_points || 0} Points
+              {currentPoints} Points
             </Badge>
           </div>
         </div>
@@ -154,18 +154,13 @@ const Dashboard = () => {
                 <Award className="h-5 w-5 text-[#8B4513]" />
                 Rewards
               </CardTitle>
-              <CardDescription className="text-[#6F4E37]">Your current balance and rewards</CardDescription>
+              <CardDescription className="text-[#6F4E37]">Your points balance and rewards</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
                   <span className="font-medium text-[#8B4513]">Available Points:</span>
-                  <span className="font-bold text-[#8B4513]">{profile?.current_points || 0} pts</span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-[#8B4513]">Community Points:</span>
-                  <span className="font-bold text-[#8B4513]">{communityPoints || 0} pts</span>
+                  <span className="font-bold text-[#8B4513]">{currentPoints} pts</span>
                 </div>
 
                 <div className="mt-4 space-y-2">
@@ -227,7 +222,7 @@ const Dashboard = () => {
         {/* Rank Benefits and Refer Friend Components */}
         <div className="grid gap-6 lg:grid-cols-2">
           <RankBenefits 
-            currentPoints={profile?.current_points || 0}
+            currentPoints={currentPoints}
             membershipTier={profile?.membership_tier || 'bronze'}
           />
           <ReferFriend />

@@ -17,8 +17,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isUser: boolean; // Added for explicit role check
   refreshProfile: () => Promise<void>;
-  // Add community-specific properties
-  communityPoints?: number;
+  // Remove communityPoints as a separate property
   membershipTier: Database['public']['Enums']['membership_tier'];
   // Add updateProfile function
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
@@ -33,7 +32,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [communityPoints, setCommunityPoints] = useState<number>(0);
   const [authInitialized, setAuthInitialized] = useState<boolean>(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -167,9 +165,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data) {
         setProfile(data as Profile);
-        
-        // Also fetch community points
-        fetchCommunityPoints(userId);
       }
     } catch (error) {
       console.error('Unexpected error fetching profile:', error);
@@ -239,29 +234,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const fetchCommunityPoints = async (userId: string) => {
-    try {
-      // Use a direct query instead of RPC since we don't have the function in types
-      // We'll pretend there's a custom function that computes this
-      const { data: transactions, error } = await supabase
-        .from('transactions')
-        .select('points')
-        .eq('user_id', userId)
-        .eq('transaction_type', 'earn');
-        
-      if (error) {
-        console.error('Error fetching community points:', error);
-        return;
-      }
-      
-      // Calculate points from transactions
-      const points = transactions?.reduce((total, t) => total + (t.points || 0), 0) || 0;
-      setCommunityPoints(points);
-    } catch (error) {
-      console.error('Error fetching community points:', error);
-    }
-  };
-
   const refreshProfile = async () => {
     if (user?.id) {
       await fetchUserProfile(user.id);
@@ -302,7 +274,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
     setUser(null);
     setSession(null);
-    setCommunityPoints(0);
     
     // Direct admin users to admin login, regular users to main auth page
     // Use replace:true to avoid adding to history
@@ -322,7 +293,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAdmin,
     isUser,
     refreshProfile,
-    communityPoints,
     membershipTier,
     updateProfile,
   };

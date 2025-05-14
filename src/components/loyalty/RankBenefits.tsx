@@ -32,7 +32,8 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
   if (membershipTier === 'bronze') {
     nextTier = 'silver';
     pointsToNextTier = Math.max(0, 200 - currentPoints);
-    progress = Math.min((currentPoints / 200) * 100, 100);
+    // Fix the progress calculation to properly show percentage
+    progress = currentPoints > 0 ? Math.min((currentPoints / 200) * 100, 100) : 0;
   } else if (membershipTier === 'silver') {
     nextTier = 'gold';
     pointsToNextTier = Math.max(0, 550 - currentPoints);
@@ -115,7 +116,11 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
               <span>Progress to {nextTier}</span>
               <span>{progress.toFixed(0)}%</span>
             </div>
-            <Progress value={progress} className="h-2" />
+            <Progress 
+              value={progress} 
+              className="h-2" 
+              indicatorClassName={membershipTier === 'bronze' ? 'bg-amber-500' : 'bg-gray-500'}
+            />
             <p className="text-xs mt-2 text-amber-700">
               {pointsToNextTier > 0 ? 
                 `${pointsToNextTier} more points needed for ${nextTier}` : 
