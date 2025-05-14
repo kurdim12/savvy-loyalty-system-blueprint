@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { debounce } from '@/lib/utils';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const Auth = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [authCheckComplete, setAuthCheckComplete] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{
     email?: string;
     password?: string;
@@ -23,14 +25,36 @@ const Auth = () => {
     lastName?: string;
   }>({});
 
-  // Check if already authenticated
+  // Check if already authenticated - with debounce to prevent rapid state changes
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        // Already logged in, redirect to dashboard
-        navigate('/dashboard', { replace: true });
+    let mounted = true;
+    
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        if (session) {
+          console.log("User already authenticated, redirecting to dashboard");
+          // Use replace to avoid adding to history stack
+          navigate('/dashboard', { replace: true });
+        } else {
+          setAuthCheckComplete(true);
+        }
+      } catch (error) {
+        console.error("Error checking authentication:", error);
+        if (mounted) {
+          setAuthCheckComplete(true);
+        }
       }
-    });
+    };
+    
+    checkAuth();
+    
+    return () => {
+      mounted = false;
+    };
   }, [navigate]);
 
   // Input validation function
@@ -74,7 +98,7 @@ const Auth = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateInputs()) {
+    if (!validateInputs() || loading) {
       return;
     }
     
@@ -94,16 +118,16 @@ const Auth = () => {
       // Sanitize inputs for security
       const sanitizedEmail = sanitizeInput(email);
       
-      const { error, data } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: sanitizedEmail.trim(),
         password,
       });
 
       if (error) {
         toast.error(error.message);
-      } else if (data?.user) {
+      } else {
         toast.success('Signed in successfully');
-        // Force page reload for clean state
+        // Complete page reload for clean state - use replace to not add to history
         window.location.href = '/dashboard';
       }
     } catch (error: any) {
@@ -117,7 +141,7 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateInputs(true)) {
+    if (!validateInputs(true) || loading) {
       return;
     }
     
@@ -131,9 +155,6 @@ const Auth = () => {
       const sanitizedEmail = sanitizeInput(email);
       const sanitizedFirstName = sanitizeInput(firstName);
       const sanitizedLastName = sanitizeInput(lastName);
-      
-      // Rate limiting - add slight delay to prevent brute force
-      await new Promise(resolve => setTimeout(resolve, 200));
       
       const { error } = await supabase.auth.signUp({
         email: sanitizedEmail.trim(),
@@ -163,6 +184,15 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  // Don't render until auth check is complete to prevent flashing
+  if (!authCheckComplete) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0] p-4">

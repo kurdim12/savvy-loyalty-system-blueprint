@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -13,7 +13,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useEffect } from 'react';
 
 // Form schema for admin login
 const loginFormSchema = z.object({
@@ -31,6 +30,7 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [accountCreated, setAccountCreated] = useState<boolean>(false);
+  const [authCheckComplete, setAuthCheckComplete] = useState<boolean>(false);
 
   // Form definition
   const form = useForm<z.infer<typeof loginFormSchema>>({
@@ -41,11 +41,25 @@ const AdminLogin = () => {
     },
   });
 
-  // If user is already an admin, redirect to admin dashboard
+  // Check authentication status once
   useEffect(() => {
-    if (isAdmin && user) {
-      navigate('/admin');
-    }
+    let mounted = true;
+    
+    const checkAuth = async () => {
+      if (isAdmin && user) {
+        navigate('/admin', { replace: true });
+      } else {
+        if (mounted) {
+          setAuthCheckComplete(true);
+        }
+      }
+    };
+    
+    checkAuth();
+    
+    return () => {
+      mounted = false;
+    };
   }, [isAdmin, user, navigate]);
 
   const cleanupAuthState = () => {
@@ -63,6 +77,8 @@ const AdminLogin = () => {
   };
 
   const handleCreateAdmin = async () => {
+    if (loading) return;
+    
     setLoading(true);
     setError(null);
     
@@ -99,6 +115,8 @@ const AdminLogin = () => {
   };
 
   const handleLogin = async (values: z.infer<typeof loginFormSchema>) => {
+    if (loading) return;
+    
     setLoading(true);
     setError(null);
 
@@ -133,10 +151,8 @@ const AdminLogin = () => {
         await refreshProfile();
         toast.success('Logged in as admin');
         
-        // Short delay to allow profile refresh to complete
-        setTimeout(() => {
-          navigate('/admin');
-        }, 500);
+        // Use location.href for complete page refresh
+        window.location.href = '/admin';
       } else {
         console.error('Login error:', result.error);
         setError(result.error || 'Invalid credentials');
@@ -156,6 +172,8 @@ const AdminLogin = () => {
   };
 
   const loginWithAdminCredentials = () => {
+    if (loading) return;
+    
     form.setValue("email", ADMIN_EMAIL);
     form.setValue("password", ADMIN_PASSWORD);
     handleLogin({
@@ -163,6 +181,15 @@ const AdminLogin = () => {
       password: ADMIN_PASSWORD
     });
   };
+  
+  // Show loading spinner while checking auth
+  if (!authCheckComplete) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#FAF6F0] to-[#FFF8DC]">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent"></div>
+      </div>
+    );
+  }
   
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#FAF6F0] to-[#FFF8DC] p-4">

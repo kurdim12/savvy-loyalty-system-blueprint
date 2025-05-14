@@ -34,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [communityPoints, setCommunityPoints] = useState<number>(0);
+  const [authInitialized, setAuthInitialized] = useState<boolean>(false);
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -42,46 +43,84 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Explicit check for user role
   const isUser = profile?.role === 'customer';
 
+  // Initialize auth state only once
   useEffect(() => {
-    // Set up auth state listener FIRST
+    if (authInitialized) return;
+    
+    let subscribed = true;
+    
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
-        // Log auth events for debugging security issues
+        // Only update if component is still mounted
+        if (!subscribed) return;
+        
         console.log('Auth state changed:', event);
         
-        setSession(newSession);
+        // Don't update state frequently for the same session
+        setSession(prevSession => {
+          if (prevSession?.user?.id === newSession?.user?.id) {
+            return prevSession; // Don't update if it's the same user
+          }
+          return newSession;
+        });
+        
         setUser(newSession?.user ?? null);
 
-        // Using setTimeout to avoid potential deadlocks with Supabase client
+        // Using setTimeout with 0ms delay to avoid potential deadlocks with Supabase client
         if (newSession?.user) {
           setTimeout(() => {
-            fetchUserProfile(newSession.user.id);
+            if (subscribed) {
+              fetchUserProfile(newSession.user.id);
+            }
           }, 0);
-        } else {
+        } else if (event === 'SIGNED_OUT') {
           setProfile(null);
         }
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      
-      if (currentSession?.user) {
-        fetchUserProfile(currentSession.user.id);
+    // Get initial session only once
+    const getInitialSession = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (subscribed) {
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          
+          if (currentSession?.user) {
+            await fetchUserProfile(currentSession.user.id);
+          }
+          setLoading(false);
+          setAuthInitialized(true);
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+        if (subscribed) {
+          setLoading(false);
+          setAuthInitialized(true);
+        }
       }
-      setLoading(false);
-    });
+    };
 
-    // Set up session expiration monitoring
+    getInitialSession();
+
+    // Set up session expiration monitoring with a reasonable interval
     const intervalId = setInterval(checkSessionExpiration, AUTH_SESSION_CHECK_INTERVAL);
 
     return () => {
+      subscribed = false;
       subscription.unsubscribe();
       clearInterval(intervalId);
     };
-  }, []);
+  }, [authInitialized]);
+
+  // Redirect based on auth state change - separate from auth initialization
+  useEffect(() => {
+    if (!loading && user && profile) {
+      checkAndRedirectBasedOnRole(profile.role);
+    }
+  }, [loading, user, profile, location.pathname]);
 
   // Check if the session is about to expire
   const checkSessionExpiration = () => {
@@ -129,9 +168,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data) {
         setProfile(data as Profile);
         
-        // Check if user is on the wrong route based on their role
-        checkAndRedirectBasedOnRole(data.role);
-        
         // Also fetch community points
         fetchCommunityPoints(userId);
       }
@@ -140,7 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
-  // Add a function to create a user profile if it doesn't exist
+  // Create a user profile if it doesn't exist
   const createUserProfile = async (userId: string) => {
     try {
       // Get user data from auth
@@ -182,7 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Redirect users based on their role
+  // Redirect users based on their role - with debounce to prevent rapid redirects
   const checkAndRedirectBasedOnRole = (role: string) => {
     const currentPath = location.pathname;
     
@@ -192,14 +228,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         !currentPath.startsWith('/auth') &&
         currentPath !== '/') {
       toast.info('Redirecting to admin dashboard');
-      navigate('/admin/dashboard');
+      navigate('/admin/dashboard', { replace: true });
     }
     
     // User accessing admin routes - redirect to user dashboard
     if (role === 'customer' && 
         currentPath.startsWith('/admin')) {
       toast.error('Access denied. You do not have permission to view this page.');
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     }
   };
 
@@ -269,6 +305,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setCommunityPoints(0);
     
     // Direct admin users to admin login, regular users to main auth page
+    // Use replace:true to avoid adding to history
     if (location.pathname.startsWith('/admin')) {
       window.location.href = '/admin/login';
     } else {
