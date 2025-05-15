@@ -54,5 +54,5 @@ jobs:
           echo "• TOTP MFA: enabled"
           echo "Re-run Lovable security scan → expect 0 warnings."
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_ACCESS_TOKEN: sbp_ff33e3da1f251c6d7824445e62d04f06dea24112
           SUPABASE_URL: "https://egeufofnkpvwbmffgoxw.supabase.co"
