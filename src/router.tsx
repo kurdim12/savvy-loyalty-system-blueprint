@@ -1,6 +1,6 @@
 
 import { createBrowserRouter } from "react-router-dom";
-import RequireAdmin from "./components/auth/ProtectedRoutes";
+import { AdminRoute } from "./components/auth/ProtectedRoutes";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -56,19 +56,19 @@ const router = createBrowserRouter([
   },
   {
     path: "/admin/dashboard",
-    element: <RequireAdmin><AdminDashboard /></RequireAdmin>,
+    element: <AdminRoute><AdminDashboard /></AdminRoute>,
   },
   {
     path: "/admin/users",
-    element: <RequireAdmin><UserManagement /></RequireAdmin>,
+    element: <AdminRoute><UserManagement /></AdminRoute>,
   },
   {
     path: "/admin/drinks",
-    element: <RequireAdmin><DrinksList /></RequireAdmin>,
+    element: <AdminRoute><DrinksList /></AdminRoute>,
   },
   {
     path: "/admin/rewards",
-    element: <RequireAdmin><RewardsAdmin /></RequireAdmin>,
+    element: <AdminRoute><RewardsAdmin /></AdminRoute>,
   },
   {
     path: "*",
