@@ -75,7 +75,7 @@ export function UserRoute({ children }: { children: ReactNode }) {
 
   // Fallback - something is wrong with the role
   console.log('UserRoute: No valid role found (not user or admin)');
-  toast.error('Access denied. Contact support if you think this is a mistake.');
+  // Removed the toast.error message that was showing "Access denied"
   return <Navigate to="/auth" replace />;
 }
 
