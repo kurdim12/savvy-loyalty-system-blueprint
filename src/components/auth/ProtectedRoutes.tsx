@@ -75,7 +75,7 @@ export function UserRoute({ children }: { children: ReactNode }) {
 
   // Fallback - something is wrong with the role
   console.log('UserRoute: No valid role found (not user or admin)');
-  // Removed the toast.error message that was showing "Access denied"
+  // Redirect without showing error message
   return <Navigate to="/auth" replace />;
 }
 
@@ -91,12 +91,12 @@ export function AdminRoute({ children }: { children: ReactNode }) {
     isAdmin 
   });
 
-  // Emergency timeout to prevent indefinite loading
+  // Emergency timeout to prevent indefinite loading - reduced timeout
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       console.log('AdminRoute: Emergency timeout reached, forcing display');
       setIsPageReady(true);
-    }, 2000);
+    }, 1500); // Reduced timeout to prevent excessive wait
 
     return () => clearTimeout(timeoutId);
   }, []);
@@ -158,12 +158,12 @@ export function PublicRoute({ children }: { children: ReactNode }) {
     isUser 
   });
   
-  // Emergency timeout to prevent indefinite loading
+  // Emergency timeout to prevent indefinite loading - reduced timeout
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       console.log('PublicRoute: Emergency timeout reached, forcing display');
       setIsPageReady(true);
-    }, 2000);
+    }, 1500); // Reduced timeout to prevent excessive wait
 
     return () => clearTimeout(timeoutId);
   }, []);
@@ -188,8 +188,8 @@ export function PublicRoute({ children }: { children: ReactNode }) {
     );
   }
 
-  // Redirect authenticated users to their appropriate dashboard
-  if (user) {
+  // Redirect authenticated users, but only if we're sure about their role
+  if (user && !loading) {
     console.log('PublicRoute: User authenticated, redirecting to dashboard');
     if (isAdmin) {
       return <Navigate to="/admin/dashboard" replace />;

@@ -58,25 +58,20 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }> {
   }
 }
 
-// Wait for DOM to be ready
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM fully loaded, rendering React application');
-  
-  const root = ReactDOM.createRoot(document.getElementById('root')!);
-  
-  root.render(
-    <React.StrictMode>
-      <ErrorBoundary>
-        <BrowserRouter>
-          <AuthProvider>
-            <QueryClientProvider client={queryClient}>
-              <SonnerToaster position="top-right" expand={false} richColors />
-              <Toaster />
-              <App />
-            </QueryClientProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </ErrorBoundary>
-    </React.StrictMode>,
-  );
-});
+const root = ReactDOM.createRoot(document.getElementById('root')!);
+
+root.render(
+  <React.StrictMode>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <QueryClientProvider client={queryClient}>
+            <SonnerToaster position="top-right" expand={false} richColors />
+            <Toaster />
+            <App />
+          </QueryClientProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
+  </React.StrictMode>,
+);
