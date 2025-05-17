@@ -86,15 +86,19 @@ export async function incrementPoints(userId: string, pointAmount: number) {
     }
 
     // Sanitize input - ensure pointAmount is a positive number
-    const sanitizedPointAmount = Math.max(0, pointAmount);
+    const sanitizedPointAmount = Math.abs(pointAmount);
     
-    // Call our newly created RPC function to safely increment points
-    const { error } = await supabase.rpc('earn_points', { 
-      uid: userId, 
-      points: sanitizedPointAmount,
-      notes: 'Points earned'
-    });
-    
+    // Just create a transaction record with the "earn" type
+    // The database trigger will handle updating the points
+    const { error } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: userId,
+        transaction_type: 'earn',
+        points: sanitizedPointAmount,
+        notes: 'Points earned'
+      });
+      
     if (error) {
       console.error('Error incrementing points:', error);
       return { error };
@@ -121,7 +125,7 @@ export async function decrementPoints(userId: string, pointAmount: number) {
     }
 
     // Sanitize input - ensure pointAmount is a positive number
-    const sanitizedPointAmount = Math.max(0, pointAmount);
+    const sanitizedPointAmount = Math.abs(pointAmount);
     
     // Get current points before decrementing
     const { data: profile, error: fetchError } = await supabase
@@ -140,7 +144,8 @@ export async function decrementPoints(userId: string, pointAmount: number) {
       return { error: new Error('Insufficient points') };
     }
     
-    // First create a transaction with 'redeem' type
+    // Just create a transaction record with the "redeem" type
+    // The database trigger will handle updating the points
     const { error } = await supabase
       .from('transactions')
       .insert({

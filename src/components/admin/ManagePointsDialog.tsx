@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { incrementPoints, decrementPoints } from '@/integrations/supabase/functions';
 import {
   Dialog,
   DialogContent,
@@ -23,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { Database } from '@/integrations/supabase/types';
 
 interface ManagePointsDialogProps {
@@ -85,39 +84,35 @@ const ManagePointsDialog = ({
         const selectedCategory = drinkCategories.find(d => d.id === selectedDrink);
         finalPoints = selectedCategory?.points || 0;
       } else if (pointsCalculationMethod === 'amount') {
+        // Round down to ensure exact point values
         finalPoints = Math.floor(amountSpent);
       }
       
-      // Use correct typing for the transaction data
+      // Ensure points are positive integers
+      finalPoints = Math.max(1, Math.round(finalPoints));
+      
       const transactionData = {
         user_id: userId,
         transaction_type: transactionType,
         points: finalPoints,
-        notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} points manually by admin`,
+        notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} ${finalPoints} points manually by admin`,
       } as unknown as Database['public']['Tables']['transactions']['Insert'];
       
-      // Step 1: Create the transaction
-      const { data: transaction, error: transactionError } = await supabase
+      // Create the transaction record
+      const { error: transactionError } = await supabase
         .from('transactions')
-        .insert(transactionData)
-        .select();
+        .insert(transactionData);
       
       if (transactionError) throw transactionError;
       
-      // Step 2: Update the user's point balance
-      let updateResult;
-      if (transactionType === 'earn') {
-        updateResult = await incrementPoints(userId, finalPoints);
-      } else {
-        updateResult = await decrementPoints(userId, finalPoints);
-      }
-      
-      if (updateResult.error) throw updateResult.error;
-      
-      return transaction;
+      return { points: finalPoints };
     },
-    onSuccess: () => {
-      toast.success(`Successfully ${transactionType === 'earn' ? 'added' : 'deducted'} ${points} points ${transactionType === 'earn' ? 'to' : 'from'} ${customerName || 'user'}`);
+    onSuccess: (result) => {
+      const pointsAdjusted = result?.points || points;
+      toast({
+        title: "Success",
+        description: `Successfully ${transactionType === 'earn' ? 'added' : 'deducted'} ${pointsAdjusted} points ${transactionType === 'earn' ? 'to' : 'from'} ${customerName || 'user'}`
+      });
       queryClient.invalidateQueries({ queryKey: ['admin', 'customers'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'customerTransactions', userId] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'transactions'] });
@@ -125,7 +120,11 @@ const ManagePointsDialog = ({
       resetForm();
     },
     onError: (error: any) => {
-      toast.error(`Failed to update points: ${error.message}`);
+      toast({
+        title: "Error",
+        description: `Failed to update points: ${error.message}`,
+        variant: "destructive"
+      });
     },
   });
 
@@ -134,17 +133,29 @@ const ManagePointsDialog = ({
     
     // Validate points based on selected method
     if (pointsCalculationMethod === 'custom' && points <= 0) {
-      toast.error('Points must be a positive number');
+      toast({
+        title: "Validation Error",
+        description: 'Points must be a positive number',
+        variant: "destructive"
+      });
       return;
     }
     
     if (pointsCalculationMethod === 'drink' && !selectedDrink) {
-      toast.error('Please select a drink');
+      toast({
+        title: "Validation Error",
+        description: 'Please select a drink',
+        variant: "destructive"
+      });
       return;
     }
     
     if (pointsCalculationMethod === 'amount' && amountSpent <= 0) {
-      toast.error('Amount spent must be greater than 0');
+      toast({
+        title: "Validation Error",
+        description: 'Amount spent must be greater than 0',
+        variant: "destructive"
+      });
       return;
     }
     

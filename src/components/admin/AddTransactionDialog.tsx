@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { incrementPoints, decrementPoints } from '@/integrations/supabase/functions';
 import { 
   Dialog, 
   DialogContent, 
@@ -22,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 
@@ -96,11 +95,19 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
       
       // Calculate points based on selected method
       if (pointsCalculationMethod === 'drink') {
-        finalPoints = points || (selectedCategory ? drinkCategories.find(c => c.id === selectedCategory)?.points || 0 : 0);
+        if (selectedCategory) {
+          const category = drinkCategories.find(c => c.id === selectedCategory);
+          finalPoints = category ? category.points : points;
+        } else {
+          finalPoints = points;
+        }
       } else {
-        // Amount-based: $1 = 1 point
+        // Amount-based: $1 = 1 point, rounded down to ensure exact point values
         finalPoints = Math.floor(amountSpent);
       }
+      
+      // Ensure points are positive integers
+      finalPoints = Math.max(1, Math.round(finalPoints));
       
       if (finalPoints <= 0) {
         throw new Error('Points must be greater than 0');
@@ -114,35 +121,32 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
         notes: notes || `${transactionType === 'earn' ? 'Earned' : 'Redeemed'} ${finalPoints} points`,
       } as unknown as Database['public']['Tables']['transactions']['Insert'];
       
-      // Step 1: Create the transaction
-      const { data: transaction, error: transactionError } = await supabase
+      // Create the transaction record
+      const { error: transactionError } = await supabase
         .from('transactions')
-        .insert(transactionData)
-        .select();
+        .insert(transactionData);
       
       if (transactionError) throw transactionError;
       
-      // Step 2: Update the user's point balance
-      let updateResult;
-      if (transactionType === 'earn') {
-        updateResult = await incrementPoints(customerId, finalPoints);
-      } else {
-        updateResult = await decrementPoints(customerId, finalPoints);
-      }
-      
-      if (updateResult.error) throw updateResult.error;
-      
-      return transaction;
+      return { points: finalPoints };
     },
-    onSuccess: () => {
-      toast.success('Transaction created successfully');
+    onSuccess: (result) => {
+      const finalPoints = result?.points || points;
+      toast({
+        title: "Transaction Created",
+        description: `Successfully ${transactionType === 'earn' ? 'added' : 'deducted'} ${finalPoints} points`
+      });
       resetForm();
       onOpenChange(false);
       queryClient.invalidateQueries({ queryKey: ['admin', 'customers'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'transactions'] });
     },
     onError: (error: any) => {
-      toast.error(`Failed to create transaction: ${error.message}`);
+      toast({
+        title: "Error",
+        description: `Failed to create transaction: ${error.message}`,
+        variant: "destructive"
+      });
     }
   });
 
@@ -288,6 +292,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
                     onChange={(e) => {
                       const value = parseFloat(e.target.value);
                       setAmountSpent(isNaN(value) ? 0 : value);
+                      // Ensure exact point value by using Math.floor
                       setPoints(Math.floor(isNaN(value) ? 0 : value));
                     }}
                     required
@@ -307,7 +312,10 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
               type="number"
               min="1"
               value={points}
-              onChange={(e) => setPoints(parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                const value = parseInt(e.target.value);
+                setPoints(isNaN(value) ? 0 : value);
+              }}
               required
               disabled={pointsCalculationMethod === 'amount'}
             />
