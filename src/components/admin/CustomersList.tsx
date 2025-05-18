@@ -8,7 +8,9 @@ import {
   castDbResult, 
   castJsonToType,  
   settingNameAsString, 
-  userRoleAsString 
+  userRoleAsString,
+  membershipTierAsString,
+  isValidData
 } from '@/integrations/supabase/typeUtils';
 import CustomerTransactionsList from './CustomerTransactionsList';
 import {
@@ -139,8 +141,8 @@ const CustomersList = ({
         return { silver: 200, gold: 550 };
       }
       
-      if (data && data.setting_value) {
-        const value = castJsonToType(data.setting_value);
+      if (isValidData(data) && data.setting_value) {
+        const value = castJsonToType<any>(data.setting_value);
         return { 
           silver: Number(value.silver || 200), 
           gold: Number(value.gold || 550) 
@@ -153,7 +155,7 @@ const CustomersList = ({
 
   // Fetch customers data
   const { data: customers, isLoading, error } = useQuery({
-    queryKey: ['admin', 'customers', searchTerm, sortConfig],
+    queryKey: ['admin', 'customers', searchTerm, sortConfig, selectedTier],
     queryFn: async () => {
       let query = supabase
         .from('profiles')
@@ -165,7 +167,7 @@ const CustomersList = ({
       }
       
       if (selectedTier !== 'all') {
-        query = query.eq('membership_tier', selectedTier);
+        query = query.eq('membership_tier', membershipTierAsString(selectedTier));
       }
 
       if (sortConfig.key) {
@@ -176,7 +178,7 @@ const CustomersList = ({
       const { data, error } = await query;
       if (error) throw error;
       
-      return castDbResult<ProfilesRow[]>(data);
+      return castDbResult<ProfilesRow[]>(data || []);
     }
   });
 
@@ -266,7 +268,7 @@ const CustomersList = ({
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Select value={selectedTier} onValueChange={setSelectedTier}>
+          <Select value={selectedTier} onValueChange={handleTierChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select Tier" />
             </SelectTrigger>

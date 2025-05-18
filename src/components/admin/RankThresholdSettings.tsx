@@ -7,7 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Json } from '@/integrations/supabase/types';
-import { SettingsRow, castJsonToType, settingNameAsString } from '@/integrations/supabase/typeUtils';
+import { 
+  SettingsRow, 
+  SettingsInsert, 
+  castJsonToType, 
+  settingNameAsString,
+  createSettingsData,
+  isValidData 
+} from '@/integrations/supabase/typeUtils';
 
 interface RankThresholds {
   silver: number;
@@ -45,7 +52,7 @@ export function RankThresholdSettings() {
       }
       
       // Ensure the data.setting_value conforms to our RankThresholds interface
-      if (data && typeof data.setting_value === 'object') {
+      if (isValidData(data) && data.setting_value) {
         const typedValue = castJsonToType<RankThresholds>(data.setting_value);
         if ('silver' in typedValue && 'gold' in typedValue) {
           return {
@@ -86,7 +93,7 @@ export function RankThresholdSettings() {
       } as Json;
       
       // If settings exist, update them
-      if (existingSettings?.id) {
+      if (isValidData(existingSettings) && existingSettings.id) {
         const updateData = {
           setting_value: jsonThresholds,
           updated_at: new Date().toISOString()
@@ -94,16 +101,18 @@ export function RankThresholdSettings() {
         
         result = await supabase
           .from('settings')
-          .update(updateData as any)
+          .update(updateData)
           .eq('id', existingSettings.id);
       } else {
         // Otherwise insert new settings
+        const insertData = createSettingsData({
+          setting_name: settingNameAsString('rank_thresholds'),
+          setting_value: jsonThresholds
+        });
+        
         result = await supabase
           .from('settings')
-          .insert({
-            setting_name: settingNameAsString('rank_thresholds'),
-            setting_value: jsonThresholds
-          });
+          .insert(insertData);
       }
       
       if (result.error) throw result.error;
