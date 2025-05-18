@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -27,8 +28,7 @@ import {
   TransactionType, 
   UserRole, 
   createTransactionData, 
-  userRoleAsString, 
-  typedEq 
+  userRoleAsString 
 } from '@/integrations/supabase/typeUtils';
 
 interface AddTransactionDialogProps {

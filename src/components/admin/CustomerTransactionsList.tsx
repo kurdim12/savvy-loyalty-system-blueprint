@@ -32,7 +32,7 @@ const CustomerTransactionsList = ({ customerId }: CustomerTransactionsListProps)
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
-        .eq('user_id', typedEq('user_id', customerId))
+        .eq('user_id', customerId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
