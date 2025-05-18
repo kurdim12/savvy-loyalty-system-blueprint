@@ -20,7 +20,8 @@ interface AuthContextType {
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
 
-const AUTH_CHECK_TIMEOUT_MS = 5000; // 5 seconds max for auth check
+// Shorter timeout to prevent hanging
+const AUTH_CHECK_TIMEOUT_MS = 3500; 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -47,27 +48,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, AUTH_CHECK_TIMEOUT_MS);
     
     let mounted = true;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-    // Set up auth state listener FIRST
+    // Set up auth state listener FIRST - with debounce to prevent excessive calls
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         console.log('AuthContext: Auth event received:', event);
         
         if (!mounted) return;
+
+        // Clear any pending timeouts to prevent multiple rapid changes
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+        }
         
-        // Update session and user state
+        // Update session and user state immediately
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
-        // Using setTimeout to avoid deadlocks with Supabase client
+        // Debounce profile fetching to prevent excessive calls
         if (newSession?.user) {
-          setTimeout(() => {
+          debounceTimer = setTimeout(() => {
             if (mounted) {
               fetchUserProfile(newSession.user.id);
             }
-          }, 0);
+          }, 100);
         } else if (event === 'SIGNED_OUT') {
           setProfile(null);
+          setLoading(false);
         }
       }
     );
@@ -106,6 +114,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       mounted = false;
       subscription?.unsubscribe();
       clearTimeout(timeoutId);
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
     };
   }, []);
 

@@ -27,6 +27,8 @@ export const supabase = createClient<Database>(
       autoRefreshToken: true,
       detectSessionInUrl: true,
       flowType: 'pkce', // More secure authentication flow
+      // We disable email confirmation by using immediate redirect
+      redirectTo: getRedirectURL() + "/auth"
     },
     global: {
       headers: {
