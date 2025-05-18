@@ -14,6 +14,10 @@ export type TransactionsRow = Tables['transactions']['Row'];
 export type SettingsRow = Tables['settings']['Row'];
 export type SettingsUpdate = Tables['settings']['Update'];
 export type SettingsInsert = Tables['settings']['Insert'];
+export type RewardsRow = Tables['rewards']['Row'];
+export type RewardsInsert = Tables['rewards']['Insert'];
+export type RewardsUpdate = Tables['rewards']['Update'];
+export type CommunityGoalsRow = Tables['community_goals']['Row'];
 
 // Type-safe eq parameter helper functions
 export const eq = <T extends keyof any, U>(column: T, value: U) => {
@@ -43,6 +47,16 @@ export function createTransactionData(data: Partial<TransactionInsert>): Transac
 // Helper to create setting data for inserts
 export function createSettingsData(data: Partial<SettingsInsert>): SettingsInsert {
   return data as SettingsInsert;
+}
+
+// Helper to create reward data for inserts
+export function createRewardData(data: Partial<RewardsInsert>): RewardsInsert {
+  return data as RewardsInsert;
+}
+
+// Helper to create reward data for updates
+export function createRewardUpdateData(data: Partial<RewardsUpdate>): RewardsUpdate {
+  return data as RewardsUpdate;
 }
 
 // Helper to correctly type setting names as strings with proper casting
@@ -77,4 +91,39 @@ export function assertDataExists<T>(data: T | null | undefined, errorMessage = '
 export function validateTransactionData(data: any): TransactionInsert {
   // Perform any runtime validations here if needed
   return data as TransactionInsert;
+}
+
+// Helper to safely access nested properties of Supabase query results
+export function getSettingValue<T>(data: any): T | undefined {
+  if (!data) return undefined;
+  if ('error' in data) return undefined;
+  if ('setting_value' in data) return data.setting_value as T;
+  return undefined;
+}
+
+// Helper to safely access ID from query results
+export function getIdFromResult(data: any): string | undefined {
+  if (!data) return undefined;
+  if ('error' in data) return undefined;
+  if ('id' in data) return data.id;
+  return undefined;
+}
+
+// For type-safe eq comparisons in Supabase queries
+export function eqTyped<T extends keyof Tables, K extends keyof Tables[T]['Row']>(
+  table: T, 
+  column: K, 
+  value: Tables[T]['Row'][K]
+) {
+  return { [column]: value } as any;
+}
+
+// For casting values to appropriate types for any table
+export function asTypedValue<T>(value: any): T {
+  return value as T;
+}
+
+// Helper for community goals active parameter
+export function asCommunityGoalParam(value: boolean): any {
+  return value as any;
 }

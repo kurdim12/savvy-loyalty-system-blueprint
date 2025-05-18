@@ -10,7 +10,8 @@ import {
   settingNameAsString, 
   userRoleAsString,
   membershipTierAsString,
-  isValidData
+  isValidData,
+  getSettingValue
 } from '@/integrations/supabase/typeUtils';
 import CustomerTransactionsList from './CustomerTransactionsList';
 import {
@@ -131,7 +132,7 @@ const CustomersList = ({
     queryFn: async () => {
       const { data, error } = await supabase
         .from('settings')
-        .select('setting_value')
+        .select('*')
         .eq('setting_name', settingNameAsString('rank_thresholds'))
         .single();
       
@@ -141,11 +142,12 @@ const CustomersList = ({
         return { silver: 200, gold: 550 };
       }
       
-      if (isValidData(data) && data.setting_value) {
-        const value = castJsonToType<any>(data.setting_value);
+      if (isValidData(data)) {
+        // Use our helper function to safely get the setting_value
+        const value = getSettingValue<any>(data);
         return { 
-          silver: Number(value.silver || 200), 
-          gold: Number(value.gold || 550) 
+          silver: Number(value?.silver || 200), 
+          gold: Number(value?.gold || 550) 
         };
       }
       

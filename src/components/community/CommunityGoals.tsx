@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress'; 
@@ -30,12 +29,13 @@ export default function CommunityGoals() {
   const { user, profile, refreshProfile } = useAuth();
 
   useEffect(() => {
-    const fetchCommunityGoals = async () => {
+    const fetchGoals = async () => {
       try {
         const { data, error } = await supabase
           .from('community_goals')
           .select('*')
-          .eq('active', true);
+          .eq('active', asCommunityGoalParam(true))
+          .order('created_at', { ascending: false });
 
         if (error) throw error;
 
@@ -56,7 +56,7 @@ export default function CommunityGoals() {
     };
 
     if (user) {
-      fetchCommunityGoals();
+      fetchGoals();
     }
     
     // Set up realtime subscription for updates

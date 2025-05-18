@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { TransactionsRow, castDbResult, typedEq } from '@/integrations/supabase/typeUtils';
+import { TransactionsRow, castDbResult, eqTyped } from '@/integrations/supabase/typeUtils';
 
 interface CustomerTransactionsListProps {
   customerId?: string;
@@ -31,7 +31,7 @@ const CustomerTransactionsList = ({ customerId }: CustomerTransactionsListProps)
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
-        .eq('user_id', customerId as any) // Cast to any to avoid type error
+        .eq('user_id', customerId as any) // We use 'as any' as a last resort
         .order('created_at', { ascending: false });
       
       if (error) throw error;

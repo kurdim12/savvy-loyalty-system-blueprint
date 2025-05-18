@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,7 +14,9 @@ import {
   castJsonToType, 
   settingNameAsString,
   createSettingsData,
-  isValidData
+  isValidData,
+  getSettingValue,
+  getIdFromResult
 } from '@/integrations/supabase/typeUtils';
 
 interface RankThresholds {
@@ -52,12 +55,12 @@ export function RankThresholdSettings() {
       }
       
       // Ensure the data.setting_value conforms to our RankThresholds interface
-      if (isValidData(data) && data.setting_value) {
-        const typedValue = castJsonToType<RankThresholds>(data.setting_value);
-        if ('silver' in typedValue && 'gold' in typedValue) {
+      if (isValidData(data)) {
+        const value = getSettingValue<RankThresholds>(data);
+        if (value && 'silver' in value && 'gold' in value) {
           return {
-            silver: Number(typedValue.silver),
-            gold: Number(typedValue.gold)
+            silver: Number(value.silver),
+            gold: Number(value.gold)
           };
         }
       }
@@ -80,7 +83,7 @@ export function RankThresholdSettings() {
       // Check if settings already exist
       const { data: existingSettings, error: checkError } = await supabase
         .from('settings')
-        .select('id')
+        .select('*')
         .eq('setting_name', settingNameAsString('rank_thresholds'))
         .single();
       
@@ -93,16 +96,21 @@ export function RankThresholdSettings() {
       } as Json;
       
       // If settings exist, update them
-      if (isValidData(existingSettings) && existingSettings.id) {
-        const updateData = createSettingsData({
-          setting_value: jsonThresholds,
-          updated_at: new Date().toISOString()
-        });
-        
-        result = await supabase
-          .from('settings')
-          .update(updateData as any)
-          .eq('id', existingSettings.id as any);
+      if (isValidData(existingSettings)) {
+        const settingId = getIdFromResult(existingSettings);
+        if (settingId) {
+          const updateData = createSettingsData({
+            setting_value: jsonThresholds,
+            updated_at: new Date().toISOString()
+          });
+          
+          result = await supabase
+            .from('settings')
+            .update(updateData)
+            .eq('id', settingId as any);
+        } else {
+          throw new Error("Failed to get setting ID for update");
+        }
       } else {
         // Otherwise insert new settings
         const insertData = createSettingsData({
@@ -112,10 +120,10 @@ export function RankThresholdSettings() {
         
         result = await supabase
           .from('settings')
-          .insert(insertData as any);
+          .insert(insertData);
       }
       
-      if (result.error) throw result.error;
+      if (result?.error) throw result.error;
       
       return true;
     },
