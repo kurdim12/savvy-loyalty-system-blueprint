@@ -1,3 +1,4 @@
+
 import React, { 
   createContext, 
   useState, 
@@ -13,7 +14,7 @@ import {
   Session, 
   User 
 } from '@supabase/supabase-js';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 import { castDbResult, ProfilesRow } from '@/integrations/supabase/typeUtils';
 
 interface AuthContextType {
@@ -21,11 +22,15 @@ interface AuthContextType {
   user: User | null;
   userProfile: ProfilesRow | null;
   isAdmin: boolean;
+  isUser: boolean;
   loading: boolean;
+  membershipTier: string;
+  profile: ProfilesRow | null;
   signUp: (email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: any) => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,8 +40,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<ProfilesRow | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isUser, setIsUser] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadSession = async () => {
@@ -63,10 +69,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setUserProfile(null);
         setIsAdmin(false);
+        setIsUser(false);
         setLoading(false);
       }
     });
-  }, [router]);
+  }, [navigate]);
 
   const signUp = async (email: string, password: string) => {
     setLoading(true);
@@ -80,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       if (error) throw error;
       console.log('Sign up data:', data);
-      router.push('/auth/check-email');
+      navigate('/auth/check-email');
     } catch (error: any) {
       console.error('Sign up error:', error);
       alert(error.message);
@@ -98,7 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       if (error) throw error;
       console.log('Sign in data:', data);
-      router.push('/dashboard');
+      navigate('/dashboard');
     } catch (error: any) {
       console.error('Sign in error:', error);
       alert(error.message);
@@ -111,7 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       await secureSignOut();
-      router.push('/auth');
+      navigate('/auth');
     } catch (error: any) {
       console.error('Sign out error:', error);
       alert(error.message);
@@ -147,6 +154,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const refreshProfile = async () => {
+    if (user?.id) {
+      await loadUserProfile(user.id);
+    }
+  };
+
   const loadUserProfile = useCallback(async (userId: string) => {
     setLoading(true);
     
@@ -174,29 +187,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Cache user role
         setIsAdmin(profileData.role === 'admin');
+        setIsUser(profileData.role === 'user');
       } else {
         setUserProfile(null);
         setIsAdmin(false);
+        setIsUser(false);
       }
     } catch (error) {
       console.error('Failed to load user profile:', error);
       setUserProfile(null);
       setIsAdmin(false);
+      setIsUser(false);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  // Define membership tier based on the user profile
+  const membershipTier = userProfile?.membership_tier || 'bronze';
 
   const value: AuthContextType = {
     session,
     user,
     userProfile,
     isAdmin,
+    isUser,
     loading,
+    membershipTier,
+    profile: userProfile,
     signUp,
     signIn,
     signOut,
     updateProfile,
+    refreshProfile,
   };
 
   return (

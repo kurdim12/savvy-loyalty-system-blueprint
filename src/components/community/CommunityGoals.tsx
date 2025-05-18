@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -11,8 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle2, Circle, Timer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { CommunityGoalRow } from '@/types/communityGoals';
-import { asCommunityGoalParam } from '@/integrations/supabase/typeUtils';
+import { CommunityGoalRow, asParam, castDbResult } from '@/integrations/supabase/typeUtils';
 
 const CommunityGoals: React.FC = () => {
   const [now, setNow] = useState(new Date());
@@ -31,11 +31,11 @@ const CommunityGoals: React.FC = () => {
       const { data, error } = await supabase
         .from('community_goals')
         .select('*')
-        .eq('active', asCommunityGoalParam(true))
+        .eq('active', asParam(true))
         .order('expires_at', { ascending: true });
     
       if (error) throw error;
-      return data as CommunityGoalRow[];
+      return castDbResult<CommunityGoalRow[]>(data);
     }
   });
 

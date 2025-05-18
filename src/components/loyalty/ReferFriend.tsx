@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -9,7 +10,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { useUser } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 import { 
   supabase, 
@@ -23,7 +24,7 @@ import {
 const ReferFriend: React.FC = () => {
   const [friendEmail, setFriendEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { userProfile: currentUser } = useUser();
+  const { userProfile: currentUser } = useAuth();
   
   useEffect(() => {
     const checkAuth = async () => {
