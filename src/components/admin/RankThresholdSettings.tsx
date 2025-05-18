@@ -13,8 +13,7 @@ import {
   castJsonToType, 
   settingNameAsString,
   createSettingsData,
-  isValidData,
-  typedEq
+  isValidData
 } from '@/integrations/supabase/typeUtils';
 
 interface RankThresholds {
@@ -53,7 +52,7 @@ export function RankThresholdSettings() {
       }
       
       // Ensure the data.setting_value conforms to our RankThresholds interface
-      if (isValidData(data) && data.setting_value) {
+      if (data && data.setting_value) {
         const typedValue = castJsonToType<RankThresholds>(data.setting_value);
         if ('silver' in typedValue && 'gold' in typedValue) {
           return {
@@ -94,7 +93,7 @@ export function RankThresholdSettings() {
       } as Json;
       
       // If settings exist, update them
-      if (isValidData(existingSettings) && existingSettings.id) {
+      if (existingSettings && existingSettings.id) {
         const updateData = createSettingsData({
           setting_value: jsonThresholds,
           updated_at: new Date().toISOString()
@@ -103,7 +102,7 @@ export function RankThresholdSettings() {
         result = await supabase
           .from('settings')
           .update(updateData)
-          .eq('id', typedEq('id', existingSettings.id));
+          .eq('id', existingSettings.id);
       } else {
         // Otherwise insert new settings
         const insertData = createSettingsData({

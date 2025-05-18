@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,8 +10,7 @@ import {
   settingNameAsString, 
   userRoleAsString,
   membershipTierAsString,
-  isValidData,
-  typedEq
+  isValidData
 } from '@/integrations/supabase/typeUtils';
 import CustomerTransactionsList from './CustomerTransactionsList';
 import {
@@ -143,9 +141,8 @@ const CustomersList = ({
         return { silver: 200, gold: 550 };
       }
       
-      if (isValidData(data)) {
-        const dataValue = data.setting_value;
-        const value = castJsonToType<any>(dataValue);
+      if (data && data.setting_value) {
+        const value = castJsonToType<any>(data.setting_value);
         return { 
           silver: Number(value.silver || 200), 
           gold: Number(value.gold || 550) 
