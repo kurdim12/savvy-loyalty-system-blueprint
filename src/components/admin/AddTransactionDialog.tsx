@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, TransactionType, TransactionInsert } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 
 interface AddTransactionDialogProps {
@@ -53,7 +53,7 @@ const drinkCategories: DrinkCategory[] = [
 
 const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps) => {
   const [customerId, setCustomerId] = useState('');
-  const [transactionType, setTransactionType] = useState<Database['public']['Enums']['transaction_type']>('earn');
+  const [transactionType, setTransactionType] = useState<TransactionType>('earn');
   const [points, setPoints] = useState<number>(0);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [notes, setNotes] = useState('');
@@ -70,7 +70,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
       const query = supabase
         .from('profiles')
         .select('id, first_name, last_name, email')
-        .eq('role', 'customer' as Database['public']['Enums']['user_role']);
+        .eq('role', 'customer');
         
       // Apply search filter if provided
       if (customerSearchQuery) {
@@ -114,12 +114,12 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
       }
       
       // Use correct typing for the transaction data
-      const transactionData = {
+      const transactionData: TransactionInsert = {
         user_id: customerId,
         transaction_type: transactionType,
         points: finalPoints,
         notes: notes || `${transactionType === 'earn' ? 'Earned' : 'Redeemed'} ${finalPoints} points`,
-      } as unknown as Database['public']['Tables']['transactions']['Insert'];
+      };
       
       // Create the transaction record
       const { error: transactionError } = await supabase
@@ -232,7 +232,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
               id="transaction-type"
               className="flex space-x-4 pt-2"
               value={transactionType}
-              onValueChange={(value) => setTransactionType(value as 'earn' | 'redeem')}
+              onValueChange={(value) => setTransactionType(value as TransactionType)}
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="earn" id="earn" />
