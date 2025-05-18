@@ -14,7 +14,6 @@ import { getDiscountRate } from '@/integrations/supabase/functions';
 import { Database } from '@/integrations/supabase/types';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { getSettingValue } from '@/integrations/supabase/typeUtils';
 
 type MembershipTier = Database['public']['Enums']['membership_tier'];
 
@@ -38,7 +37,7 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
     queryFn: async () => {
       const { data, error } = await supabase
         .from('settings')
-        .select('*')
+        .select('setting_value')
         .eq('setting_name', 'rank_thresholds')
         .single();
       
@@ -48,8 +47,7 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
         return { silver: 200, gold: 550 };
       }
       
-      const value = getSettingValue<{silver: number, gold: number}>(data);
-      return value || { silver: 200, gold: 550 };
+      return data.setting_value as {silver: number, gold: number};
     },
     staleTime: 60000 // Cache for 1 minute
   });

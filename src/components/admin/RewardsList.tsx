@@ -45,10 +45,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Database } from '@/integrations/supabase/types';
-import { 
-  createRewardData, 
-  RewardsRow 
-} from '@/integrations/supabase/typeUtils';
 
 // Define the reward schema for validation
 const rewardSchema = z.object({
@@ -121,18 +117,18 @@ const RewardsList = () => {
   // Create a new reward
   const createReward = useMutation({
     mutationFn: async (data: RewardFormData) => {
-      const rewardData = createRewardData({
+      const rewardData = {
         name: data.name,
         description: data.description || null,
         points_required: data.points_required,
         membership_required: data.membership_required || null,
         inventory: data.inventory || null,
         active: data.active,
-      });
+      } as unknown as Database['public']['Tables']['rewards']['Insert'];
       
       const { error } = await supabase
         .from('rewards')
-        .insert([rewardData]);
+        .insert(rewardData);
       
       if (error) throw error;
     },
@@ -152,7 +148,7 @@ const RewardsList = () => {
     mutationFn: async (data: RewardFormData & { id: string }) => {
       const { id, ...rewardData } = data;
       
-      const updatedData = createRewardData({
+      const updatedData = {
         name: rewardData.name,
         description: rewardData.description || null,
         points_required: rewardData.points_required,
@@ -160,12 +156,12 @@ const RewardsList = () => {
         inventory: rewardData.inventory || null,
         active: rewardData.active,
         updated_at: new Date().toISOString()
-      });
+      } as unknown as Database['public']['Tables']['rewards']['Update'];
       
       const { error } = await supabase
         .from('rewards')
         .update(updatedData)
-        .eq('id', id);
+        .eq('id', id as string);
       
       if (error) throw error;
     },
@@ -187,7 +183,7 @@ const RewardsList = () => {
       const { error } = await supabase
         .from('rewards')
         .delete()
-        .eq('id', id);
+        .eq('id', id as string);
       
       if (error) throw error;
     },
@@ -205,15 +201,13 @@ const RewardsList = () => {
   // Toggle reward active status
   const toggleRewardStatus = useMutation({
     mutationFn: async ({ id, active }: { id: string, active: boolean }) => {
-      const updatedData = createRewardData({
-        active, 
-        updated_at: new Date().toISOString() 
-      });
-      
       const { error } = await supabase
         .from('rewards')
-        .update(updatedData)
-        .eq('id', id);
+        .update({ 
+          active, 
+          updated_at: new Date().toISOString() 
+        } as unknown as Database['public']['Tables']['rewards']['Update'])
+        .eq('id', id as string);
       
       if (error) throw error;
     },
@@ -225,7 +219,7 @@ const RewardsList = () => {
       toast.error(`Failed to update reward status: ${error.message}`);
     }
   });
-
+  
   // Handle form submissions
   const handleCreateSubmit = (data: RewardFormData) => {
     createReward.mutate(data);

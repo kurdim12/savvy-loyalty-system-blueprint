@@ -1,12 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
-import {
-  UserRole,
-  MembershipTier,
-  TransactionType,
-  TransactionInsert
-} from './typeUtils';
 
 // Supabase project configuration
 const SUPABASE_URL = "https://egeufofnkpvwbmffgoxw.supabase.co";
@@ -33,8 +27,6 @@ export const supabase = createClient<Database>(
       autoRefreshToken: true,
       detectSessionInUrl: true,
       flowType: 'pkce', // More secure authentication flow
-      // We disable email confirmation by using immediate redirect
-      redirectTo: getRedirectURL() + "/auth"
     },
     global: {
       headers: {
@@ -52,14 +44,6 @@ export const supabase = createClient<Database>(
     }
   }
 );
-
-// Re-export type aliases from typeUtils
-export {
-  UserRole,
-  MembershipTier,
-  TransactionType,
-  TransactionInsert,
-};
 
 // Thorough cleanup function for auth state
 export const cleanupAuthState = () => {

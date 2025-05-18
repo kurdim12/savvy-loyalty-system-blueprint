@@ -17,11 +17,21 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { TransactionsRow, castDbResult, asParam } from '@/integrations/supabase/typeUtils';
+import { Database } from '@/integrations/supabase/types';
 
 interface CustomerTransactionsListProps {
   customerId?: string;
 }
+
+// Create a type that matches the database schema
+type Transaction = {
+  id: string;
+  user_id: string;
+  transaction_type: Database['public']['Enums']['transaction_type'];
+  points: number;
+  created_at: string;
+  notes?: string;
+};
 
 const CustomerTransactionsList = ({ customerId }: CustomerTransactionsListProps) => {
   const { data: transactions, isLoading } = useQuery({
@@ -32,11 +42,11 @@ const CustomerTransactionsList = ({ customerId }: CustomerTransactionsListProps)
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
-        .eq('user_id', customerId)
+        .eq('user_id', customerId as string)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return castDbResult<TransactionsRow[]>(data || []);
+      return data as unknown as Transaction[];
     },
     enabled: !!customerId
   });

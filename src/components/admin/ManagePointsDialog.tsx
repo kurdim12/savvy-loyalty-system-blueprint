@@ -1,7 +1,7 @@
+
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { TransactionsRow, createTransactionData } from '@/integrations/supabase/typeUtils';
 import {
   Dialog,
   DialogContent,
@@ -23,9 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-
-// Define the TransactionType type locally for this component
-type TransactionType = 'earn' | 'redeem';
+import { Database } from '@/integrations/supabase/types';
 
 interface ManagePointsDialogProps {
   open: boolean;
@@ -55,7 +53,7 @@ const ManagePointsDialog = ({
   customerName,
 }: ManagePointsDialogProps) => {
   const [points, setPoints] = useState<number>(0);
-  const [transactionType, setTransactionType] = useState<TransactionType>('earn');
+  const [transactionType, setTransactionType] = useState<Database['public']['Enums']['transaction_type']>('earn');
   const [notes, setNotes] = useState<string>('');
   const [pointsCalculationMethod, setPointsCalculationMethod] = useState<'custom' | 'drink' | 'amount'>('custom');
   const [selectedDrink, setSelectedDrink] = useState<string>('');
@@ -93,13 +91,12 @@ const ManagePointsDialog = ({
       // Ensure points are positive integers
       finalPoints = Math.max(1, Math.round(finalPoints));
       
-      // Create the transaction data using our helper function
-      const transactionData = createTransactionData({
+      const transactionData = {
         user_id: userId,
         transaction_type: transactionType,
         points: finalPoints,
         notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} ${finalPoints} points manually by admin`,
-      });
+      } as unknown as Database['public']['Tables']['transactions']['Insert'];
       
       // Create the transaction record
       const { error: transactionError } = await supabase
@@ -194,7 +191,7 @@ const ManagePointsDialog = ({
                 id="transaction-type"
                 className="flex space-x-4 pt-2"
                 value={transactionType}
-                onValueChange={(value) => setTransactionType(value as TransactionType)}
+                onValueChange={(value) => setTransactionType(value as 'earn' | 'redeem')}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="earn" id="earn" />

@@ -130,7 +130,7 @@ const Auth = () => {
       // Clean up existing auth state first
       cleanupAuthState();
       
-      // Sign up with emailConfirm set to false
+      // Sign up
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -138,38 +138,21 @@ const Auth = () => {
           data: {
             first_name: firstName,
             last_name: lastName,
-          },
-          emailRedirectTo: window.location.origin + '/auth',
+          }
         }
       });
       
       if (error) throw error;
       if (!data.user) throw new Error("No user returned from sign up");
       
-      // Since we're skipping email confirmation, directly log the user in
-      if (!data.session) {
-        console.log("Auth: Sign up successful, logging in automatically");
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-        
-        if (signInError) throw signInError;
-      }
+      toast.success("Account created successfully! You can now sign in.");
+      console.log("Auth: Sign up successful");
       
-      toast.success("Account created! Signing you in...");
-      console.log("Auth: Sign up and automatic login successful");
-      
-      if (refreshProfile) {
-        try {
-          await refreshProfile();
-        } catch (err) {
-          console.error("Auth: Error refreshing profile:", err);
-        }
-      }
-      
-      // Redirect to dashboard
-      navigate('/dashboard', { replace: true });
+      // Clear form
+      setEmail('');
+      setPassword('');
+      setFirstName('');
+      setLastName('');
     } catch (error: any) {
       console.error('Auth: Error signing up:', error);
       setError(error.message || "Failed to create account. Please try again.");
