@@ -1,264 +1,210 @@
-
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Session, User } from '@supabase/supabase-js';
-import { supabase, cleanupAuthState } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
-import { toast } from 'sonner';
-
-type Profile = Database['public']['Tables']['profiles']['Row'];
+import React, { 
+  createContext, 
+  useState, 
+  useEffect, 
+  useContext, 
+  useCallback 
+} from 'react';
+import { 
+  supabase, 
+  secureSignOut 
+} from '@/integrations/supabase/client';
+import { 
+  Session, 
+  User 
+} from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
+import { castDbResult, ProfilesRow } from '@/integrations/supabase/typeUtils';
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
-  profile: Profile | null;
-  loading: boolean;
-  signOut: () => Promise<void>;
+  userProfile: ProfilesRow | null;
   isAdmin: boolean;
-  isUser: boolean;
-  refreshProfile: () => Promise<void>;
-  membershipTier: Database['public']['Enums']['membership_tier'];
-  updateProfile: (updates: Partial<Profile>) => Promise<void>;
+  loading: boolean;
+  signUp: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  updateProfile: (updates: any) => Promise<void>;
 }
-
-// Shorter timeout to prevent hanging
-const AUTH_CHECK_TIMEOUT_MS = 3500; 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [authInitialized, setAuthInitialized] = useState<boolean>(false);
-  
-  const membershipTier = profile?.membership_tier || 'bronze';
-  const isAdmin = profile?.role === 'admin';
-  const isUser = profile?.role === 'customer';
+  const [userProfile, setUserProfile] = useState<ProfilesRow | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const router = useRouter();
 
-  // Initialize authentication
   useEffect(() => {
-    console.log('AuthContext: Initializing authentication...');
-    
-    // Force auth resolution after timeout
-    const timeoutId = setTimeout(() => {
-      console.log('AuthContext: Force completing auth check after timeout');
-      setLoading(false);
-      setAuthInitialized(true);
-    }, AUTH_CHECK_TIMEOUT_MS);
-    
-    let mounted = true;
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-
-    // Set up auth state listener FIRST - with debounce to prevent excessive calls
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
-        console.log('AuthContext: Auth event received:', event);
-        
-        if (!mounted) return;
-
-        // Clear any pending timeouts to prevent multiple rapid changes
-        if (debounceTimer) {
-          clearTimeout(debounceTimer);
-        }
-        
-        // Update session and user state immediately
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-
-        // Debounce profile fetching to prevent excessive calls
-        if (newSession?.user) {
-          debounceTimer = setTimeout(() => {
-            if (mounted) {
-              fetchUserProfile(newSession.user.id);
-            }
-          }, 100);
-        } else if (event === 'SIGNED_OUT') {
-          setProfile(null);
-          setLoading(false);
-        }
-      }
-    );
-
-    // THEN check for existing session
-    const getInitialSession = async () => {
-      try {
-        console.log('AuthContext: Getting initial session');
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        console.log('AuthContext: Initial session found:', currentSession ? 'Yes' : 'No');
-        
-        if (!mounted) return;
-        
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (currentSession?.user) {
-          await fetchUserProfile(currentSession.user.id);
-        }
-        
+    const loadSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      setSession(session);
+      setUser(session?.user || null);
+      
+      if (session?.user) {
+        await loadUserProfile(session.user.id);
+      } else {
         setLoading(false);
-        setAuthInitialized(true);
-      } catch (error) {
-        console.error('AuthContext: Error getting initial session:', error);
-        
-        if (!mounted) return;
-        
-        setLoading(false);
-        setAuthInitialized(true);
       }
     };
-
-    getInitialSession();
-
-    return () => {
-      mounted = false;
-      subscription?.unsubscribe();
-      clearTimeout(timeoutId);
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
+    
+    loadSession();
+    
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      setSession(session);
+      setUser(session?.user || null);
+      
+      if (session?.user) {
+        await loadUserProfile(session.user.id);
+      } else {
+        setUserProfile(null);
+        setIsAdmin(false);
+        setLoading(false);
       }
-    };
-  }, []);
+    });
+  }, [router]);
 
-  const fetchUserProfile = async (userId: string) => {
+  const signUp = async (email: string, password: string) => {
+    setLoading(true);
     try {
-      console.log('AuthContext: Fetching profile for user:', userId);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+      console.log('Sign up data:', data);
+      router.push('/auth/check-email');
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signIn = async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+      console.log('Sign in data:', data);
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signOut = async () => {
+    setLoading(true);
+    try {
+      await secureSignOut();
+      router.push('/auth');
+    } catch (error: any) {
+      console.error('Sign out error:', error);
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateProfile = async (updates: any) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user?.id);
+      
+      if (error) throw error;
+      
+      // Optimistically update the profile in the context
+      setUserProfile((prevProfile) => {
+        if (prevProfile) {
+          return { ...prevProfile, ...updates };
+        }
+        return prevProfile;
+      });
+      
+      alert('Profile updated successfully!');
+    } catch (error: any) {
+      console.error('Profile update error:', error);
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadUserProfile = useCallback(async (userId: string) => {
+    setLoading(true);
+    
+    try {
+      if (!userId) {
+        setUserProfile(null);
+        return;
+      }
       
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
-
+        .maybeSingle();
+      
       if (error) {
-        console.error('AuthContext: Error fetching profile:', error);
-        
-        // Check if the error is because the profile wasn't found
-        if (error.code === 'PGRST116') {
-          console.log('AuthContext: Profile not found, attempting to create it');
-          await createUserProfile(userId);
-        }
-        return;
+        console.error('Error loading user profile:', error);
+        throw error;
       }
-
+      
       if (data) {
-        console.log('AuthContext: Profile fetched successfully');
-        setProfile(data as Profile);
-      }
-    } catch (error) {
-      console.error('AuthContext: Unexpected error fetching profile:', error);
-    }
-  };
-  
-  // Create a user profile if it doesn't exist
-  const createUserProfile = async (userId: string) => {
-    try {
-      // Get user data from auth
-      const { data: userData } = await supabase.auth.getUser(userId);
-      
-      if (!userData?.user) {
-        console.error('AuthContext: Could not get user data for profile creation');
-        return;
-      }
-      
-      // Create new profile with default values
-      const { data: newProfile, error } = await supabase
-        .from('profiles')
-        .insert({
-          id: userId,
-          email: userData.user.email || '',
-          first_name: userData.user.user_metadata?.first_name || '',
-          last_name: userData.user.user_metadata?.last_name || '',
-          role: 'customer',
-          current_points: 0,
-          membership_tier: 'bronze',
-          visits: 0
-        })
-        .select()
-        .single();
+        // Use our type helper to safely cast the profile data
+        const profileData = castDbResult<ProfilesRow>(data);
+        setUserProfile(profileData);
         
-      if (error) {
-        console.error('AuthContext: Error creating user profile:', error);
-        toast.error('Could not create user profile. Please try again or contact support.');
-        return;
-      }
-      
-      if (newProfile) {
-        console.log('AuthContext: New profile created');
-        setProfile(newProfile as Profile);
-        toast.success('Welcome! Your profile has been created.');
+        // Cache user role
+        setIsAdmin(profileData.role === 'admin');
+      } else {
+        setUserProfile(null);
+        setIsAdmin(false);
       }
     } catch (error) {
-      console.error('AuthContext: Error in profile creation:', error);
+      console.error('Failed to load user profile:', error);
+      setUserProfile(null);
+      setIsAdmin(false);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const refreshProfile = async () => {
-    if (user?.id) {
-      await fetchUserProfile(user.id);
-    }
-  };
-
-  const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user?.id) {
-      throw new Error('User not authenticated');
-    }
-    
-    const { error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', user.id);
-      
-    if (error) {
-      throw error;
-    }
-    
-    // Refresh the profile after updating
-    await refreshProfile();
-  };
-
-  const signOut = async () => {
-    try {
-      console.log('AuthContext: Signing out user...');
-      
-      // Clean up auth state first
-      cleanupAuthState();
-      
-      // Attempt global sign out
-      await supabase.auth.signOut({ scope: 'global' });
-      
-      // Clear state
-      setProfile(null);
-      setUser(null);
-      setSession(null);
-      
-      console.log('AuthContext: Signed out successfully, redirecting...');
-      
-      // Force page reload for a clean state
-      window.location.href = '/auth';
-    } catch (error) {
-      console.error('AuthContext: Error during sign out:', error);
-      
-      // Force reload anyway as fallback
-      window.location.href = '/auth';
-    }
-  };
-
-  const value = {
+  const value: AuthContextType = {
     session,
     user,
-    profile,
-    loading,
-    signOut,
+    userProfile,
     isAdmin,
-    isUser,
-    refreshProfile,
-    membershipTier,
+    loading,
+    signUp,
+    signIn,
+    signOut,
     updateProfile,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

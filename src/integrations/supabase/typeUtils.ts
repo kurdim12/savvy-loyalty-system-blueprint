@@ -18,6 +18,8 @@ export type RewardsRow = Tables['rewards']['Row'];
 export type RewardsInsert = Tables['rewards']['Insert'];
 export type RewardsUpdate = Tables['rewards']['Update'];
 export type CommunityGoalsRow = Tables['community_goals']['Row'];
+export type ReferralsInsert = Tables['referrals']['Insert'];
+export type ReferralsRow = Tables['referrals']['Row'];
 
 // Type-safe eq parameter helper functions
 export const eq = <T extends keyof any, U>(column: T, value: U) => {
@@ -59,6 +61,11 @@ export function createRewardUpdateData(data: Partial<RewardsUpdate>): RewardsUpd
   return data as RewardsUpdate;
 }
 
+// Helper to create referral data for inserts
+export function createReferralData(data: Partial<ReferralsInsert>): ReferralsInsert {
+  return data as ReferralsInsert;
+}
+
 // Helper to correctly type setting names as strings with proper casting
 export const settingNameAsString = (name: string) => name as any;
 
@@ -67,6 +74,11 @@ export const userRoleAsString = (role: UserRole | string) => role as any;
 
 // Helper to safely handle membership tiers in queries
 export const membershipTierAsString = (tier: MembershipTier | string) => tier as any;
+
+// Helper for community goals active parameter
+export const asCommunityGoalParam = (value: boolean): any => {
+  return value as any;
+};
 
 // Helper for safely handling data that might be error responses
 export function safelyGetData<T, K extends keyof T>(obj: T | { error: any }, key: K): T[K] | undefined {
@@ -121,9 +133,4 @@ export function eqTyped<T extends keyof Tables, K extends keyof Tables[T]['Row']
 // For casting values to appropriate types for any table
 export function asTypedValue<T>(value: any): T {
   return value as T;
-}
-
-// Helper for community goals active parameter
-export function asCommunityGoalParam(value: boolean): any {
-  return value as any;
 }

@@ -1,10 +1,11 @@
+
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
-import { 
-  UserRole, 
-  MembershipTier, 
-  TransactionType, 
-  TransactionInsert,
+import {
+  UserRole,
+  MembershipTier,
+  TransactionType,
+  TransactionInsert
 } from './typeUtils';
 
 // Supabase project configuration
@@ -53,20 +54,12 @@ export const supabase = createClient<Database>(
 );
 
 // Re-export type aliases from typeUtils
-export { 
+export {
   UserRole,
   MembershipTier,
   TransactionType,
   TransactionInsert,
 };
-
-// Helper types for Supabase enum values (making them properly typed)
-export type UserRole = Database['public']['Enums']['user_role'];
-export type MembershipTier = Database['public']['Enums']['membership_tier'];
-export type TransactionType = Database['public']['Enums']['transaction_type'];
-
-// Helper type for transaction inserts to avoid TypeScript errors
-export type TransactionInsert = Database['public']['Tables']['transactions']['Insert'];
 
 // Thorough cleanup function for auth state
 export const cleanupAuthState = () => {

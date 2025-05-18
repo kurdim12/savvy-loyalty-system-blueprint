@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { 
   Card, 
@@ -39,7 +38,7 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
       const { data, error } = await supabase
         .from('settings')
         .select('*')
-        .eq('setting_name', settingNameAsString('rank_thresholds') as any)
+        .eq('setting_name', settingNameAsString('rank_thresholds'))
         .single();
       
       if (error) {
