@@ -155,7 +155,7 @@ export function createRewardData(data: Partial<RewardsRow>): Partial<RewardsRow>
   };
 }
 
-// Helper for updating reward data (similar to createRewardData but for updates)
+// Helper for updating reward data
 export function createRewardUpdateData(data: Partial<RewardsRow>): Partial<RewardsRow> {
   const updateData: Partial<RewardsRow> = {};
   

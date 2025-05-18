@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { 
   Card, 
@@ -31,7 +32,7 @@ const CustomerTransactionsList = ({ customerId }: CustomerTransactionsListProps)
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
-        .eq('user_id', customerId as any) // We use 'as any' as a last resort
+        .eq('user_id', customerId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { 
   Card, 
@@ -13,7 +14,7 @@ import { getDiscountRate } from '@/integrations/supabase/functions';
 import { Database } from '@/integrations/supabase/types';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { settingNameAsString, getSettingValue } from '@/integrations/supabase/typeUtils';
+import { getSettingValue } from '@/integrations/supabase/typeUtils';
 
 type MembershipTier = Database['public']['Enums']['membership_tier'];
 
@@ -38,7 +39,7 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
       const { data, error } = await supabase
         .from('settings')
         .select('*')
-        .eq('setting_name', settingNameAsString('rank_thresholds'))
+        .eq('setting_name', 'rank_thresholds')
         .single();
       
       if (error) {
