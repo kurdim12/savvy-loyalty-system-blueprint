@@ -47,8 +47,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Database } from '@/integrations/supabase/types';
 import { 
   createRewardData, 
-  createRewardUpdateData, 
-  asTypedValue 
+  RewardsRow 
 } from '@/integrations/supabase/typeUtils';
 
 // Define the reward schema for validation
@@ -133,7 +132,7 @@ const RewardsList = () => {
       
       const { error } = await supabase
         .from('rewards')
-        .insert(rewardData as any);
+        .insert([rewardData]);
       
       if (error) throw error;
     },
@@ -153,7 +152,7 @@ const RewardsList = () => {
     mutationFn: async (data: RewardFormData & { id: string }) => {
       const { id, ...rewardData } = data;
       
-      const updatedData = createRewardUpdateData({
+      const updatedData = createRewardData({
         name: rewardData.name,
         description: rewardData.description || null,
         points_required: rewardData.points_required,
@@ -165,8 +164,8 @@ const RewardsList = () => {
       
       const { error } = await supabase
         .from('rewards')
-        .update(updatedData as any)
-        .eq('id', asTypedValue(id));
+        .update(updatedData)
+        .eq('id', id);
       
       if (error) throw error;
     },
@@ -188,7 +187,7 @@ const RewardsList = () => {
       const { error } = await supabase
         .from('rewards')
         .delete()
-        .eq('id', asTypedValue(id));
+        .eq('id', id);
       
       if (error) throw error;
     },
@@ -206,13 +205,15 @@ const RewardsList = () => {
   // Toggle reward active status
   const toggleRewardStatus = useMutation({
     mutationFn: async ({ id, active }: { id: string, active: boolean }) => {
+      const updatedData = createRewardData({
+        active, 
+        updated_at: new Date().toISOString() 
+      });
+      
       const { error } = await supabase
         .from('rewards')
-        .update(createRewardUpdateData({ 
-          active, 
-          updated_at: new Date().toISOString() 
-        }) as any)
-        .eq('id', asTypedValue(id));
+        .update(updatedData)
+        .eq('id', id);
       
       if (error) throw error;
     },
@@ -224,7 +225,7 @@ const RewardsList = () => {
       toast.error(`Failed to update reward status: ${error.message}`);
     }
   });
-  
+
   // Handle form submissions
   const handleCreateSubmit = (data: RewardFormData) => {
     createReward.mutate(data);

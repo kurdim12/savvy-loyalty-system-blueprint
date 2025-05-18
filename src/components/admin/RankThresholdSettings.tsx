@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -13,9 +14,9 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
-  settingNameAsString, 
   createSettingsData,
-  getIdFromResult
+  castDbResult,
+  isValidData
 } from '@/integrations/supabase/typeUtils';
 
 const RankThresholdSettings = () => {
@@ -29,7 +30,7 @@ const RankThresholdSettings = () => {
       const { data, error } = await supabase
         .from('settings')
         .select('*')
-        .eq('setting_name', settingNameAsString('rank_thresholds'))
+        .eq('setting_name', 'rank_thresholds')
         .single();
 
       if (error) {
@@ -37,10 +38,14 @@ const RankThresholdSettings = () => {
         return;
       }
 
-      if (data && data.setting_value) {
-        const { silver: s, gold: g } = data.setting_value as { silver: number, gold: number };
-        setSilver(s);
-        setGold(g);
+      if (isValidData(data) && data.setting_value) {
+        try {
+          const { silver: s, gold: g } = data.setting_value as { silver: number, gold: number };
+          setSilver(s);
+          setGold(g);
+        } catch (err) {
+          console.error("Error parsing settings:", err);
+        }
       }
     };
 
@@ -54,7 +59,7 @@ const RankThresholdSettings = () => {
       const { data: existingSettings, error: fetchError } = await supabase
         .from('settings')
         .select('id')
-        .eq('setting_name', settingNameAsString('rank_thresholds'))
+        .eq('setting_name', 'rank_thresholds')
         .single();
 
       if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
@@ -62,7 +67,10 @@ const RankThresholdSettings = () => {
       }
       
       // Get the ID if it exists
-      const settingsId = getIdFromResult(existingSettings);
+      let settingsId = null;
+      if (existingSettings && existingSettings.id) {
+        settingsId = existingSettings.id;
+      }
 
       if (settingsId) {
         // Update existing settings
@@ -86,7 +94,7 @@ const RankThresholdSettings = () => {
         
         const { error: insertError } = await supabase
           .from('settings')
-          .insert(insertData);
+          .insert([insertData]);
         
         if (insertError) throw insertError;
       }

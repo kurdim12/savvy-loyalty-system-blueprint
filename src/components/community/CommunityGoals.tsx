@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -31,7 +30,7 @@ const CommunityGoals: React.FC = () => {
       const { data, error } = await supabase
         .from('community_goals')
         .select('*')
-        .eq('active', asParam(true))
+        .eq('active', true)
         .order('expires_at', { ascending: true });
     
       if (error) throw error;

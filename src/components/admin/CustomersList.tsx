@@ -3,15 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { 
-  MembershipTier, 
   ProfilesRow, 
-  castDbResult, 
-  castJsonToType,  
-  settingNameAsString, 
+  castDbResult,   
   userRoleAsString,
-  membershipTierAsString,
-  isValidData,
-  getSettingValue
+  isValidData
 } from '@/integrations/supabase/typeUtils';
 import CustomerTransactionsList from './CustomerTransactionsList';
 import {
@@ -120,7 +115,7 @@ const CustomersList = ({
   onRankChange
 }: CustomerListProps) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTier, setSelectedTier] = useState<MembershipTier | 'all'>('all');
+  const [selectedTier, setSelectedTier] = useState<'all' | 'bronze' | 'silver' | 'gold'>('all');
   const [sortConfig, setSortConfig] = useState<{
     key: string | null;
     direction: 'asc' | 'desc' | null;
@@ -133,7 +128,7 @@ const CustomersList = ({
       const { data, error } = await supabase
         .from('settings')
         .select('*')
-        .eq('setting_name', settingNameAsString('rank_thresholds'))
+        .eq('setting_name', 'rank_thresholds')
         .single();
       
       if (error) {
@@ -142,12 +137,11 @@ const CustomersList = ({
         return { silver: 200, gold: 550 };
       }
       
-      if (isValidData(data)) {
+      if (isValidData(data) && data.setting_value) {
         // Use our helper function to safely get the setting_value
-        const value = getSettingValue<any>(data);
         return { 
-          silver: Number(value?.silver || 200), 
-          gold: Number(value?.gold || 550) 
+          silver: Number(data.setting_value.silver || 200), 
+          gold: Number(data.setting_value.gold || 550) 
         };
       }
       
@@ -162,14 +156,14 @@ const CustomersList = ({
       let query = supabase
         .from('profiles')
         .select('*')
-        .eq('role', userRoleAsString('customer'));
+        .eq('role', 'customer');
       
       if (searchTerm) {
         query = query.or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
       }
       
       if (selectedTier !== 'all') {
-        query = query.eq('membership_tier', membershipTierAsString(selectedTier));
+        query = query.eq('membership_tier', selectedTier);
       }
 
       if (sortConfig.key) {
@@ -197,7 +191,7 @@ const CustomersList = ({
   };
 
   const handleTierChange = (value: string) => {
-    setSelectedTier(value as MembershipTier | 'all');
+    setSelectedTier(value as 'all' | 'bronze' | 'silver' | 'gold');
   };
 
   const columns = [

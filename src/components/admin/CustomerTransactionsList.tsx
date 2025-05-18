@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { TransactionsRow, castDbResult, eqTyped } from '@/integrations/supabase/typeUtils';
+import { TransactionsRow, castDbResult, asParam } from '@/integrations/supabase/typeUtils';
 
 interface CustomerTransactionsListProps {
   customerId?: string;

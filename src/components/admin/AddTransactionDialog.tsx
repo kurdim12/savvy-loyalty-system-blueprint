@@ -23,12 +23,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
-  TransactionInsert, 
-  TransactionType, 
-  UserRole, 
-  createTransactionData, 
-  userRoleAsString,
-  validateTransactionData 
+  TransactionsRow, 
+  createTransactionData 
 } from '@/integrations/supabase/typeUtils';
 
 interface AddTransactionDialogProps {
@@ -76,7 +72,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
       const query = supabase
         .from('profiles')
         .select('id, first_name, last_name, email')
-        .eq('role', userRoleAsString('customer'));
+        .eq('role', 'customer');
         
       // Apply search filter if provided
       if (customerSearchQuery) {
@@ -119,8 +115,8 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
         throw new Error('Points must be greater than 0');
       }
       
-      // Use correct typing for the transaction data
-      const transactionData = validateTransactionData({
+      // Use the correct transaction data creator
+      const transactionData = createTransactionData({
         user_id: customerId,
         transaction_type: transactionType,
         points: finalPoints,
@@ -130,7 +126,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
       // Create the transaction record
       const { error: transactionError } = await supabase
         .from('transactions')
-        .insert(transactionData as any);
+        .insert(transactionData);
       
       if (transactionError) throw transactionError;
       
