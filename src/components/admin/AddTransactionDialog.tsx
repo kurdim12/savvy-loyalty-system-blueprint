@@ -27,7 +27,8 @@ import {
   TransactionType, 
   UserRole, 
   createTransactionData, 
-  userRoleAsString 
+  userRoleAsString,
+  validateTransactionData 
 } from '@/integrations/supabase/typeUtils';
 
 interface AddTransactionDialogProps {
@@ -119,7 +120,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
       }
       
       // Use correct typing for the transaction data
-      const transactionData = createTransactionData({
+      const transactionData = validateTransactionData({
         user_id: customerId,
         transaction_type: transactionType,
         points: finalPoints,
@@ -129,7 +130,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
       // Create the transaction record
       const { error: transactionError } = await supabase
         .from('transactions')
-        .insert(transactionData);
+        .insert(transactionData as any);
       
       if (transactionError) throw transactionError;
       

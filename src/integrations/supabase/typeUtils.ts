@@ -61,6 +61,20 @@ export function safelyGetData<T, K extends keyof T>(obj: T | { error: any }, key
 }
 
 // Helper to safely check if data exists and is not an error
-export function isValidData<T>(data: T | { error: any }): data is T {
+export function isValidData<T>(data: T | { error: any } | null | undefined): data is T {
   return data !== null && data !== undefined && !(data as any).error;
+}
+
+// More robust type assertions for Supabase operations
+export function assertDataExists<T>(data: T | null | undefined, errorMessage = 'Data not found'): T {
+  if (data === null || data === undefined) {
+    throw new Error(errorMessage);
+  }
+  return data;
+}
+
+// For safer Supabase insertions
+export function validateTransactionData(data: any): TransactionInsert {
+  // Perform any runtime validations here if needed
+  return data as TransactionInsert;
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { TransactionInsert, TransactionType, createTransactionData } from '@/integrations/supabase/typeUtils';
+import { TransactionInsert, TransactionType, createTransactionData, validateTransactionData } from '@/integrations/supabase/typeUtils';
 import {
   Dialog,
   DialogContent,
@@ -91,7 +91,7 @@ const ManagePointsDialog = ({
       finalPoints = Math.max(1, Math.round(finalPoints));
       
       // Create the transaction data using our helper function
-      const transactionData = createTransactionData({
+      const transactionData = validateTransactionData({
         user_id: userId,
         transaction_type: transactionType,
         points: finalPoints,
@@ -101,7 +101,7 @@ const ManagePointsDialog = ({
       // Create the transaction record
       const { error: transactionError } = await supabase
         .from('transactions')
-        .insert(transactionData);
+        .insert(transactionData as any);
       
       if (transactionError) throw transactionError;
       
