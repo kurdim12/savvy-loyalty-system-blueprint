@@ -10,7 +10,8 @@ import {
   settingNameAsString, 
   userRoleAsString,
   membershipTierAsString,
-  isValidData
+  isValidData,
+  typedEq
 } from '@/integrations/supabase/typeUtils';
 import CustomerTransactionsList from './CustomerTransactionsList';
 import {
@@ -141,8 +142,9 @@ const CustomersList = ({
         return { silver: 200, gold: 550 };
       }
       
-      if (isValidData(data) && data.setting_value) {
-        const value = castJsonToType<any>(data.setting_value);
+      if (isValidData(data)) {
+        const dataValue = data.setting_value;
+        const value = castJsonToType<any>(dataValue);
         return { 
           silver: Number(value.silver || 200), 
           gold: Number(value.gold || 550) 
@@ -192,6 +194,10 @@ const CustomersList = ({
     }
   
     setSortConfig({ key, direction });
+  };
+
+  const handleTierChange = (value: string) => {
+    setSelectedTier(value as MembershipTier | 'all');
   };
 
   const columns = [

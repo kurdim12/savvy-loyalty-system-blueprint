@@ -27,7 +27,8 @@ import {
   TransactionType, 
   UserRole, 
   createTransactionData, 
-  userRoleAsString 
+  userRoleAsString, 
+  typedEq 
 } from '@/integrations/supabase/typeUtils';
 
 interface AddTransactionDialogProps {

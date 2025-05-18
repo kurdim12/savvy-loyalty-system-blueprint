@@ -90,6 +90,7 @@ const ManagePointsDialog = ({
       // Ensure points are positive integers
       finalPoints = Math.max(1, Math.round(finalPoints));
       
+      // Create the transaction data using our helper function
       const transactionData = createTransactionData({
         user_id: userId,
         transaction_type: transactionType,
