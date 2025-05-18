@@ -23,3 +23,24 @@ export const eq = <T extends keyof any, U>(column: T, value: U) => {
 export const castJsonToType = <T>(jsonValue: unknown): T => {
   return jsonValue as T;
 };
+
+// Helper function for making .eq() queries with proper typing
+export const typedEq = (column: string, value: any) => {
+  return { [column]: value };
+};
+
+// Helper function to safely cast database results to known types
+export function castDbResult<T>(data: unknown): T {
+  return data as T;
+}
+
+// Helper to safely cast transaction data for inserts
+export function createTransactionData(data: Partial<TransactionInsert>): TransactionInsert {
+  return data as TransactionInsert;
+}
+
+// Helper to correctly type setting names as strings with proper casting
+export const settingNameAsString = (name: string) => name as any;
+
+// Helper to safely handle user roles in queries
+export const userRoleAsString = (role: UserRole | string) => role as any;

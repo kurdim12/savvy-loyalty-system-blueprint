@@ -1,450 +1,350 @@
-
-import { useState, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { 
-  Table, 
-  TableHeader, 
-  TableRow, 
-  TableHead, 
-  TableBody, 
-  TableCell 
-} from '@/components/ui/table';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
-} from '@/components/ui/dialog';
-import { Progress } from '@/components/ui/progress';
-import { Search, Eye, CreditCard, Award, Phone, Mail, Calendar, User } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { 
+  MembershipTier, 
+  ProfilesRow, 
+  castDbResult, 
+  castJsonToType,  
+  settingNameAsString, 
+  userRoleAsString 
+} from '@/integrations/supabase/typeUtils';
+import CustomerTransactionsList from './CustomerTransactionsList';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronsUpDown,
+  MoreHorizontal,
+  Search,
+  UserPlus,
+  CheckCircle
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { toast } from 'sonner';
-import RankChanger from './RankChanger';
 
-export interface Customer {
+interface CustomerListProps {
+  onManagePoints: (customerId: string, customerName: string) => void;
+  onRankChange: (customerId: string, newRank: Database['public']['Enums']['membership_tier']) => void;
+}
+
+interface Customer {
   id: string;
   first_name: string;
   last_name: string;
   email: string;
+  role: string;
+  membership_tier: string;
   current_points: number;
-  membership_tier: Database['public']['Enums']['membership_tier'];
-  visits: number;
-  created_at: string;
-  phone?: string;
-  birthday?: string;
 }
 
-interface CustomersListProps {
-  onManagePoints?: (customerId: string, customerName: string) => void;
-  onSelectCustomer?: (customerId: string) => void;
-  onRankChange?: (customerId: string, newRank: Database['public']['Enums']['membership_tier']) => void;
+interface DataTableColumnHeaderProps {
+  column: {
+    id: string;
+    title: string;
+    sortable: boolean;
+  };
+  sortConfig: {
+    key: string | null;
+    direction: 'asc' | 'desc' | null;
+  };
+  onSort: (key: string) => void;
 }
 
-const CustomersList = ({ onManagePoints, onSelectCustomer, onRankChange }: CustomersListProps) => {
-  const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [rankThresholds, setRankThresholds] = useState({
-    silver: 200,
-    gold: 550
-  });
+const DataTableColumnHeader: React.FC<DataTableColumnHeaderProps> = ({
+  column,
+  sortConfig,
+  onSort,
+}) => {
+  const handleSort = () => {
+    if (column.sortable) {
+      onSort(column.id);
+    }
+  };
 
-  // Fetch rank thresholds from settings
-  const { data: thresholdData } = useQuery({
-    queryKey: ['rankThresholds'],
+  const isSorted = sortConfig.key === column.id;
+  const sortDirection = isSorted ? sortConfig.direction : null;
+
+  return (
+    <TableHead className="cursor-pointer select-none" onClick={handleSort}>
+      {column.title}
+      {column.sortable && (
+        <ChevronsUpDown className="ml-2 h-4 w-4" />
+      )}
+      {sortDirection === 'asc' && <ArrowUp className="ml-2 h-4 w-4" />}
+      {sortDirection === 'desc' && <ArrowDown className="ml-2 h-4 w-4" />}
+    </TableHead>
+  );
+};
+
+const CustomersList = ({ 
+  onManagePoints,
+  onRankChange
+}: CustomerListProps) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTier, setSelectedTier] = useState<MembershipTier | 'all'>('all');
+  const [sortConfig, setSortConfig] = useState<{
+    key: string | null;
+    direction: 'asc' | 'desc' | null;
+  }>({ key: null, direction: null });
+
+  // Fetch rank threshold settings
+  const { data: rankThresholds } = useQuery({
+    queryKey: ['admin', 'rankSettings'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('settings')
         .select('setting_value')
-        .eq('setting_name', 'rank_thresholds')
+        .eq('setting_name', settingNameAsString('rank_thresholds'))
         .single();
       
       if (error) {
-        // Return defaults if not found or error
+        console.error("Error fetching rank thresholds:", error);
+        // Use default thresholds if there's an error
         return { silver: 200, gold: 550 };
       }
       
-      return data.setting_value as {silver: number, gold: number};
+      if (data && data.setting_value) {
+        const value = castJsonToType(data.setting_value);
+        return { 
+          silver: Number(value.silver || 200), 
+          gold: Number(value.gold || 550) 
+        };
+      }
+      
+      return { silver: 200, gold: 550 };
     }
   });
 
-  useEffect(() => {
-    if (thresholdData) {
-      setRankThresholds(thresholdData);
-    }
-  }, [thresholdData]);
-
-  const { data: customers, isLoading } = useQuery({
-    queryKey: ['admin', 'customers', searchQuery],
+  // Fetch customers data
+  const { data: customers, isLoading, error } = useQuery({
+    queryKey: ['admin', 'customers', searchTerm, sortConfig],
     queryFn: async () => {
-      const query = supabase
+      let query = supabase
         .from('profiles')
         .select('*')
-        .eq('role', 'customer' as Database['public']['Enums']['user_role'])
-        .order('created_at', { ascending: false });
+        .eq('role', userRoleAsString('customer'));
       
-      // Apply search filter if present
-      if (searchQuery) {
-        query.or(
-          `first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`
-        );
+      if (searchTerm) {
+        query = query.or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
+      }
+      
+      if (selectedTier !== 'all') {
+        query = query.eq('membership_tier', selectedTier);
+      }
+
+      if (sortConfig.key) {
+        const ascending = sortConfig.direction === 'asc';
+        query = query.order(sortConfig.key, { ascending });
       }
       
       const { data, error } = await query;
-      
       if (error) throw error;
-      return data as unknown as Customer[];
+      
+      return castDbResult<ProfilesRow[]>(data);
     }
   });
 
-  const handleViewCustomer = (customer: Customer) => {
-    setSelectedCustomer(customer);
-    setViewDialogOpen(true);
-    
-    // If onSelectCustomer is provided, call it with the customer ID
-    if (onSelectCustomer) {
-      onSelectCustomer(customer.id);
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' | null = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    } else if (sortConfig.key === key && sortConfig.direction === 'desc') {
+      direction = null;
+      key = null;
+    }
+  
+    setSortConfig({ key, direction });
+  };
+
+  const columns = [
+    {
+      id: 'first_name',
+      title: 'First Name',
+      sortable: true,
+    },
+    {
+      id: 'last_name',
+      title: 'Last Name',
+      sortable: true,
+    },
+    {
+      id: 'email',
+      title: 'Email',
+      sortable: true,
+    },
+    {
+      id: 'current_points',
+      title: 'Points',
+      sortable: true,
+    },
+    {
+      id: 'membership_tier',
+      title: 'Membership Tier',
+      sortable: true,
+    },
+    {
+      id: 'actions',
+      title: 'Actions',
+      sortable: false,
+    },
+  ];
+
+  const getTierColor = (tier: string) => {
+    switch (tier) {
+      case 'bronze':
+        return 'text-stone-500';
+      case 'silver':
+        return 'text-slate-500';
+      case 'gold':
+        return 'text-amber-500';
+      default:
+        return 'text-gray-500';
     }
   };
 
-  // Calculate rank progress
-  const calculateProgress = (points: number, tier: string) => {
-    if (tier === 'bronze') {
-      return Math.min((points / rankThresholds.silver) * 100, 100);
-    } else if (tier === 'silver') {
-      return Math.min(((points - rankThresholds.silver) / (rankThresholds.gold - rankThresholds.silver)) * 100, 100);
-    }
-    return 100; // Gold tier
-  };
+  if (isLoading) {
+    return <p>Loading customers...</p>;
+  }
 
-  // Calculate points needed for next tier
-  const pointsToNextTier = (points: number, tier: string) => {
-    if (tier === 'bronze') {
-      return Math.max(0, rankThresholds.silver - points);
-    } else if (tier === 'silver') {
-      return Math.max(0, rankThresholds.gold - points);
-    }
-    return 0; // Gold tier has no next tier
-  };
-
-  // Get next tier name
-  const getNextTier = (tier: string) => {
-    if (tier === 'bronze') return 'silver';
-    if (tier === 'silver') return 'gold';
-    return null; // Gold tier has no next tier
-  };
-
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'Not provided';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  // Generate a customer ID in the format RSC-#### based on their database ID
-  const generateCustomerId = (id: string) => {
-    // Use the last 4 characters of the UUID
-    const shortId = id.replace(/-/g, '').slice(-4).toUpperCase();
-    return `RSC-${shortId}`;
-  };
-
-  const exportCustomers = () => {
-    if (!customers || customers.length === 0) {
-      toast.error("No customers to export");
-      return;
-    }
-    
-    // Create CSV content
-    const headers = [
-      'ID', 'First Name', 'Last Name', 'Email', 'Phone', 
-      'Points', 'Tier', 'Visits', 'Birthday', 'Joined'
-    ];
-    
-    const rows = customers.map(customer => [
-      generateCustomerId(customer.id),
-      customer.first_name || '',
-      customer.last_name || '',
-      customer.email,
-      customer.phone || '',
-      customer.current_points,
-      customer.membership_tier,
-      customer.visits,
-      customer.birthday || '',
-      formatDate(customer.created_at)
-    ]);
-    
-    // Combine headers and rows
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
-    
-    // Create download link
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.setAttribute('hidden', '');
-    a.setAttribute('href', url);
-    a.setAttribute('download', `customers-${new Date().toISOString()}.csv`);
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    toast.success(`${customers.length} customers exported successfully`);
-  };
+  if (error) {
+    return <p>Error loading customers: {error.message}</p>;
+  }
 
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <CardTitle>Customer Management</CardTitle>
-            <CardDescription>
-              View and manage customer accounts, profiles, and reward progress.
-            </CardDescription>
+        <CardTitle>Customers</CardTitle>
+        <CardDescription>
+          View a list of all registered customers. You can manage their points
+          and membership tiers.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search customers..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          <Button variant="outline" onClick={exportCustomers}>
-            Export Customers
+          <Select value={selectedTier} onValueChange={setSelectedTier}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Tier" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tiers</SelectItem>
+              <SelectItem value="bronze">Bronze</SelectItem>
+              <SelectItem value="silver">Silver</SelectItem>
+              <SelectItem value="gold">Gold</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add Customer
           </Button>
         </div>
-        <div className="relative mt-2">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name, email or phone..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
+        <div className="mt-4 overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Customer ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Tier</TableHead>
-                <TableHead>Points</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Visits</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
+              {columns.map((column) => (
+                <DataTableColumnHeader
+                  key={column.id}
+                  column={column}
+                  sortConfig={sortConfig}
+                  onSort={handleSort}
+                />
+              ))}
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">Loading customers...</TableCell>
-                </TableRow>
-              ) : customers?.length ? (
-                customers.map((customer) => (
-                  <TableRow key={customer.id}>
-                    <TableCell className="font-medium">{generateCustomerId(customer.id)}</TableCell>
-                    <TableCell>
-                      {customer.first_name || customer.last_name ? 
-                        `${customer.first_name || ''} ${customer.last_name || ''}` : 
-                        <span className="text-muted-foreground italic">No name</span>
-                      }
-                    </TableCell>
-                    <TableCell>{customer.email}</TableCell>
-                    <TableCell>
-                      {onRankChange ? (
-                        <RankChanger 
-                          customerId={customer.id}
-                          currentRank={customer.membership_tier}
-                          onRankChange={onRankChange}
-                        />
-                      ) : (
-                        <Badge className="capitalize" variant={
-                          customer.membership_tier === 'gold' ? 'default' :
-                          customer.membership_tier === 'silver' ? 'outline' : 'secondary'
-                        }>
-                          {customer.membership_tier}
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>{customer.current_points}</TableCell>
-                    <TableCell>
-                      <div className="w-24">
-                        <Progress 
-                          value={calculateProgress(customer.current_points, customer.membership_tier)} 
-                          className="h-2" 
-                          indicatorClassName={
-                            customer.membership_tier === 'bronze' ? 'bg-amber-500' : 
-                            customer.membership_tier === 'silver' ? 'bg-gray-500' : 
-                            'bg-yellow-500'
-                          }
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell>{customer.visits}</TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleViewCustomer(customer)}
-                        className="mr-1"
-                      >
-                        <Eye className="h-4 w-4 mr-1" /> View
-                      </Button>
-                      
-                      {onManagePoints && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => onManagePoints(customer.id, `${customer.first_name || ''} ${customer.last_name || ''}`)}
-                        >
-                          <CreditCard className="h-4 w-4 mr-1" /> Points
+              {customers?.map((customer) => (
+                <TableRow key={customer.id}>
+                  <TableCell>{customer.first_name}</TableCell>
+                  <TableCell>{customer.last_name}</TableCell>
+                  <TableCell>{customer.email}</TableCell>
+                  <TableCell>{customer.current_points}</TableCell>
+                  <TableCell>
+                    <Badge className={getTierColor(customer.membership_tier)}>
+                      {customer.membership_tier}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
                         </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
-                    No customers found. {searchQuery && 'Try a different search term.'}
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            onManagePoints(customer.id, `${customer.first_name} ${customer.last_name}`)
+                          }
+                        >
+                          Manage Points
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => {
+                            const newRank = customer.membership_tier === 'bronze'
+                              ? 'silver'
+                              : customer.membership_tier === 'silver'
+                                ? 'gold'
+                                : 'bronze';
+                            onRankChange(customer.id, newRank);
+                          }}
+                        >
+                          Change Rank
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              )}
+              ))}
             </TableBody>
           </Table>
         </div>
       </CardContent>
-
-      {/* Customer Details Dialog */}
-      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Customer Details</DialogTitle>
-            <DialogDescription>
-              Detailed information about the selected customer.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedCustomer && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold">
-                  {selectedCustomer.first_name || selectedCustomer.last_name ? 
-                    `${selectedCustomer.first_name || ''} ${selectedCustomer.last_name || ''}` :
-                    <span className="text-muted-foreground italic">No name provided</span>
-                  }
-                </h3>
-                <Badge className="capitalize" variant={
-                  selectedCustomer.membership_tier === 'gold' ? 'default' :
-                  selectedCustomer.membership_tier === 'silver' ? 'outline' : 'secondary'
-                }>
-                  {selectedCustomer.membership_tier} Tier
-                </Badge>
-              </div>
-              
-              <div className="bg-amber-50 rounded-md p-3 flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Award className="h-5 w-5 text-amber-700" />
-                  <span className="font-medium">Current Balance</span>
-                </div>
-                <span className="text-lg font-bold text-amber-800">{selectedCustomer.current_points} points</span>
-              </div>
-              
-              <div className="grid grid-cols-1 gap-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <div className="font-medium">Customer ID:</div>
-                  <div>{generateCustomerId(selectedCustomer.id)}</div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <div className="font-medium">Email:</div>
-                  <div>{selectedCustomer.email}</div>
-                </div>
-                
-                {selectedCustomer.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <div className="font-medium">Phone:</div>
-                    <div>{selectedCustomer.phone}</div>
-                  </div>
-                )}
-                
-                {selectedCustomer.birthday && (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div className="font-medium">Birthday:</div>
-                    <div>{formatDate(selectedCustomer.birthday)}</div>
-                  </div>
-                )}
-                
-                <div className="flex items-center gap-2">
-                  <Award className="h-4 w-4 text-muted-foreground" />
-                  <div className="font-medium">Total Visits:</div>
-                  <div>{selectedCustomer.visits} visits</div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <div className="font-medium">Joined:</div>
-                  <div>{formatDate(selectedCustomer.created_at)}</div>
-                </div>
-              </div>
-              
-              {selectedCustomer.membership_tier !== 'gold' && (
-                <div className="mt-4">
-                  <div className="flex justify-between items-center mb-1 text-sm">
-                    <span>Progress to {getNextTier(selectedCustomer.membership_tier)}</span>
-                    <span>{calculateProgress(selectedCustomer.current_points, selectedCustomer.membership_tier).toFixed(0)}%</span>
-                  </div>
-                  <Progress 
-                    value={calculateProgress(selectedCustomer.current_points, selectedCustomer.membership_tier)} 
-                    className="h-2" 
-                    indicatorClassName={selectedCustomer.membership_tier === 'bronze' ? 'bg-amber-500' : 'bg-gray-500'}
-                  />
-                  <p className="text-xs mt-2 text-amber-700">
-                    {pointsToNextTier(selectedCustomer.current_points, selectedCustomer.membership_tier)} more points needed for {getNextTier(selectedCustomer.membership_tier)}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-          
-          <DialogFooter>
-            {onManagePoints && selectedCustomer && (
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  setViewDialogOpen(false);
-                  onManagePoints(
-                    selectedCustomer.id, 
-                    `${selectedCustomer.first_name || ''} ${selectedCustomer.last_name || ''}`
-                  );
-                }}
-                className="mr-auto"
-              >
-                <CreditCard className="h-4 w-4 mr-2" /> Manage Points
-              </Button>
-            )}
-            <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 };

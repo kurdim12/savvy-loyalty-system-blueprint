@@ -22,8 +22,13 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
-import { TransactionInsert, TransactionType, UserRole } from '@/integrations/supabase/typeUtils';
+import { 
+  TransactionInsert, 
+  TransactionType, 
+  UserRole, 
+  createTransactionData, 
+  userRoleAsString 
+} from '@/integrations/supabase/typeUtils';
 
 interface AddTransactionDialogProps {
   open: boolean;
@@ -70,7 +75,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
       const query = supabase
         .from('profiles')
         .select('id, first_name, last_name, email')
-        .eq('role', 'customer' as UserRole);
+        .eq('role', userRoleAsString('customer'));
         
       // Apply search filter if provided
       if (customerSearchQuery) {
@@ -114,12 +119,12 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
       }
       
       // Use correct typing for the transaction data
-      const transactionData: TransactionInsert = {
+      const transactionData = createTransactionData({
         user_id: customerId,
-        transaction_type: transactionType as Database['public']['Enums']['transaction_type'],
+        transaction_type: transactionType,
         points: finalPoints,
         notes: notes || `${transactionType === 'earn' ? 'Earned' : 'Redeemed'} ${finalPoints} points`,
-      };
+      });
       
       // Create the transaction record
       const { error: transactionError } = await supabase

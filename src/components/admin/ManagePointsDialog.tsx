@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { TransactionInsert, TransactionType } from '@/integrations/supabase/typeUtils';
+import { TransactionInsert, TransactionType, createTransactionData } from '@/integrations/supabase/typeUtils';
 import {
   Dialog,
   DialogContent,
@@ -24,7 +23,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { Database } from '@/integrations/supabase/types';
 
 interface ManagePointsDialogProps {
   open: boolean;
@@ -92,12 +90,12 @@ const ManagePointsDialog = ({
       // Ensure points are positive integers
       finalPoints = Math.max(1, Math.round(finalPoints));
       
-      const transactionData: TransactionInsert = {
+      const transactionData = createTransactionData({
         user_id: userId,
-        transaction_type: transactionType as Database['public']['Enums']['transaction_type'],
+        transaction_type: transactionType,
         points: finalPoints,
         notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} ${finalPoints} points manually by admin`,
-      };
+      });
       
       // Create the transaction record
       const { error: transactionError } = await supabase

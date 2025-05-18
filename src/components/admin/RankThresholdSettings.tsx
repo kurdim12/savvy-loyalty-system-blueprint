@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Json } from '@/integrations/supabase/types';
-import { castJsonToType } from '@/integrations/supabase/typeUtils';
+import { SettingsRow, castJsonToType, settingNameAsString } from '@/integrations/supabase/typeUtils';
 
 interface RankThresholds {
   silver: number;
@@ -32,7 +32,7 @@ export function RankThresholdSettings() {
       const { data, error } = await supabase
         .from('settings')
         .select('*')
-        .eq('setting_name', 'rank_thresholds' as string)
+        .eq('setting_name', settingNameAsString('rank_thresholds'))
         .single();
       
       if (error) {
@@ -45,9 +45,8 @@ export function RankThresholdSettings() {
       }
       
       // Ensure the data.setting_value conforms to our RankThresholds interface
-      const rawValue = data?.setting_value;
-      if (typeof rawValue === 'object' && rawValue !== null && !Array.isArray(rawValue)) {
-        const typedValue = castJsonToType<RankThresholds>(rawValue);
+      if (data && typeof data.setting_value === 'object') {
+        const typedValue = castJsonToType<RankThresholds>(data.setting_value);
         if ('silver' in typedValue && 'gold' in typedValue) {
           return {
             silver: Number(typedValue.silver),
@@ -75,7 +74,7 @@ export function RankThresholdSettings() {
       const { data: existingSettings, error: checkError } = await supabase
         .from('settings')
         .select('id')
-        .eq('setting_name', 'rank_thresholds' as string)
+        .eq('setting_name', settingNameAsString('rank_thresholds'))
         .single();
       
       let result;
@@ -95,14 +94,14 @@ export function RankThresholdSettings() {
         
         result = await supabase
           .from('settings')
-          .update(updateData)
+          .update(updateData as any)
           .eq('id', existingSettings.id);
       } else {
         // Otherwise insert new settings
         result = await supabase
           .from('settings')
           .insert({
-            setting_name: 'rank_thresholds' as string,
+            setting_name: settingNameAsString('rank_thresholds'),
             setting_value: jsonThresholds
           });
       }

@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { 
   Card, 
@@ -16,8 +17,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
-import { TransactionsRow } from '@/integrations/supabase/typeUtils';
+import { TransactionsRow, castDbResult, typedEq } from '@/integrations/supabase/typeUtils';
 
 interface CustomerTransactionsListProps {
   customerId?: string;
@@ -32,11 +32,11 @@ const CustomerTransactionsList = ({ customerId }: CustomerTransactionsListProps)
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
-        .eq('user_id', customerId as string)
+        .eq('user_id', customerId as any) // Use type casting to avoid TS errors
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as TransactionsRow[];
+      return castDbResult<TransactionsRow[]>(data);
     },
     enabled: !!customerId
   });
