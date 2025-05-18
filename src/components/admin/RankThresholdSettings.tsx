@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Json } from '@/integrations/supabase/types';
+import { castJsonToType } from '@/integrations/supabase/typeUtils';
 
 interface RankThresholds {
   silver: number;
@@ -32,7 +32,7 @@ export function RankThresholdSettings() {
       const { data, error } = await supabase
         .from('settings')
         .select('*')
-        .eq('setting_name', 'rank_thresholds')
+        .eq('setting_name', 'rank_thresholds' as string)
         .single();
       
       if (error) {
@@ -45,13 +45,15 @@ export function RankThresholdSettings() {
       }
       
       // Ensure the data.setting_value conforms to our RankThresholds interface
-      const rawValue = data?.setting_value as Json;
-      if (typeof rawValue === 'object' && rawValue !== null && !Array.isArray(rawValue) && 
-          'silver' in rawValue && 'gold' in rawValue) {
-        return {
-          silver: Number(rawValue.silver),
-          gold: Number(rawValue.gold)
-        };
+      const rawValue = data?.setting_value;
+      if (typeof rawValue === 'object' && rawValue !== null && !Array.isArray(rawValue)) {
+        const typedValue = castJsonToType<RankThresholds>(rawValue);
+        if ('silver' in typedValue && 'gold' in typedValue) {
+          return {
+            silver: Number(typedValue.silver),
+            gold: Number(typedValue.gold)
+          };
+        }
       }
       
       return DEFAULT_THRESHOLDS;
@@ -73,7 +75,7 @@ export function RankThresholdSettings() {
       const { data: existingSettings, error: checkError } = await supabase
         .from('settings')
         .select('id')
-        .eq('setting_name', 'rank_thresholds')
+        .eq('setting_name', 'rank_thresholds' as string)
         .single();
       
       let result;
@@ -86,19 +88,21 @@ export function RankThresholdSettings() {
       
       // If settings exist, update them
       if (existingSettings?.id) {
+        const updateData = {
+          setting_value: jsonThresholds,
+          updated_at: new Date().toISOString()
+        };
+        
         result = await supabase
           .from('settings')
-          .update({
-            setting_value: jsonThresholds,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('id', existingSettings.id);
       } else {
         // Otherwise insert new settings
         result = await supabase
           .from('settings')
           .insert({
-            setting_name: 'rank_thresholds',
+            setting_name: 'rank_thresholds' as string,
             setting_value: jsonThresholds
           });
       }

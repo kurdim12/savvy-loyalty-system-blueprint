@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { 
   Card, 
@@ -18,20 +17,11 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { TransactionsRow } from '@/integrations/supabase/typeUtils';
 
 interface CustomerTransactionsListProps {
   customerId?: string;
 }
-
-// Create a type that matches the database schema
-type Transaction = {
-  id: string;
-  user_id: string;
-  transaction_type: Database['public']['Enums']['transaction_type'];
-  points: number;
-  created_at: string;
-  notes?: string;
-};
 
 const CustomerTransactionsList = ({ customerId }: CustomerTransactionsListProps) => {
   const { data: transactions, isLoading } = useQuery({
@@ -42,11 +32,11 @@ const CustomerTransactionsList = ({ customerId }: CustomerTransactionsListProps)
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
-        .eq('user_id', customerId)
+        .eq('user_id', customerId as string)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as unknown as Transaction[];
+      return data as TransactionsRow[];
     },
     enabled: !!customerId
   });

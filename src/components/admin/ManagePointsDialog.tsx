@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase, TransactionInsert, TransactionType } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
+import { TransactionInsert, TransactionType } from '@/integrations/supabase/typeUtils';
 import {
   Dialog,
   DialogContent,
@@ -93,7 +94,7 @@ const ManagePointsDialog = ({
       
       const transactionData: TransactionInsert = {
         user_id: userId,
-        transaction_type: transactionType,
+        transaction_type: transactionType as Database['public']['Enums']['transaction_type'],
         points: finalPoints,
         notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} ${finalPoints} points manually by admin`,
       };

@@ -1,6 +1,11 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import { 
+  UserRole, 
+  MembershipTier, 
+  TransactionType, 
+  TransactionInsert,
+} from './typeUtils';
 
 // Supabase project configuration
 const SUPABASE_URL = "https://egeufofnkpvwbmffgoxw.supabase.co";
@@ -46,6 +51,14 @@ export const supabase = createClient<Database>(
     }
   }
 );
+
+// Re-export type aliases from typeUtils
+export { 
+  UserRole,
+  MembershipTier,
+  TransactionType,
+  TransactionInsert,
+};
 
 // Helper types for Supabase enum values (making them properly typed)
 export type UserRole = Database['public']['Enums']['user_role'];
