@@ -1,3 +1,4 @@
+
 import { Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
@@ -21,7 +22,7 @@ import RedemptionsAdmin from '@/pages/admin/RedemptionsAdmin';
 import AdminLogin from '@/pages/AdminLogin';
 import NotFound from '@/pages/NotFound';
 
-import ProtectedRoutes from '@/components/auth/ProtectedRoutes';
+import { UserRoute, AdminRoute } from '@/components/auth/ProtectedRoutes';
 import { AuthProvider } from '@/contexts/AuthContext';
 
 const queryClient = new QueryClient();
@@ -36,7 +37,7 @@ function App() {
           <Route path="/admin-login" element={<AdminLogin />} />
           
           {/* Protected routes */}
-          <Route element={<ProtectedRoutes />}>
+          <Route element={<UserRoute>Dashboard</UserRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/rewards" element={<Rewards />} />
