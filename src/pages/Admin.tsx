@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,7 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Users, Award, CoffeeIcon, BarChart3, ClipboardList, 
-  BadgeDollarSign, ArrowRight, Target
+  BadgeDollarSign, ArrowRight, Target, Check
 } from 'lucide-react';
 
 const Admin = () => {
@@ -228,16 +227,16 @@ const Admin = () => {
                 <Button 
                   variant="outline" 
                   className="justify-start h-auto py-4 px-4"
-                  onClick={() => setActiveTab('transactions')}
+                  onClick={() => navigate('/admin/redemptions')}
                 >
                   <div className="flex items-center gap-3">
                     <div className="bg-amber-100 p-2 rounded">
-                      <BarChart3 className="h-5 w-5 text-amber-700" />
+                      <Check className="h-5 w-5 text-amber-700" />
                     </div>
                     <div className="text-left">
-                      <div className="font-medium">Transaction History</div>
+                      <div className="font-medium">Pending Redemptions</div>
                       <div className="text-xs text-muted-foreground">
-                        View all point transactions
+                        Approve or reject reward claims
                       </div>
                     </div>
                   </div>
