@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,24 +13,17 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Users, Award, CoffeeIcon, BarChart3, ClipboardList, 
-  BadgeDollarSign, ArrowRight, Target, Check
+  BadgeDollarSign, ArrowRight, Target
 } from 'lucide-react';
 
 const Admin = () => {
   const navigate = useNavigate();
-  const { isAdmin, loading, user } = useAuth();
+  const { isAdmin, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
-
-  console.log('Admin: Rendering with auth state:', { 
-    user: user ? 'exists' : 'null', 
-    isAdmin, 
-    loading
-  });
 
   useEffect(() => {
     // Redirect non-admins away
     if (!loading && !isAdmin) {
-      console.log('Admin: Not admin, redirecting to dashboard');
       navigate('/dashboard');
     }
   }, [isAdmin, loading, navigate]);
@@ -77,27 +71,16 @@ const Admin = () => {
         goalsCount: goalsCount || 0
       };
     },
-    enabled: !loading && isAdmin && !!user,
+    enabled: !loading && isAdmin,
   });
 
   if (loading) {
-    return (
-      <Layout adminOnly>
-        <div className="flex items-center justify-center min-h-[300px]">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent"></div>
-          <p className="ml-2 text-[#8B4513]">Loading admin dashboard...</p>
-        </div>
-      </Layout>
-    );
+    return <Layout adminOnly><div>Loading...</div></Layout>;
   }
 
-  if (!user || !isAdmin) {
-    console.log('Admin: No user or not admin, will redirect in useEffect');
+  if (!isAdmin) {
     return null; // Will redirect in useEffect
   }
-
-  // Debugging info
-  console.log('Admin: Rendering dashboard content, user is admin');
 
   return (
     <Layout adminOnly>
@@ -105,11 +88,6 @@ const Admin = () => {
         <div>
           <h1 className="text-2xl font-bold text-amber-900">Admin Dashboard</h1>
           <p className="text-amber-700">Manage your loyalty program</p>
-          <div className="mt-2 p-2 bg-amber-50 rounded border border-amber-200">
-            <p className="text-sm text-amber-800">
-              Logged in as admin: {user?.email}
-            </p>
-          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -250,16 +228,16 @@ const Admin = () => {
                 <Button 
                   variant="outline" 
                   className="justify-start h-auto py-4 px-4"
-                  onClick={() => navigate('/admin/redemptions')}
+                  onClick={() => setActiveTab('transactions')}
                 >
                   <div className="flex items-center gap-3">
                     <div className="bg-amber-100 p-2 rounded">
-                      <Check className="h-5 w-5 text-amber-700" />
+                      <BarChart3 className="h-5 w-5 text-amber-700" />
                     </div>
                     <div className="text-left">
-                      <div className="font-medium">Pending Redemptions</div>
+                      <div className="font-medium">Transaction History</div>
                       <div className="text-xs text-muted-foreground">
-                        Approve or reject reward claims
+                        View all point transactions
                       </div>
                     </div>
                   </div>

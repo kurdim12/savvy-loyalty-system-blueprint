@@ -35,16 +35,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = profile?.role === 'admin';
   const isUser = profile?.role === 'customer';
 
-  // Debug auth state whenever it changes
-  useEffect(() => {
-    console.log('Auth State Updated:', {
-      user: user?.email || 'none',
-      profile: profile ? `${profile.first_name} (${profile.role})` : 'none',
-      isAdmin,
-      isUser
-    });
-  }, [user, profile, isAdmin, isUser]);
-
   // Initialize authentication
   useEffect(() => {
     console.log('AuthContext: Initializing authentication...');
@@ -141,10 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data) {
-        console.log('AuthContext: Profile fetched successfully', {
-          role: data.role,
-          email: data.email
-        });
+        console.log('AuthContext: Profile fetched successfully');
         setProfile(data as Profile);
       }
     } catch (error) {
@@ -197,7 +184,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = async () => {
     if (user?.id) {
-      console.log('AuthContext: Refreshing profile for user:', user.id);
       await fetchUserProfile(user.id);
     }
   };
