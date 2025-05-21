@@ -42,11 +42,11 @@ const CustomerTransactionsList = ({ customerId }: CustomerTransactionsListProps)
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
-        .eq('user_id', customerId as string)
+        .eq('user_id', customerId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as unknown as Transaction[];
+      return data as Transaction[];
     },
     enabled: !!customerId
   });

@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Plus, BarChart3, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 import RewardsList from '@/components/admin/RewardsList';
+import UpdateRewardsSystem from '@/components/admin/UpdateRewardsSystem';
 
 const RewardsManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,6 +46,9 @@ const RewardsManagement = () => {
             </Button>
           </div>
         </div>
+
+        {/* Update Rewards System */}
+        <UpdateRewardsSystem />
 
         {/* Filters */}
         <Card>
@@ -84,7 +88,6 @@ const RewardsManagement = () => {
         </Card>
 
         {/* Rewards List */}
-        {/* Removing props that don't exist on RewardsList component */}
         <RewardsList />
       </div>
     </AdminLayout>
