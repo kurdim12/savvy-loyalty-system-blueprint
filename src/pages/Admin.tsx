@@ -17,12 +17,19 @@ import {
 
 const Admin = () => {
   const navigate = useNavigate();
-  const { isAdmin, loading } = useAuth();
+  const { isAdmin, loading, user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+
+  console.log('Admin: Rendering with auth state:', { 
+    user: user ? 'exists' : 'null', 
+    isAdmin, 
+    loading
+  });
 
   useEffect(() => {
     // Redirect non-admins away
     if (!loading && !isAdmin) {
+      console.log('Admin: Not admin, redirecting to dashboard');
       navigate('/dashboard');
     }
   }, [isAdmin, loading, navigate]);
@@ -70,16 +77,27 @@ const Admin = () => {
         goalsCount: goalsCount || 0
       };
     },
-    enabled: !loading && isAdmin,
+    enabled: !loading && isAdmin && !!user,
   });
 
   if (loading) {
-    return <Layout adminOnly><div>Loading...</div></Layout>;
+    return (
+      <Layout adminOnly>
+        <div className="flex items-center justify-center min-h-[300px]">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent"></div>
+          <p className="ml-2 text-[#8B4513]">Loading admin dashboard...</p>
+        </div>
+      </Layout>
+    );
   }
 
-  if (!isAdmin) {
+  if (!user || !isAdmin) {
+    console.log('Admin: No user or not admin, will redirect in useEffect');
     return null; // Will redirect in useEffect
   }
+
+  // Debugging info
+  console.log('Admin: Rendering dashboard content, user is admin');
 
   return (
     <Layout adminOnly>
@@ -87,6 +105,11 @@ const Admin = () => {
         <div>
           <h1 className="text-2xl font-bold text-amber-900">Admin Dashboard</h1>
           <p className="text-amber-700">Manage your loyalty program</p>
+          <div className="mt-2 p-2 bg-amber-50 rounded border border-amber-200">
+            <p className="text-sm text-amber-800">
+              Logged in as admin: {user?.email}
+            </p>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">

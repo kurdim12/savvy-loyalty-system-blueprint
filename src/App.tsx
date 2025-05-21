@@ -36,25 +36,23 @@ function App() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           
-          {/* Protected routes */}
-          <Route element={<UserRoute>Dashboard</UserRoute>}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/rewards" element={<Rewards />} />
-            <Route path="/community" element={<CommunityPage />} />
-            <Route path="/community/:id" element={<CommunityHome />} />
-            <Route path="/thread/:id" element={<ThreadPage />} />
-            
-            {/* Admin routes */}
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/users" element={<UserManagement />} />
-            <Route path="/admin/transactions" element={<TransactionsManagement />} />
-            <Route path="/admin/community-goals" element={<CommunityGoalsAdmin />} />
-            <Route path="/admin/settings" element={<SettingsManagement />} />
-            <Route path="/admin/rewards" element={<RewardsAdmin />} />
-            <Route path="/admin/redemptions" element={<RedemptionsAdmin />} />
-          </Route>
+          {/* User protected routes */}
+          <Route path="/dashboard" element={<UserRoute><Dashboard /></UserRoute>} />
+          <Route path="/profile" element={<UserRoute><Profile /></UserRoute>} />
+          <Route path="/rewards" element={<UserRoute><Rewards /></UserRoute>} />
+          <Route path="/community" element={<UserRoute><CommunityPage /></UserRoute>} />
+          <Route path="/community/:id" element={<UserRoute><CommunityHome /></UserRoute>} />
+          <Route path="/thread/:id" element={<UserRoute><ThreadPage /></UserRoute>} />
+          
+          {/* Admin routes */}
+          <Route path="/admin" element={<UserRoute><Admin /></UserRoute>} />
+          <Route path="/admin/dashboard" element={<UserRoute><AdminDashboard /></UserRoute>} />
+          <Route path="/admin/users" element={<UserRoute><UserManagement /></UserRoute>} />
+          <Route path="/admin/transactions" element={<UserRoute><TransactionsManagement /></UserRoute>} />
+          <Route path="/admin/community-goals" element={<UserRoute><CommunityGoalsAdmin /></UserRoute>} />
+          <Route path="/admin/settings" element={<UserRoute><SettingsManagement /></UserRoute>} />
+          <Route path="/admin/rewards" element={<UserRoute><RewardsAdmin /></UserRoute>} />
+          <Route path="/admin/redemptions" element={<UserRoute><RedemptionsAdmin /></UserRoute>} />
           
           {/* 404 page */}
           <Route path="*" element={<NotFound />} />

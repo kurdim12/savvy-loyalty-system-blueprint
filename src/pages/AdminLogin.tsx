@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -55,7 +56,9 @@ const AdminLogin = () => {
 
   // If user is already an admin, redirect to admin dashboard
   useEffect(() => {
+    console.log('AdminLogin: Checking if user is admin:', { isAdmin, user });
     if (isAdmin && user) {
+      console.log('AdminLogin: User is admin, redirecting to /admin');
       navigate('/admin');
     }
   }, [isAdmin, user, navigate]);
@@ -69,6 +72,7 @@ const AdminLogin = () => {
       cleanupAuthState();
       
       // Call the edge function to create an admin user
+      console.log('AdminLogin: Creating admin account...');
       const { data, error } = await supabase.functions.invoke('create-admin', {
         method: 'POST',
         headers: {
@@ -119,6 +123,7 @@ const AdminLogin = () => {
         
         // Short delay to allow profile refresh to complete
         setTimeout(() => {
+          console.log('AdminLogin: Login successful, redirecting to /admin');
           navigate('/admin');
         }, 500);
       } else {
@@ -147,6 +152,9 @@ const AdminLogin = () => {
       password: credentials.password
     });
   };
+  
+  // Add console logs to debug authentication flow
+  console.log('AdminLogin rendering:', { isAdmin, user, created, error });
   
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100 p-4">

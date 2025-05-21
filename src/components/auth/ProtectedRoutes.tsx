@@ -14,7 +14,8 @@ export function UserRoute({ children }: { children: ReactNode }) {
     user: user ? 'exists' : 'null', 
     loading, 
     isUser, 
-    isAdmin 
+    isAdmin,
+    path: location.pathname
   });
 
   // Emergency timeout to prevent indefinite loading
@@ -88,7 +89,8 @@ export function AdminRoute({ children }: { children: ReactNode }) {
   console.log("AdminRoute: Init with auth state:", { 
     user: user ? 'exists' : 'null',
     loading, 
-    isAdmin 
+    isAdmin,
+    path: location.pathname
   });
 
   // Emergency timeout to prevent indefinite loading - reduced timeout
@@ -132,7 +134,7 @@ export function AdminRoute({ children }: { children: ReactNode }) {
   if (!user) {
     console.log('AdminRoute: No user found, redirecting to admin login');
     toast.error('Please sign in to access the admin area');
-    return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    return <Navigate to="/admin-login" state={{ from: location }} replace />;
   }
 
   // Only allow admins
