@@ -102,12 +102,12 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
           finalPoints = points;
         }
       } else {
-        // Amount-based: $1 = 1 point, rounded down to ensure exact point values
-        finalPoints = Math.floor(amountSpent);
+        // Amount-based: Use exact amount for points (1:1 ratio)
+        finalPoints = amountSpent;
       }
       
-      // Ensure points are positive integers
-      finalPoints = Math.max(1, Math.round(finalPoints));
+      // Ensure points are positive
+      finalPoints = Math.max(0, finalPoints);
       
       if (finalPoints <= 0) {
         throw new Error('Points must be greater than 0');
@@ -292,13 +292,13 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
                     onChange={(e) => {
                       const value = parseFloat(e.target.value);
                       setAmountSpent(isNaN(value) ? 0 : value);
-                      // Ensure exact point value by using Math.floor
-                      setPoints(Math.floor(isNaN(value) ? 0 : value));
+                      // Use exact value for points (no rounding)
+                      setPoints(isNaN(value) ? 0 : value);
                     }}
                     required
                   />
                   <p className="text-xs text-muted-foreground">
-                    This will award {Math.floor(amountSpent)} points ($1 = 1 point)
+                    This will award {amountSpent} points ($1 = 1 point)
                   </p>
                 </div>
               )}

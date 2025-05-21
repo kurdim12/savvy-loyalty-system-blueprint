@@ -62,7 +62,7 @@ const ManagePointsDialog = ({
 
   const handlePointsChange = (value: string) => {
     const numValue = parseInt(value);
-    setPoints(isNaN(numValue) ? 0 : Math.max(1, numValue));
+    setPoints(isNaN(numValue) ? 0 : numValue);
   };
 
   const resetForm = () => {
@@ -84,12 +84,14 @@ const ManagePointsDialog = ({
         const selectedCategory = drinkCategories.find(d => d.id === selectedDrink);
         finalPoints = selectedCategory?.points || 0;
       } else if (pointsCalculationMethod === 'amount') {
-        // Round down to ensure exact point values
-        finalPoints = Math.floor(amountSpent);
+        // Use exact amount for points (1:1 ratio)
+        finalPoints = amountSpent;
       }
       
-      // Ensure points are positive integers
-      finalPoints = Math.max(1, Math.round(finalPoints));
+      // For custom points, use the exact value entered
+      if (pointsCalculationMethod === 'custom') {
+        finalPoints = points;
+      }
       
       const transactionData = {
         user_id: userId,
@@ -131,7 +133,6 @@ const ManagePointsDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate points based on selected method
     if (pointsCalculationMethod === 'custom' && points <= 0) {
       toast({
         title: "Validation Error",
@@ -253,12 +254,13 @@ const ManagePointsDialog = ({
                   onChange={(e) => {
                     const value = parseFloat(e.target.value);
                     setAmountSpent(isNaN(value) ? 0 : value);
-                    setPoints(Math.floor(isNaN(value) ? 0 : value));
+                    // Use the exact amount for points (no rounding)
+                    setPoints(isNaN(value) ? 0 : value);
                   }}
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  This will award {Math.floor(amountSpent)} points ($1 = 1 point)
+                  This will award {amountSpent} points ($1 = 1 point)
                 </p>
               </div>
             )}
