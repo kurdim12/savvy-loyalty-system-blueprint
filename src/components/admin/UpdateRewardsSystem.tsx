@@ -20,17 +20,43 @@ const UpdateRewardsSystem = () => {
     setError(null);
     
     try {
-      // Step 1: Delete all existing rewards
+      // Step 1: First fetch all existing rewards to map old rewards to new ones
+      const { data: existingRewards, error: fetchError } = await supabase
+        .from('rewards')
+        .select('id, name');
+      
+      if (fetchError) throw new Error(`Error fetching existing rewards: ${fetchError.message}`);
+      
+      // Step 2: Check for existing redemptions
+      const { data: redemptions, error: redemptionsError } = await supabase
+        .from('redemptions')
+        .select('*');
+      
+      if (redemptionsError) throw new Error(`Error checking existing redemptions: ${redemptionsError.message}`);
+      
+      if (redemptions && redemptions.length > 0) {
+        // Step 3: Update redemptions to use a placeholder or null for reward_id
+        const { error: updateError } = await supabase
+          .from('redemptions')
+          .update({ reward_id: null, status: 'archived' })
+          .neq('id', '00000000-0000-0000-0000-000000000000');
+        
+        if (updateError) throw new Error(`Error updating redemptions: ${updateError.message}`);
+        
+        toast.info(`${redemptions.length} existing redemption(s) have been archived`);
+      }
+      
+      // Step 4: Now we can safely delete all existing rewards
       const { error: deleteError } = await supabase
         .from('rewards')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // This ensures we delete all records
+        .neq('id', '00000000-0000-0000-0000-000000000000');
       
       if (deleteError) throw new Error(`Error deleting existing rewards: ${deleteError.message}`);
       
       toast.success('Successfully removed old rewards');
       
-      // Step 2: Insert new rewards from our predefined data
+      // Step 5: Insert new rewards from our predefined data
       const newRewards = rewardsData.map(convertRewardToDbFormat);
       
       const { error: insertError } = await supabase
@@ -84,6 +110,7 @@ const UpdateRewardsSystem = () => {
           <div className="space-y-4">
             <p className="text-amber-700">
               This action will delete all existing rewards and replace them with new tiered rewards for Bronze, Silver, and Gold members.
+              Any existing redemptions will be archived.
             </p>
             <div>
               <h3 className="font-medium mb-2">New Rewards to be added:</h3>
