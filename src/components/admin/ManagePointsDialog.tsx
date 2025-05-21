@@ -88,11 +88,7 @@ const ManagePointsDialog = ({
         finalPoints = amountSpent;
       }
       
-      // For custom points, use the exact value entered
-      if (pointsCalculationMethod === 'custom') {
-        finalPoints = points;
-      }
-      
+      // Create the transaction record with the exact points value
       const transactionData = {
         user_id: userId,
         transaction_type: transactionType,
@@ -100,7 +96,6 @@ const ManagePointsDialog = ({
         notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} ${finalPoints} points manually by admin`,
       } as unknown as Database['public']['Tables']['transactions']['Insert'];
       
-      // Create the transaction record
       const { error: transactionError } = await supabase
         .from('transactions')
         .insert(transactionData);

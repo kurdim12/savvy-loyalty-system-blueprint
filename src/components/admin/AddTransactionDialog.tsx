@@ -113,7 +113,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
         throw new Error('Points must be greater than 0');
       }
       
-      // Use correct typing for the transaction data
+      // Create the transaction record with exact points value
       const transactionData = {
         user_id: customerId,
         transaction_type: transactionType,
@@ -121,7 +121,6 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
         notes: notes || `${transactionType === 'earn' ? 'Earned' : 'Redeemed'} ${finalPoints} points`,
       } as unknown as Database['public']['Tables']['transactions']['Insert'];
       
-      // Create the transaction record
       const { error: transactionError } = await supabase
         .from('transactions')
         .insert(transactionData);
