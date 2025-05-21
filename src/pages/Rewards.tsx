@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { CoffeeIcon, Award, Gift, Trophy, Star } from 'lucide-react';
+import { CoffeeIcon, Award, Gift, Trophy, Star, AlertCircle } from 'lucide-react';
 import { getDiscountRate } from '@/integrations/supabase/functions';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 const Rewards = () => {
   const { profile } = useAuth();
   const [redeeming, setRedeeming] = useState<string | null>(null);
+  const [redeemError, setRedeemError] = useState<string | null>(null);
   
   // Get available rewards from Supabase
   const { data: availableRewards } = useQuery({
@@ -60,15 +61,25 @@ const Rewards = () => {
     }
     
     setRedeeming(rewardId);
+    setRedeemError(null);
+    
     try {
       // Create redemption record - now with pointsCost included as points_spent
+      const { data: reward, error: rewardError } = await supabase
+        .from('rewards')
+        .select('id, name')
+        .eq('id', rewardId)
+        .single();
+        
+      if (rewardError) throw rewardError;
+        
       const { error: redemptionError } = await supabase
         .from('redemptions')
         .insert({
           user_id: profile.id,
           reward_id: rewardId,
           status: 'pending',
-          points_spent: pointsCost // Add the required points_spent field
+          points_spent: pointsCost
         });
         
       if (redemptionError) throw redemptionError;
@@ -88,7 +99,7 @@ const Rewards = () => {
           user_id: profile.id,
           points: pointsCost,
           transaction_type: 'redeem',
-          notes: 'Reward redemption'
+          notes: `Redeemed reward: ${reward.name}`
         });
         
       if (transactionError) throw transactionError;
@@ -98,11 +109,24 @@ const Rewards = () => {
       
     } catch (error) {
       console.error('Error redeeming reward:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setRedeemError(errorMessage);
       toast.error('Failed to redeem reward. Please try again.');
     } finally {
       setRedeeming(null);
     }
   };
+  
+  // Filter rewards based on user's membership tier
+  const filteredRewards = availableRewards?.filter(reward => {
+    // For each tier, show only rewards available for that tier or lower tiers
+    const tierLevels = { bronze: 1, silver: 2, gold: 3 };
+    const userTierLevel = tierLevels[profile?.membership_tier || 'bronze'];
+    const rewardTierLevel = tierLevels[reward.membership_required || 'bronze'];
+    
+    // Users can only see rewards for their tier or lower
+    return rewardTierLevel <= userTierLevel;
+  });
   
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -196,7 +220,7 @@ const Rewards = () => {
           <div>
             <h2 className="text-xl font-semibold text-[#8B4513] mb-4">Available Rewards</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {availableRewards?.map((reward: any) => (
+              {filteredRewards?.map((reward: any) => (
                 <Card key={reward.id} className="border-[#8B4513]/20">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
@@ -212,7 +236,7 @@ const Rewards = () => {
                       <Gift className="h-12 w-12 text-[#8B4513]" />
                     </div>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="flex flex-col">
                     <Button 
                       className="w-full bg-[#8B4513] hover:bg-[#6F4E37]"
                       disabled={(profile?.current_points || 0) < reward.points_required || redeeming === reward.id}
@@ -226,11 +250,17 @@ const Rewards = () => {
                         "Redeem Reward"
                       )}
                     </Button>
+                    
+                    {redeemError && redeeming === reward.id && (
+                      <div className="mt-2 text-sm text-red-600 flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-1" /> {redeemError}
+                      </div>
+                    )}
                   </CardFooter>
                 </Card>
               ))}
               
-              {(!availableRewards || availableRewards.length === 0) && (
+              {(!filteredRewards || filteredRewards.length === 0) && (
                 <Card className="border-[#8B4513]/20 col-span-full text-center py-8">
                   <CardContent>
                     <Star className="h-12 w-12 mx-auto text-[#8B4513] opacity-50 mb-2" />
@@ -262,9 +292,9 @@ const Rewards = () => {
                         className="flex justify-between items-center border-b border-[#8B4513]/10 pb-3 last:border-0"
                       >
                         <div>
-                          <div className="font-medium text-[#8B4513]">{redemption.reward?.name}</div>
+                          <div className="font-medium text-[#8B4513]">{redemption.reward?.name || "Reward no longer available"}</div>
                           <div className="text-sm text-[#6F4E37]">
-                            {formatDate(redemption.created_at)} • {redemption.status}
+                            {formatDate(redemption.created_at)} • {redemption.status} • {redemption.points_spent} points
                           </div>
                         </div>
                         <Badge 
