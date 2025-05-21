@@ -209,7 +209,7 @@ export type Database = {
           fulfilled_at: string | null
           id: string
           points_spent: number
-          reward_id: string
+          reward_id: string | null
           status: string
           user_id: string
         }
@@ -218,7 +218,7 @@ export type Database = {
           fulfilled_at?: string | null
           id?: string
           points_spent: number
-          reward_id: string
+          reward_id?: string | null
           status?: string
           user_id: string
         }
@@ -227,7 +227,7 @@ export type Database = {
           fulfilled_at?: string | null
           id?: string
           points_spent?: number
-          reward_id?: string
+          reward_id?: string | null
           status?: string
           user_id?: string
         }
