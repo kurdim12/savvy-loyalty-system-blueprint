@@ -54,15 +54,15 @@ export const rewardsData: RewardDefinition[] = [
   {
     name: "150g Premium Coffee Bean Bag (87+ Score)",
     description: "150 grams of our premium coffee beans with a cupping score of 87+",
-    points: 300,
+    points: 500,
     category: "beans",
     membership_required: "gold",
     cuppingScore: 87
   },
   {
-    name: "Free Premium Coffee Experience (90+ Score)",
+    name: "Free Premium Coffee Cup Experience (90+ Score)",
     description: "Experience the luxury of our highest-rated 90+ coffee beans in a specially prepared cup",
-    points: 300,
+    points: 500,
     category: "drink",
     membership_required: "gold",
     cuppingScore: 90
