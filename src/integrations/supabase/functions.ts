@@ -1,4 +1,3 @@
-
 // Helper functions for Supabase database interaction
 
 import { supabase, requireAuth, requireAdmin } from './client';
@@ -572,5 +571,123 @@ export async function checkAdminAccess(requireAuthentication: boolean = false): 
     console.error('Error checking admin access:', err);
     if (requireAuthentication) throw err;
     return false;
+  }
+}
+
+// New function to approve a redemption
+export async function approveRedemption(redemptionId: string) {
+  try {
+    await requireAdmin();
+    
+    // Get the redemption details
+    const { data: redemption, error: fetchError } = await supabase
+      .from('redemptions')
+      .select('id, user_id, reward_id, points_spent, status')
+      .eq('id', redemptionId)
+      .single();
+      
+    if (fetchError || !redemption) {
+      console.error('Error fetching redemption:', fetchError);
+      return { error: fetchError || new Error('Redemption not found') };
+    }
+    
+    // Check if redemption is already processed
+    if (redemption.status !== 'pending') {
+      return { error: new Error(`Redemption already ${redemption.status}`) };
+    }
+
+    // Update the redemption status
+    const { error: updateError } = await supabase
+      .from('redemptions')
+      .update({ 
+        status: 'redeemed',
+        fulfilled_at: new Date().toISOString()
+      })
+      .eq('id', redemptionId);
+      
+    if (updateError) {
+      console.error('Error updating redemption status:', updateError);
+      return { error: updateError };
+    }
+    
+    // Deduct points from user
+    const { error: pointsError } = await decrementPoints(
+      redemption.user_id, 
+      redemption.points_spent
+    );
+    
+    if (pointsError) {
+      // If points deduction fails, revert the status update
+      await supabase
+        .from('redemptions')
+        .update({ status: 'pending', fulfilled_at: null })
+        .eq('id', redemptionId);
+        
+      return { error: pointsError };
+    }
+    
+    // Log a transaction
+    const { error: transactionError } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: redemption.user_id,
+        reward_id: redemption.reward_id,
+        points: redemption.points_spent,
+        transaction_type: 'redeem',
+        notes: 'Reward redemption approved'
+      });
+    
+    if (transactionError) {
+      console.error('Error creating transaction record:', transactionError);
+      // Continue anyway as the points have been deducted
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error approving redemption:', error);
+    return { error };
+  }
+}
+
+// New function to reject a redemption
+export async function rejectRedemption(redemptionId: string) {
+  try {
+    await requireAdmin();
+    
+    // Get the redemption details
+    const { data: redemption, error: fetchError } = await supabase
+      .from('redemptions')
+      .select('status')
+      .eq('id', redemptionId)
+      .single();
+      
+    if (fetchError || !redemption) {
+      console.error('Error fetching redemption:', fetchError);
+      return { error: fetchError || new Error('Redemption not found') };
+    }
+    
+    // Check if redemption is already processed
+    if (redemption.status !== 'pending') {
+      return { error: new Error(`Redemption already ${redemption.status}`) };
+    }
+    
+    // Update the redemption status
+    const { error: updateError } = await supabase
+      .from('redemptions')
+      .update({ 
+        status: 'expired',
+        fulfilled_at: new Date().toISOString()
+      })
+      .eq('id', redemptionId);
+      
+    if (updateError) {
+      console.error('Error updating redemption status:', updateError);
+      return { error: updateError };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error rejecting redemption:', error);
+    return { error };
   }
 }

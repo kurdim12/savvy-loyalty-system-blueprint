@@ -17,6 +17,7 @@ import DrinksManagement from './pages/admin/DrinksList';
 import CommunityManagement from './pages/admin/CommunityManagement';
 import SettingsManagement from './pages/admin/SettingsManagement';
 import AdminLogin from './pages/admin/Login';
+import RedemptionManagement from './pages/admin/RedemptionManagement';
 
 // Auth route protection
 import { AdminRoute, UserRoute, PublicRoute } from './components/auth/ProtectedRoutes';
@@ -95,6 +96,11 @@ function App() {
       <Route path="/admin/settings" element={
         <AdminRoute>
           <SettingsManagement />
+        </AdminRoute>
+      } />
+      <Route path="/admin/redeem" element={
+        <AdminRoute>
+          <RedemptionManagement />
         </AdminRoute>
       } />
       

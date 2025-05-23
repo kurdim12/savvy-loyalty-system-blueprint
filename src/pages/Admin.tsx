@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,7 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Users, Award, CoffeeIcon, BarChart3, ClipboardList, 
-  BadgeDollarSign, ArrowRight, Target
+  BadgeDollarSign, ArrowRight, Target, Gift
 } from 'lucide-react';
 
 const Admin = () => {
@@ -64,11 +63,20 @@ const Admin = () => {
         
       if (goalsError) throw goalsError;
 
+      // Get count of pending redemptions
+      const { count: pendingRedemptionsCount, error: redemptionsError } = await supabase
+        .from('redemptions')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      if (redemptionsError) throw redemptionsError;
+
       return {
         usersCount: usersCount || 0,
         recentTransactionsCount: recentTransactionsCount || 0,
         activeRewardsCount: activeRewardsCount || 0,
-        goalsCount: goalsCount || 0
+        goalsCount: goalsCount || 0,
+        pendingRedemptionsCount: pendingRedemptionsCount || 0
       };
     },
     enabled: !loading && isAdmin,
@@ -90,7 +98,7 @@ const Admin = () => {
           <p className="text-amber-700">Manage your loyalty program</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -158,6 +166,23 @@ const Admin = () => {
               </p>
             </CardContent>
           </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Gift className="h-4 w-4 text-amber-700" />
+                Pending Redemptions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {statsLoading ? '...' : stats?.pendingRedemptionsCount}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Awaiting approval
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
@@ -190,6 +215,25 @@ const Admin = () => {
                 <Button 
                   variant="outline" 
                   className="justify-start h-auto py-4 px-4"
+                  onClick={() => navigate('/admin/redeem')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="bg-amber-100 p-2 rounded">
+                      <Gift className="h-5 w-5 text-amber-700" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium">Process Redemptions</div>
+                      <div className="text-xs text-muted-foreground">
+                        Approve or reject pending rewards
+                      </div>
+                    </div>
+                  </div>
+                  <ArrowRight className="ml-auto h-5 w-5 text-muted-foreground" />
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-auto py-4 px-4"
                   onClick={() => setActiveTab('rewards')}
                 >
                   <div className="flex items-center gap-3">
@@ -209,7 +253,7 @@ const Admin = () => {
                 <Button 
                   variant="outline" 
                   className="justify-start h-auto py-4 px-4"
-                  onClick={() => navigate('/admin/community-goals')}
+                  onClick={() => navigate('/admin/community')}
                 >
                   <div className="flex items-center gap-3">
                     <div className="bg-amber-100 p-2 rounded">
