@@ -1,3 +1,4 @@
+
 // Helper functions for Supabase database interaction
 
 import { supabase, requireAuth, requireAdmin } from './client';
@@ -85,8 +86,10 @@ export async function incrementPoints(userId: string, pointAmount: number) {
       return { error: new Error('Invalid user ID or point amount') };
     }
 
-    // Sanitize input - ensure pointAmount is a positive number
+    // Sanitize input - ensure pointAmount is a positive number without rounding
     const sanitizedPointAmount = Math.abs(pointAmount);
+    
+    console.log(`Adding ${sanitizedPointAmount} points to user ${userId}`);
     
     // Just create a transaction record with the "earn" type
     // The database trigger will handle updating the points
@@ -95,7 +98,7 @@ export async function incrementPoints(userId: string, pointAmount: number) {
       .insert({
         user_id: userId,
         transaction_type: 'earn',
-        points: sanitizedPointAmount,
+        points: sanitizedPointAmount, // Use exact value without rounding
         notes: 'Points earned'
       });
       
@@ -124,8 +127,10 @@ export async function decrementPoints(userId: string, pointAmount: number) {
       return { error: new Error('Invalid user ID or point amount') };
     }
 
-    // Sanitize input - ensure pointAmount is a positive number
+    // Sanitize input - ensure pointAmount is a positive number without rounding
     const sanitizedPointAmount = Math.abs(pointAmount);
+    
+    console.log(`Removing ${sanitizedPointAmount} points from user ${userId}`);
     
     // Get current points before decrementing
     const { data: profile, error: fetchError } = await supabase
@@ -151,7 +156,7 @@ export async function decrementPoints(userId: string, pointAmount: number) {
       .insert({
         user_id: userId,
         transaction_type: 'redeem',
-        points: sanitizedPointAmount,
+        points: sanitizedPointAmount, // Use exact value without rounding
         notes: 'Points redeemed'
       });
       

@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 const Rewards = () => {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const [redeeming, setRedeeming] = useState<string | null>(null);
   const [redeemError, setRedeemError] = useState<string | null>(null);
   
@@ -64,7 +64,9 @@ const Rewards = () => {
     setRedeemError(null);
     
     try {
-      // Create redemption record - now with pointsCost included as points_spent
+      console.log(`Redeeming reward ${rewardId} for ${pointsCost} points`);
+      
+      // Create redemption record
       const { data: reward, error: rewardError } = await supabase
         .from('rewards')
         .select('id, name')
@@ -79,12 +81,12 @@ const Rewards = () => {
           user_id: profile.id,
           reward_id: rewardId,
           status: 'pending',
-          points_spent: pointsCost
+          points_spent: pointsCost // Ensure we store the exact points cost
         });
         
       if (redemptionError) throw redemptionError;
       
-      // Deduct points from user's account
+      // Deduct points from user's account using RPC call
       const { error: pointsError } = await supabase.rpc(
         'decrement_points',
         { user_id: profile.id, point_amount: pointsCost }
@@ -92,12 +94,12 @@ const Rewards = () => {
       
       if (pointsError) throw pointsError;
       
-      // Create transaction record
+      // Create transaction record with exact points
       const { error: transactionError } = await supabase
         .from('transactions')
         .insert({
           user_id: profile.id,
-          points: pointsCost,
+          points: pointsCost, // Ensure exact points value is used
           transaction_type: 'redeem',
           notes: `Redeemed reward: ${reward.name}`
         });
@@ -105,6 +107,11 @@ const Rewards = () => {
       if (transactionError) throw transactionError;
       
       toast.success('Reward redeemed successfully!');
+      
+      // Refresh profile to get updated points
+      await refreshProfile();
+      
+      // Refresh redemptions list
       refetchRedemptions();
       
     } catch (error) {
