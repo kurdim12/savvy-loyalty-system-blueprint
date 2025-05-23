@@ -1,4 +1,3 @@
-
 import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
@@ -18,6 +17,7 @@ import {
   X,
   Moon,
   Sun,
+  Gift,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -96,6 +96,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       title: 'Community',
       path: '/admin/community',
       icon: <MessageSquare className="h-5 w-5" />,
+    },
+    {
+      title: 'Redemptions',
+      path: '/admin/redeem',
+      icon: <Gift className="h-5 w-5" />,
     },
     {
       title: 'Settings',
@@ -279,6 +284,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                   variant="ghost"
                   size="icon"
                   onClick={handleSignOut}
+                  className="mt-4 mx-auto"
                   title="Log out"
                 >
                   <LogOut className="h-5 w-5 text-gray-500" />
