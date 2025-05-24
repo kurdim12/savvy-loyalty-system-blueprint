@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/layout/Layout';
@@ -33,7 +32,7 @@ const CommunityPage = () => {
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('membership_tier, current_points')
-        .eq('role', 'user');
+        .eq('role', 'customer');
 
       if (profilesError) throw profilesError;
 
