@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,7 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Users, Award, CoffeeIcon, BarChart3, ClipboardList, 
-  BadgeDollarSign, ArrowRight, Target, Gift
+  BadgeDollarSign, ArrowRight, Target, Gift, Star
 } from 'lucide-react';
 
 const Admin = () => {
@@ -95,13 +94,19 @@ const Admin = () => {
   return (
     <Layout adminOnly>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-amber-900">Admin Dashboard</h1>
-          <p className="text-amber-700">Manage your loyalty program</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-amber-900">Admin Dashboard</h1>
+            <p className="text-amber-700">Manage your loyalty program</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Raw Smith Coffee" className="h-8 w-auto" />
+          </div>
         </div>
 
+        {/* Enhanced Stats Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-          <Card>
+          <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Users className="h-4 w-4 text-amber-700" />
@@ -109,99 +114,103 @@ const Admin = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-amber-900">
                 {statsLoading ? '...' : stats?.usersCount}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-amber-700">
                 Active loyalty program members
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <ClipboardList className="h-4 w-4 text-amber-700" />
+                <ClipboardList className="h-4 w-4 text-blue-700" />
                 Recent Transactions
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-blue-900">
                 {statsLoading ? '...' : stats?.recentTransactionsCount}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-blue-700">
                 In the last 30 days
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Award className="h-4 w-4 text-amber-700" />
+                <Award className="h-4 w-4 text-green-700" />
                 Active Rewards
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-green-900">
                 {statsLoading ? '...' : stats?.activeRewardsCount}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-green-700">
                 Available for redemption
               </p>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Target className="h-4 w-4 text-amber-700" />
+                <Target className="h-4 w-4 text-purple-700" />
                 Community Goals
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-purple-900">
                 {statsLoading ? '...' : stats?.goalsCount}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-purple-700">
                 Active community challenges
               </p>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Gift className="h-4 w-4 text-amber-700" />
+                <Gift className="h-4 w-4 text-orange-700" />
                 Pending Redemptions
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-orange-900">
                 {statsLoading ? '...' : stats?.pendingRedemptionsCount}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-orange-700">
                 Awaiting approval
               </p>
             </CardContent>
           </Card>
         </div>
 
+        {/* Enhanced Quick Actions */}
         <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 bg-gradient-to-br from-amber-50 to-orange-50">
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <CoffeeIcon className="h-5 w-5 text-amber-700" />
+                Quick Actions
+              </CardTitle>
               <CardDescription>Frequently used tools and reports</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
                 <Button 
                   variant="outline" 
-                  className="justify-start h-auto py-4 px-4"
+                  className="justify-start h-auto py-4 px-4 border-2 hover:border-amber-300 hover:bg-amber-50"
                   onClick={() => setActiveTab('customers')}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="bg-amber-100 p-2 rounded">
+                    <div className="bg-amber-100 p-2 rounded-lg">
                       <BadgeDollarSign className="h-5 w-5 text-amber-700" />
                     </div>
                     <div className="text-left">
@@ -216,12 +225,12 @@ const Admin = () => {
 
                 <Button 
                   variant="outline" 
-                  className="justify-start h-auto py-4 px-4"
+                  className="justify-start h-auto py-4 px-4 border-2 hover:border-green-300 hover:bg-green-50"
                   onClick={() => navigate('/admin/redeem')}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="bg-amber-100 p-2 rounded">
-                      <Gift className="h-5 w-5 text-amber-700" />
+                    <div className="bg-green-100 p-2 rounded-lg">
+                      <Gift className="h-5 w-5 text-green-700" />
                     </div>
                     <div className="text-left">
                       <div className="font-medium">Process Redemptions</div>
@@ -235,17 +244,17 @@ const Admin = () => {
 
                 <Button 
                   variant="outline" 
-                  className="justify-start h-auto py-4 px-4"
-                  onClick={() => setActiveTab('rewards')}
+                  className="justify-start h-auto py-4 px-4 border-2 hover:border-blue-300 hover:bg-blue-50"
+                  onClick={() => setActiveTab('enhanced-rewards')}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="bg-amber-100 p-2 rounded">
-                      <Award className="h-5 w-5 text-amber-700" />
+                    <div className="bg-blue-100 p-2 rounded-lg">
+                      <Award className="h-5 w-5 text-blue-700" />
                     </div>
                     <div className="text-left">
-                      <div className="font-medium">Manage Rewards</div>
+                      <div className="font-medium">Enhanced Rewards</div>
                       <div className="text-xs text-muted-foreground">
-                        Create or update available rewards
+                        Advanced rewards management
                       </div>
                     </div>
                   </div>
@@ -254,12 +263,12 @@ const Admin = () => {
 
                 <Button 
                   variant="outline" 
-                  className="justify-start h-auto py-4 px-4"
+                  className="justify-start h-auto py-4 px-4 border-2 hover:border-purple-300 hover:bg-purple-50"
                   onClick={() => navigate('/admin/community')}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="bg-amber-100 p-2 rounded">
-                      <Target className="h-5 w-5 text-amber-700" />
+                    <div className="bg-purple-100 p-2 rounded-lg">
+                      <Target className="h-5 w-5 text-purple-700" />
                     </div>
                     <div className="text-left">
                       <div className="font-medium">Community Goals</div>
@@ -273,12 +282,12 @@ const Admin = () => {
 
                 <Button 
                   variant="outline" 
-                  className="justify-start h-auto py-4 px-4"
+                  className="justify-start h-auto py-4 px-4 border-2 hover:border-indigo-300 hover:bg-indigo-50"
                   onClick={() => setActiveTab('transactions')}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="bg-amber-100 p-2 rounded">
-                      <BarChart3 className="h-5 w-5 text-amber-700" />
+                    <div className="bg-indigo-100 p-2 rounded-lg">
+                      <BarChart3 className="h-5 w-5 text-indigo-700" />
                     </div>
                     <div className="text-left">
                       <div className="font-medium">Transaction History</div>
@@ -293,27 +302,42 @@ const Admin = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-amber-50 to-yellow-50">
             <CardHeader>
-              <CardTitle>Quick Stats</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-amber-600" />
+                Quick Stats
+              </CardTitle>
               <CardDescription>Loyalty program overview</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="bg-amber-50 p-4 rounded-lg">
-                  <h3 className="font-medium text-sm text-amber-900">Most Active Members</h3>
-                  {/* Placeholder for actual stats */}
-                  <p className="text-sm text-amber-700 mt-2">
-                    Add analytics charts and member stats here
-                  </p>
+                <div className="bg-white p-4 rounded-lg border border-amber-200">
+                  <h3 className="font-medium text-sm text-amber-900 mb-2">Program Performance</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-amber-700">Active Members</span>
+                      <span className="font-medium text-amber-900">{stats?.usersCount || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-amber-700">Total Rewards</span>
+                      <span className="font-medium text-amber-900">{stats?.activeRewardsCount || 0}</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="bg-amber-50 p-4 rounded-lg">
-                  <h3 className="font-medium text-sm text-amber-900">Popular Rewards</h3>
-                  {/* Placeholder for actual stats */}
-                  <p className="text-sm text-amber-700 mt-2">
-                    Show top redeemed rewards here
-                  </p>
+                <div className="bg-white p-4 rounded-lg border border-amber-200">
+                  <h3 className="font-medium text-sm text-amber-900 mb-2">Recent Activity</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-amber-700">New Transactions</span>
+                      <span className="font-medium text-amber-900">{stats?.recentTransactionsCount || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-amber-700">Pending Redemptions</span>
+                      <span className="font-medium text-amber-900">{stats?.pendingRedemptionsCount || 0}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -321,11 +345,12 @@ const Admin = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="customers">Customers</TabsTrigger>
-            <TabsTrigger value="transactions">Transactions</TabsTrigger>
-            <TabsTrigger value="rewards">Rewards</TabsTrigger>
+          <TabsList className="bg-amber-50 border border-amber-200">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-amber-100">Overview</TabsTrigger>
+            <TabsTrigger value="customers" className="data-[state=active]:bg-amber-100">Customers</TabsTrigger>
+            <TabsTrigger value="transactions" className="data-[state=active]:bg-amber-100">Transactions</TabsTrigger>
+            <TabsTrigger value="rewards" className="data-[state=active]:bg-amber-100">Rewards</TabsTrigger>
+            <TabsTrigger value="enhanced-rewards" className="data-[state=active]:bg-amber-100">Enhanced Rewards</TabsTrigger>
           </TabsList>
           
           <TabsContent value="overview">
@@ -352,6 +377,10 @@ const Admin = () => {
           
           <TabsContent value="rewards">
             <RewardsList />
+          </TabsContent>
+          
+          <TabsContent value="enhanced-rewards">
+            <EnhancedRewardsManagement />
           </TabsContent>
         </Tabs>
       </div>
