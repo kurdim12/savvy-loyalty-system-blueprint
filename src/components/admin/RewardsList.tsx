@@ -45,6 +45,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Database } from '@/integrations/supabase/types';
+import { ImageUpload } from './ImageUpload';
+import { RewardImage } from '@/components/rewards/RewardImage';
 
 // Define the reward schema for validation
 const rewardSchema = z.object({
@@ -54,6 +56,7 @@ const rewardSchema = z.object({
   membership_required: z.enum(["bronze", "silver", "gold"]).optional(),
   inventory: z.number().int().optional(),
   active: z.boolean().default(true),
+  image_url: z.string().optional(),
 });
 
 type RewardFormData = z.infer<typeof rewardSchema>;
@@ -66,6 +69,7 @@ interface Reward {
   membership_required?: Database['public']['Enums']['membership_tier'];
   inventory?: number;
   active: boolean;
+  image_url?: string;
   created_at: string;
   updated_at: string;
 }
@@ -75,6 +79,7 @@ const RewardsList = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   
   const queryClient = useQueryClient();
   
@@ -86,6 +91,7 @@ const RewardsList = () => {
       description: '',
       points_required: 10,
       active: true,
+      image_url: '',
     }
   });
   
@@ -97,6 +103,7 @@ const RewardsList = () => {
       description: '',
       points_required: 10,
       active: true,
+      image_url: '',
     }
   });
   
@@ -124,6 +131,7 @@ const RewardsList = () => {
         membership_required: data.membership_required || null,
         inventory: data.inventory || null,
         active: data.active,
+        image_url: uploadedImageUrl || null,
       } as unknown as Database['public']['Tables']['rewards']['Insert'];
       
       const { error } = await supabase
@@ -136,6 +144,7 @@ const RewardsList = () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'rewards'] });
       toast.success('Reward created successfully');
       setIsCreateModalOpen(false);
+      setUploadedImageUrl(null);
       createForm.reset();
     },
     onError: (error) => {
@@ -155,6 +164,7 @@ const RewardsList = () => {
         membership_required: rewardData.membership_required || null,
         inventory: rewardData.inventory || null,
         active: rewardData.active,
+        image_url: uploadedImageUrl || selectedReward?.image_url || null,
         updated_at: new Date().toISOString()
       } as unknown as Database['public']['Tables']['rewards']['Update'];
       
@@ -170,6 +180,7 @@ const RewardsList = () => {
       toast.success('Reward updated successfully');
       setIsEditModalOpen(false);
       setSelectedReward(null);
+      setUploadedImageUrl(null);
       editForm.reset();
     },
     onError: (error) => {
@@ -222,7 +233,7 @@ const RewardsList = () => {
   
   // Handle form submissions
   const handleCreateSubmit = (data: RewardFormData) => {
-    createReward.mutate(data);
+    createReward.mutate({ ...data, image_url: uploadedImageUrl || '' });
   };
   
   const handleEditSubmit = (data: RewardFormData) => {
@@ -238,13 +249,15 @@ const RewardsList = () => {
   // Modal handlers
   const openEditModal = (reward: Reward) => {
     setSelectedReward(reward);
+    setUploadedImageUrl(reward.image_url || null);
     editForm.reset({
       name: reward.name,
       description: reward.description || '',
       points_required: reward.points_required,
       membership_required: reward.membership_required,
       inventory: reward.inventory,
-      active: reward.active
+      active: reward.active,
+      image_url: reward.image_url || '',
     });
     setIsEditModalOpen(true);
   };
@@ -271,7 +284,10 @@ const RewardsList = () => {
             <CardDescription>Manage rewards that customers can redeem with their points.</CardDescription>
           </div>
           <Button 
-            onClick={() => setIsCreateModalOpen(true)} 
+            onClick={() => {
+              setUploadedImageUrl(null);
+              setIsCreateModalOpen(true);
+            }} 
             className="bg-amber-700 hover:bg-amber-800"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -283,6 +299,7 @@ const RewardsList = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Image</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Points</TableHead>
                   <TableHead>Membership</TableHead>
@@ -295,11 +312,18 @@ const RewardsList = () => {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4">Loading rewards...</TableCell>
+                    <TableCell colSpan={8} className="text-center py-4">Loading rewards...</TableCell>
                   </TableRow>
                 ) : rewards?.length ? (
                   rewards.map((reward) => (
                     <TableRow key={reward.id} className={!reward.active ? 'opacity-60' : ''}>
+                      <TableCell>
+                        <RewardImage
+                          src={reward.image_url}
+                          alt={reward.name}
+                          className="w-12 h-12 rounded-lg"
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">
                         {reward.name}
                         {reward.description && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{reward.description}</p>}
@@ -354,7 +378,7 @@ const RewardsList = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4">No rewards found.</TableCell>
+                    <TableCell colSpan={8} className="text-center py-4">No rewards found.</TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -365,7 +389,7 @@ const RewardsList = () => {
       
       {/* Create Reward Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="sm:max-w-[550px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New Reward</DialogTitle>
             <DialogDescription>
@@ -375,6 +399,12 @@ const RewardsList = () => {
           
           <Form {...createForm}>
             <form onSubmit={createForm.handleSubmit(handleCreateSubmit)} className="space-y-4">
+              <ImageUpload
+                currentImageUrl={uploadedImageUrl}
+                onImageUploaded={(url) => setUploadedImageUrl(url)}
+                onImageRemoved={() => setUploadedImageUrl(null)}
+              />
+              
               <FormField
                 control={createForm.control}
                 name="name"
@@ -538,7 +568,7 @@ const RewardsList = () => {
       
       {/* Edit Reward Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[550px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Reward</DialogTitle>
             <DialogDescription>
@@ -548,6 +578,12 @@ const RewardsList = () => {
           
           <Form {...editForm}>
             <form onSubmit={editForm.handleSubmit(handleEditSubmit)} className="space-y-4">
+              <ImageUpload
+                currentImageUrl={uploadedImageUrl || selectedReward?.image_url}
+                onImageUploaded={(url) => setUploadedImageUrl(url)}
+                onImageRemoved={() => setUploadedImageUrl(null)}
+              />
+              
               <FormField
                 control={editForm.control}
                 name="name"

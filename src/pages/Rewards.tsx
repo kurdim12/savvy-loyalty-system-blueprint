@@ -1,452 +1,297 @@
 
-import { useAuth } from '@/contexts/AuthContext';
-import Header from '@/components/layout/Header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import Layout from '@/components/layout/Layout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { CoffeeIcon, Award, Gift, Trophy, Star, AlertCircle } from 'lucide-react';
-import { getDiscountRate } from '@/integrations/supabase/functions';
-import { useState } from 'react';
 import { toast } from 'sonner';
+import { Award, Star, Gift } from 'lucide-react';
+import { RewardImage } from '@/components/rewards/RewardImage';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+
+interface Reward {
+  id: string;
+  name: string;
+  description?: string;
+  points_required: number;
+  membership_required?: string;
+  inventory?: number;
+  active: boolean;
+  image_url?: string;
+}
 
 const Rewards = () => {
-  const { profile, refreshProfile } = useAuth();
-  const [redeeming, setRedeeming] = useState<string | null>(null);
-  const [redeemError, setRedeemError] = useState<string | null>(null);
-  
-  // Get available rewards from Supabase
-  const { data: availableRewards } = useQuery({
-    queryKey: ['availableRewards'],
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
+  const [isRedeemDialogOpen, setIsRedeemDialogOpen] = useState(false);
+
+  // Fetch available rewards
+  const { data: rewards, isLoading } = useQuery({
+    queryKey: ['rewards'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('rewards')
         .select('*')
-        .order('points_required', { ascending: true });
-
-      if (error) throw error;
-      return data || [];
-    }
-  });
-  
-  // Get user's past redemptions
-  const { data: pastRedemptions, refetch: refetchRedemptions } = useQuery({
-    queryKey: ['pastRedemptions', profile?.id],
-    queryFn: async () => {
-      if (!profile?.id) return [];
-      const { data, error } = await supabase
-        .from('redemptions')
-        .select('*, reward:rewards(*)')
-        .eq('user_id', profile.id)
-        .order('created_at', { ascending: false });
-        
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!profile?.id
-  });
-  
-  // Handle reward redemption
-  const handleRedeemReward = async (rewardId: string, pointsCost: number) => {
-    if (!profile?.id) {
-      toast.error('You must be logged in to redeem rewards');
-      return;
-    }
-    
-    if ((profile?.current_points || 0) < pointsCost) {
-      toast.error('Not enough points to redeem this reward');
-      return;
-    }
-    
-    setRedeeming(rewardId);
-    setRedeemError(null);
-    
-    try {
-      console.log(`Redeeming reward ${rewardId} for ${pointsCost} points`);
+        .eq('active', true)
+        .order('points_required');
       
+      if (error) throw error;
+      return data as Reward[];
+    }
+  });
+
+  // Redeem reward mutation
+  const redeemReward = useMutation({
+    mutationFn: async (rewardId: string) => {
+      const reward = rewards?.find(r => r.id === rewardId);
+      if (!reward || !user) throw new Error('Invalid reward or user');
+
       // Create redemption record
-      const { data: reward, error: rewardError } = await supabase
-        .from('rewards')
-        .select('id, name')
-        .eq('id', rewardId)
-        .single();
-        
-      if (rewardError) throw rewardError;
-        
       const { error: redemptionError } = await supabase
         .from('redemptions')
         .insert({
-          user_id: profile.id,
+          user_id: user.id,
           reward_id: rewardId,
-          status: 'pending',
-          points_spent: pointsCost // Ensure we store the exact points cost
+          points_spent: reward.points_required,
+          status: 'pending'
         });
-        
+
       if (redemptionError) throw redemptionError;
-      
-      // Deduct points from user's account using RPC call
-      const { error: pointsError } = await supabase.rpc(
-        'decrement_points',
-        { user_id: profile.id, point_amount: pointsCost }
-      );
-      
-      if (pointsError) throw pointsError;
-      
-      // Create transaction record with exact points
+
+      // Create transaction record
       const { error: transactionError } = await supabase
         .from('transactions')
         .insert({
-          user_id: profile.id,
-          points: pointsCost, // Ensure exact points value is used
+          user_id: user.id,
+          reward_id: rewardId,
+          points: reward.points_required,
           transaction_type: 'redeem',
-          notes: `Redeemed reward: ${reward.name}`
+          notes: `Redeemed: ${reward.name}`
         });
-        
+
       if (transactionError) throw transactionError;
-      
-      toast.success('Reward redeemed successfully!');
-      
-      // Refresh profile to get updated points
-      await refreshProfile();
-      
-      // Refresh redemptions list
-      refetchRedemptions();
-      
-    } catch (error) {
-      console.error('Error redeeming reward:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      setRedeemError(errorMessage);
-      toast.error('Failed to redeem reward. Please try again.');
-    } finally {
-      setRedeeming(null);
+
+      // Create notification
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: user.id,
+          title: 'Reward Redeemed!',
+          message: `You've successfully redeemed ${reward.name} for ${reward.points_required} points.`,
+          type: 'reward'
+        });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      toast.success('Reward redeemed successfully! Check your profile for details.');
+      setIsRedeemDialogOpen(false);
+      setSelectedReward(null);
+    },
+    onError: (error) => {
+      toast.error(`Failed to redeem reward: ${error.message}`);
     }
-  };
-  
-  // Filter rewards based on user's membership tier
-  const filteredRewards = availableRewards?.filter(reward => {
-    // For each tier, show only rewards available for that tier or lower tiers
-    const tierLevels = { bronze: 1, silver: 2, gold: 3 };
-    const userTierLevel = tierLevels[profile?.membership_tier || 'bronze'];
-    const rewardTierLevel = tierLevels[reward.membership_required || 'bronze'];
-    
-    // Users can only see rewards for their tier or lower
-    return rewardTierLevel <= userTierLevel;
   });
-  
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+
+  const handleRedeemClick = (reward: Reward) => {
+    setSelectedReward(reward);
+    setIsRedeemDialogOpen(true);
   };
-  
-  const calculateNextTier = () => {
-    const currentPoints = profile?.current_points || 0;
-    const currentTier = profile?.membership_tier || 'bronze';
-    
-    if (currentTier === 'bronze') {
-      const pointsToSilver = 200 - currentPoints;
-      const progress = (currentPoints / 200) * 100;
-      return {
-        nextTier: 'silver',
-        pointsNeeded: Math.max(0, pointsToSilver),
-        progress: Math.min(progress, 100)
-      };
-    } else if (currentTier === 'silver') {
-      const pointsToGold = 550 - currentPoints;
-      const progress = ((currentPoints - 200) / (550 - 200)) * 100;
-      return {
-        nextTier: 'gold',
-        pointsNeeded: Math.max(0, pointsToGold),
-        progress: Math.min(progress, 100)
-      };
-    } else {
-      // Already gold
-      return {
-        nextTier: 'gold',
-        pointsNeeded: 0,
-        progress: 100
-      };
+
+  const handleConfirmRedeem = () => {
+    if (selectedReward) {
+      redeemReward.mutate(selectedReward.id);
     }
   };
-  
-  const { nextTier, pointsNeeded, progress } = calculateNextTier();
-  
-  return (
-    <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
-      <Header />
-      <main className="flex-1 p-4 md:p-6 container mx-auto">
-        <div className="space-y-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-[#8B4513]">My Rewards</h1>
-              <p className="text-[#6F4E37]">Redeem your points for exclusive rewards!</p>
-            </div>
-            <div className="flex flex-col gap-1 text-right">
-              <Badge className="bg-[#8B4513] text-white px-3 py-1.5">
-                {profile?.current_points || 0} Points Available
-              </Badge>
-              <span className="text-sm text-[#6F4E37]">
-                Current tier: <span className="font-medium capitalize">{profile?.membership_tier || 'bronze'}</span>
-              </span>
-            </div>
-          </div>
-          
-          {/* Next Tier Progress */}
-          {pointsNeeded > 0 && (
-            <Card className="border-[#8B4513]/20">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2 text-[#8B4513]">
-                  <Trophy className="h-5 w-5 text-[#8B4513]" />
-                  Next Tier Progress
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm font-medium capitalize text-[#6F4E37]">
-                      {profile?.membership_tier || 'bronze'}
-                    </span>
-                    <span className="text-sm font-medium capitalize text-[#8B4513]">
-                      {nextTier}
-                    </span>
-                  </div>
-                  <Progress value={progress} className="h-2" />
-                  <p className="text-sm text-[#6F4E37]">
-                    {pointsNeeded} more points needed to reach {nextTier} tier!
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-          
-          {/* Available Rewards */}
-          <div>
-            <h2 className="text-xl font-semibold text-[#8B4513] mb-4">Available Rewards</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredRewards?.map((reward: any) => (
-                <Card key={reward.id} className="border-[#8B4513]/20">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg text-[#8B4513]">{reward.name}</CardTitle>
-                      <Badge className="bg-[#FFF8DC] text-[#8B4513] border-[#8B4513]/30">
-                        {reward.points_required} pts
-                      </Badge>
-                    </div>
-                    <CardDescription className="text-[#6F4E37]">{reward.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-center py-4">
-                      <Gift className="h-12 w-12 text-[#8B4513]" />
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex flex-col">
-                    <Button 
-                      className="w-full bg-[#8B4513] hover:bg-[#6F4E37]"
-                      disabled={(profile?.current_points || 0) < reward.points_required || redeeming === reward.id}
-                      onClick={() => handleRedeemReward(reward.id, reward.points_required)}
-                    >
-                      {redeeming === reward.id ? (
-                        "Processing..."
-                      ) : (profile?.current_points || 0) < reward.points_required ? (
-                        `Need ${reward.points_required - (profile?.current_points || 0)} more points`
-                      ) : (
-                        "Redeem Reward"
-                      )}
-                    </Button>
-                    
-                    {redeemError && redeeming === reward.id && (
-                      <div className="mt-2 text-sm text-red-600 flex items-center">
-                        <AlertCircle className="h-4 w-4 mr-1" /> {redeemError}
-                      </div>
-                    )}
-                  </CardFooter>
-                </Card>
-              ))}
-              
-              {(!filteredRewards || filteredRewards.length === 0) && (
-                <Card className="border-[#8B4513]/20 col-span-full text-center py-8">
-                  <CardContent>
-                    <Star className="h-12 w-12 mx-auto text-[#8B4513] opacity-50 mb-2" />
-                    <h3 className="text-lg font-medium text-[#8B4513]">No rewards available</h3>
-                    <p className="text-sm text-[#6F4E37]">Check back soon for new rewards!</p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
-          
-          {/* Redemption History */}
-          <div>
-            <h2 className="text-xl font-semibold text-[#8B4513] mb-4">Redemption History</h2>
-            <Card className="border-[#8B4513]/20">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2 text-[#8B4513]">
-                  <CoffeeIcon className="h-5 w-5 text-[#8B4513]" />
-                  Past Redemptions
-                </CardTitle>
-                <CardDescription className="text-[#6F4E37]">Your previous reward redemptions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {pastRedemptions && pastRedemptions.length > 0 ? (
-                  <div className="space-y-3">
-                    {pastRedemptions.map((redemption: any) => (
-                      <div 
-                        key={redemption.id} 
-                        className="flex justify-between items-center border-b border-[#8B4513]/10 pb-3 last:border-0"
-                      >
-                        <div>
-                          <div className="font-medium text-[#8B4513]">{redemption.reward?.name || "Reward no longer available"}</div>
-                          <div className="text-sm text-[#6F4E37]">
-                            {formatDate(redemption.created_at)} • {redemption.status} • {redemption.points_spent} points
-                          </div>
-                        </div>
-                        <Badge 
-                          className={
-                            redemption.status === 'redeemed' 
-                              ? 'bg-green-100 text-green-800 border-green-300' 
-                              : redemption.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800 border-yellow-300'
-                              : 'bg-red-100 text-red-800 border-red-300'
-                          }
-                        >
-                          {redemption.status.charAt(0).toUpperCase() + redemption.status.slice(1)}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-6 text-[#6F4E37]">
-                    <Award className="h-8 w-8 mx-auto text-[#6F4E37] opacity-50 mb-2" />
-                    <p>You haven't redeemed any rewards yet.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-          
-          {/* Membership Tier Benefits */}
-          <div>
-            <h2 className="text-xl font-semibold text-[#8B4513] mb-4">Membership Tier Benefits</h2>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Card className={`border-[#8B4513]/20 ${profile?.membership_tier === 'bronze' ? 'ring-2 ring-[#CD7F32]' : ''}`}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center justify-between">
-                    <span className="text-[#CD7F32]">Bronze</span>
-                    {profile?.membership_tier === 'bronze' && (
-                      <Badge className="bg-[#CD7F32] text-white">Current</Badge>
-                    )}
-                  </CardTitle>
-                  <CardDescription className="text-[#6F4E37]">0-199 points</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#CD7F32]" />
-                      <span>{getDiscountRate('bronze')}% off every purchase</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#CD7F32]" />
-                      <span>Birthday reward (free small coffee)</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#CD7F32]" />
-                      <span>Early access to seasonal drinks</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-              
-              <Card className={`border-[#8B4513]/20 ${profile?.membership_tier === 'silver' ? 'ring-2 ring-[#C0C0C0]' : ''}`}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center justify-between">
-                    <span className="text-[#808080]">Silver</span>
-                    {profile?.membership_tier === 'silver' && (
-                      <Badge className="bg-[#C0C0C0] text-white">Current</Badge>
-                    )}
-                  </CardTitle>
-                  <CardDescription className="text-[#6F4E37]">200-549 points</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#C0C0C0]" />
-                      <span>{getDiscountRate('silver')}% off every purchase</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#C0C0C0]" />
-                      <span>Birthday reward (free medium coffee)</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#C0C0C0]" />
-                      <span>Early access to seasonal drinks</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#C0C0C0]" />
-                      <span>Free size upgrade once a month</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#C0C0C0]" />
-                      <span>Exclusive silver member events</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-              
-              <Card className={`border-[#8B4513]/20 ${profile?.membership_tier === 'gold' ? 'ring-2 ring-[#FFD700]' : ''}`}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center justify-between">
-                    <span className="text-[#B8860B]">Gold</span>
-                    {profile?.membership_tier === 'gold' && (
-                      <Badge className="bg-[#FFD700] text-[#8B4513]">Current</Badge>
-                    )}
-                  </CardTitle>
-                  <CardDescription className="text-[#6F4E37]">550+ points</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#FFD700]" />
-                      <span>{getDiscountRate('gold')}% off every purchase</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#FFD700]" />
-                      <span>Birthday reward (free any size drink + pastry)</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#FFD700]" />
-                      <span>Early access to seasonal drinks</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#FFD700]" />
-                      <span>Free size upgrade on every visit</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#FFD700]" />
-                      <span>Exclusive gold member events</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#FFD700]" />
-                      <span>Free drink every 10th visit</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-[#FFD700]" />
-                      <span>Priority coffee tasting invitations</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
+
+  const canRedeem = (reward: Reward) => {
+    if (!user) return false;
+    
+    const hasEnoughPoints = user.current_points >= reward.points_required;
+    const meetsRequirement = !reward.membership_required || 
+      user.membership_tier === reward.membership_required ||
+      (reward.membership_required === 'bronze') ||
+      (reward.membership_required === 'silver' && ['silver', 'gold'].includes(user.membership_tier)) ||
+      (reward.membership_required === 'gold' && user.membership_tier === 'gold');
+    
+    return hasEnoughPoints && meetsRequirement && reward.active;
+  };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-6 max-w-6xl">
+          <div className="space-y-6">
+            <div className="text-center">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Rewards</h1>
+              <p className="text-gray-600 mt-2">Loading available rewards...</p>
             </div>
           </div>
         </div>
-      </main>
-      <footer className="py-4 px-6 text-center text-sm text-[#6F4E37] border-t border-[#8B4513]/10">
-        &copy; {new Date().getFullYear()} Raw Smith Coffee Loyalty Program
-      </footer>
-    </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <div className="container mx-auto px-4 py-6 max-w-6xl">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="text-center">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Rewards</h1>
+            <p className="text-gray-600 mt-2">Redeem your points for amazing rewards</p>
+          </div>
+
+          {/* User Points Display */}
+          <Card className="bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-amber-200 rounded-full">
+                    <Award className="h-6 w-6 text-amber-700" />
+                  </div>
+                  <div className="text-center sm:text-left">
+                    <h3 className="font-semibold text-amber-900">Your Points</h3>
+                    <p className="text-2xl font-bold text-amber-800">{user?.current_points || 0}</p>
+                  </div>
+                </div>
+                <div className="text-center sm:text-right">
+                  <Badge variant="secondary" className="capitalize">
+                    {user?.membership_tier || 'Bronze'} Member
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Rewards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {rewards?.map((reward) => (
+              <Card key={reward.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <div className="aspect-video relative bg-gray-100">
+                  <RewardImage
+                    src={reward.image_url}
+                    alt={reward.name}
+                    className="absolute inset-0 w-full h-full rounded-t-lg"
+                  />
+                  {reward.inventory !== null && reward.inventory <= 5 && (
+                    <Badge 
+                      variant="destructive" 
+                      className="absolute top-2 right-2"
+                    >
+                      Only {reward.inventory} left
+                    </Badge>
+                  )}
+                </div>
+                
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-lg leading-tight">{reward.name}</CardTitle>
+                    <div className="flex items-center gap-1 text-amber-600 shrink-0">
+                      <Star className="h-4 w-4 fill-current" />
+                      <span className="font-bold">{reward.points_required}</span>
+                    </div>
+                  </div>
+                  {reward.description && (
+                    <CardDescription className="text-sm line-clamp-2">
+                      {reward.description}
+                    </CardDescription>
+                  )}
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  <div className="space-y-3">
+                    {reward.membership_required && (
+                      <Badge variant="outline" className="capitalize text-xs">
+                        {reward.membership_required}+ Members
+                      </Badge>
+                    )}
+                    
+                    <Button
+                      onClick={() => handleRedeemClick(reward)}
+                      disabled={!canRedeem(reward)}
+                      className="w-full bg-amber-700 hover:bg-amber-800 disabled:opacity-50"
+                    >
+                      <Gift className="h-4 w-4 mr-2" />
+                      {canRedeem(reward) ? 'Redeem' : 
+                       user && user.current_points < reward.points_required ? 'Not Enough Points' : 
+                       'Requirements Not Met'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {!rewards || rewards.length === 0 && (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Gift className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No rewards available</h3>
+                <p className="text-gray-600">Check back soon for new rewards!</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {/* Redeem Confirmation Dialog */}
+      <Dialog open={isRedeemDialogOpen} onOpenChange={setIsRedeemDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Redemption</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to redeem "{selectedReward?.name}" for {selectedReward?.points_required} points?
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedReward && (
+            <div className="space-y-4">
+              <div className="aspect-video relative bg-gray-100 rounded-lg overflow-hidden">
+                <RewardImage
+                  src={selectedReward.image_url}
+                  alt={selectedReward.name}
+                  className="absolute inset-0 w-full h-full"
+                />
+              </div>
+              
+              <div className="text-center">
+                <p className="text-sm text-gray-600">
+                  Your remaining balance will be: {(user?.current_points || 0) - selectedReward.points_required} points
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsRedeemDialogOpen(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleConfirmRedeem}
+              disabled={redeemReward.isPending}
+              className="w-full sm:w-auto bg-amber-700 hover:bg-amber-800"
+            >
+              {redeemReward.isPending ? 'Redeeming...' : 'Confirm Redemption'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Layout>
   );
 };
 

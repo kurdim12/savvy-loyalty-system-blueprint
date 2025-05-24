@@ -158,6 +158,47 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           birthday: string | null
@@ -301,6 +342,7 @@ export type Database = {
           cupping_score_min: number | null
           description: string | null
           id: string
+          image_url: string | null
           inventory: number | null
           membership_required:
             | Database["public"]["Enums"]["membership_tier"]
@@ -316,6 +358,7 @@ export type Database = {
           cupping_score_min?: number | null
           description?: string | null
           id?: string
+          image_url?: string | null
           inventory?: number | null
           membership_required?:
             | Database["public"]["Enums"]["membership_tier"]
@@ -331,6 +374,7 @@ export type Database = {
           cupping_score_min?: number | null
           description?: string | null
           id?: string
+          image_url?: string | null
           inventory?: number | null
           membership_required?:
             | Database["public"]["Enums"]["membership_tier"]
