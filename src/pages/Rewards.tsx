@@ -31,7 +31,7 @@ interface Reward {
 }
 
 const Rewards = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   const [isRedeemDialogOpen, setIsRedeemDialogOpen] = useState(false);
@@ -115,14 +115,14 @@ const Rewards = () => {
   };
 
   const canRedeem = (reward: Reward) => {
-    if (!user) return false;
+    if (!user || !profile) return false;
     
-    const hasEnoughPoints = user.current_points >= reward.points_required;
+    const hasEnoughPoints = profile.current_points >= reward.points_required;
     const meetsRequirement = !reward.membership_required || 
-      user.membership_tier === reward.membership_required ||
+      profile.membership_tier === reward.membership_required ||
       (reward.membership_required === 'bronze') ||
-      (reward.membership_required === 'silver' && ['silver', 'gold'].includes(user.membership_tier)) ||
-      (reward.membership_required === 'gold' && user.membership_tier === 'gold');
+      (reward.membership_required === 'silver' && ['silver', 'gold'].includes(profile.membership_tier)) ||
+      (reward.membership_required === 'gold' && profile.membership_tier === 'gold');
     
     return hasEnoughPoints && meetsRequirement && reward.active;
   };
@@ -162,12 +162,12 @@ const Rewards = () => {
                   </div>
                   <div className="text-center sm:text-left">
                     <h3 className="font-semibold text-amber-900">Your Points</h3>
-                    <p className="text-2xl font-bold text-amber-800">{user?.current_points || 0}</p>
+                    <p className="text-2xl font-bold text-amber-800">{profile?.current_points || 0}</p>
                   </div>
                 </div>
                 <div className="text-center sm:text-right">
                   <Badge variant="secondary" className="capitalize">
-                    {user?.membership_tier || 'Bronze'} Member
+                    {profile?.membership_tier || 'Bronze'} Member
                   </Badge>
                 </div>
               </div>
@@ -224,7 +224,7 @@ const Rewards = () => {
                     >
                       <Gift className="h-4 w-4 mr-2" />
                       {canRedeem(reward) ? 'Redeem' : 
-                       user && user.current_points < reward.points_required ? 'Not Enough Points' : 
+                       profile && profile.current_points < reward.points_required ? 'Not Enough Points' : 
                        'Requirements Not Met'}
                     </Button>
                   </div>
@@ -267,7 +267,7 @@ const Rewards = () => {
               
               <div className="text-center">
                 <p className="text-sm text-gray-600">
-                  Your remaining balance will be: {(user?.current_points || 0) - selectedReward.points_required} points
+                  Your remaining balance will be: {(profile?.current_points || 0) - selectedReward.points_required} points
                 </p>
               </div>
             </div>
