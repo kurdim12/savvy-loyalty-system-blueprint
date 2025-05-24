@@ -1,475 +1,297 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/layout/Layout';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { toast } from 'sonner';
-import { MessageSquare, Coffee, Plus, Send } from 'lucide-react';
-
-interface Event {
-  id: string;
-  title: string;
-  body: string;
-  created_at: string;
-  author_name?: string;
-}
-
-interface Thread {
-  id: string;
-  title: string;
-  created_at: string;
-  user_id: string;
-  user_name?: string;
-  message_count?: number;
-}
-
-interface Message {
-  id: string;
-  body: string;
-  created_at: string;
-  user_id: string;
-  user_name?: string;
-}
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { 
+  Users, 
+  Trophy, 
+  Target, 
+  Coffee, 
+  MessageSquare, 
+  Star,
+  Award,
+  TrendingUp,
+  Calendar,
+  Heart
+} from 'lucide-react';
+import CommunityGoalsList from '@/components/community/CommunityGoalsList';
 
 const CommunityPage = () => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("events");
-  const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
-  const [isNewThreadDialogOpen, setIsNewThreadDialogOpen] = useState(false);
-  const [newThreadTitle, setNewThreadTitle] = useState("");
-  const [newThreadFirstMessage, setNewThreadFirstMessage] = useState("");
-  const [newMessage, setNewMessage] = useState("");
+  const { profile } = useAuth();
+  const [activeTab, setActiveTab] = useState('goals');
 
-  // Fetch events
-  const { data: events, isLoading: eventsLoading } = useQuery({
-    queryKey: ['events'],
+  // Fetch community stats
+  const { data: communityStats } = useQuery({
+    queryKey: ['communityStats'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('events')
-        .select(`
-          id,
-          title,
-          body,
-          created_at,
-          author,
-          profiles:author (first_name, last_name)
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      // Format data
-      return data.map(event => ({
-        ...event,
-        author_name: event.profiles ? 
-          `${event.profiles.first_name || ''} ${event.profiles.last_name || ''}`.trim() : 
-          'Admin'
-      }));
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('membership_tier, current_points')
+        .eq('role', 'user');
+
+      if (profilesError) throw profilesError;
+
+      const totalMembers = profiles?.length || 0;
+      const totalPoints = profiles?.reduce((sum, p) => sum + (p.current_points || 0), 0) || 0;
+      const goldMembers = profiles?.filter(p => p.membership_tier === 'gold').length || 0;
+      const silverMembers = profiles?.filter(p => p.membership_tier === 'silver').length || 0;
+
+      return {
+        totalMembers,
+        totalPoints,
+        goldMembers,
+        silverMembers,
+        averagePoints: totalMembers > 0 ? Math.round(totalPoints / totalMembers) : 0
+      };
     }
   });
 
-  // Fetch threads
-  const { data: threads, isLoading: threadsLoading } = useQuery({
-    queryKey: ['threads'],
+  // Fetch recent community achievements
+  const { data: recentAchievements } = useQuery({
+    queryKey: ['recentAchievements'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('threads')
-        .select(`
-          id,
-          title,
-          created_at,
-          user_id,
-          profiles:user_id (first_name, last_name)
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      // Get message counts for each thread
-      const messagesPromises = data.map(async (thread) => {
-        const { count, error: countError } = await supabase
-          .from('messages')
-          .select('id', { count: 'exact', head: true })
-          .eq('thread_id', thread.id);
-          
-        return {
-          ...thread,
-          user_name: thread.profiles ? 
-            `${thread.profiles.first_name || ''} ${thread.profiles.last_name || ''}`.trim() : 
-            'Anonymous',
-          message_count: count || 0
-        };
-      });
-      
-      return Promise.all(messagesPromises);
+      // Mock data for community achievements - in real app this would come from database
+      return [
+        {
+          id: '1',
+          title: 'Monthly Coffee Goal Reached!',
+          description: 'Community collectively earned 50,000 points this month',
+          type: 'milestone',
+          date: new Date().toISOString(),
+          participants: 127
+        },
+        {
+          id: '2',
+          title: 'Sustainability Challenge Complete',
+          description: 'Members used reusable cups 1,000 times',
+          type: 'environmental',
+          date: new Date(Date.now() - 86400000 * 3).toISOString(),
+          participants: 89
+        },
+        {
+          id: '3',
+          title: 'New Member Milestone',
+          description: 'Welcome to our 200th community member!',
+          type: 'growth',
+          date: new Date(Date.now() - 86400000 * 7).toISOString(),
+          participants: 200
+        }
+      ];
     }
   });
 
-  // Fetch messages for the selected thread
-  const { data: messages, isLoading: messagesLoading } = useQuery({
-    queryKey: ['messages', selectedThread?.id],
-    queryFn: async () => {
-      if (!selectedThread) return [];
-      
-      const { data, error } = await supabase
-        .from('messages')
-        .select(`
-          id,
-          body,
-          created_at,
-          user_id,
-          profiles:user_id (first_name, last_name)
-        `)
-        .eq('thread_id', selectedThread.id)
-        .order('created_at', { ascending: true });
-      
-      if (error) throw error;
-      
-      return data.map(message => ({
-        ...message,
-        user_name: message.profiles ? 
-          `${message.profiles.first_name || ''} ${message.profiles.last_name || ''}`.trim() : 
-          'Anonymous'
-      }));
-    },
-    enabled: !!selectedThread
-  });
-
-  // Create a new thread mutation
-  const createThreadMutation = useMutation({
-    mutationFn: async ({ title, firstMessage }: { title: string; firstMessage: string }) => {
-      if (!user) throw new Error("You must be logged in");
-      
-      // First create the thread
-      const { data: threadData, error: threadError } = await supabase
-        .from('threads')
-        .insert({ 
-          title, 
-          user_id: user.id 
-        })
-        .select()
-        .single();
-      
-      if (threadError) throw threadError;
-      
-      // Then add the first message
-      const { error: messageError } = await supabase
-        .from('messages')
-        .insert({ 
-          body: firstMessage, 
-          thread_id: threadData.id,
-          user_id: user.id
-        });
-      
-      if (messageError) throw messageError;
-      
-      return threadData;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['threads'] });
-      setIsNewThreadDialogOpen(false);
-      setNewThreadTitle("");
-      setNewThreadFirstMessage("");
-      toast.success("Discussion thread created successfully");
-    },
-    onError: (error: any) => {
-      toast.error(`Error creating thread: ${error.message}`);
-    }
-  });
-
-  // Add message to thread mutation
-  const addMessageMutation = useMutation({
-    mutationFn: async (message: string) => {
-      if (!user || !selectedThread) throw new Error("You must be logged in and have a thread selected");
-      
-      const { error } = await supabase
-        .from('messages')
-        .insert({ 
-          body: message, 
-          thread_id: selectedThread.id,
-          user_id: user.id
-        });
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages', selectedThread?.id] });
-      setNewMessage("");
-    },
-    onError: (error: any) => {
-      toast.error(`Error sending message: ${error.message}`);
-    }
-  });
-
-  const handleCreateThread = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newThreadTitle.trim() || !newThreadFirstMessage.trim()) {
-      toast.error("Please provide both a title and a message");
-      return;
-    }
-    
-    createThreadMutation.mutate({ 
-      title: newThreadTitle.trim(), 
-      firstMessage: newThreadFirstMessage.trim() 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
     });
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
-    
-    addMessageMutation.mutate(newMessage.trim());
-  };
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const getAchievementIcon = (type: string) => {
+    switch (type) {
+      case 'milestone': return <Trophy className="h-5 w-5 text-amber-600" />;
+      case 'environmental': return <Heart className="h-5 w-5 text-green-600" />;
+      case 'growth': return <TrendingUp className="h-5 w-5 text-blue-600" />;
+      default: return <Award className="h-5 w-5 text-amber-600" />;
+    }
   };
 
   return (
     <Layout>
-      <div className="container max-w-6xl py-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Community</h1>
-          <p className="text-muted-foreground">
-            Stay connected with the Raw Smith Coffee community.
-          </p>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-amber-900 mb-2">Coffee Community</h1>
+          <p className="text-amber-700">Connect, contribute, and celebrate together</p>
         </div>
-        
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <div className="flex justify-between items-center">
-            <TabsList>
-              <TabsTrigger value="events">
-                <Coffee className="mr-2 h-4 w-4" />
-                Announcements
-              </TabsTrigger>
-              <TabsTrigger value="discussions">
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Discussions
-              </TabsTrigger>
-            </TabsList>
+
+        {/* Community Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4 text-center">
+              <Users className="h-8 w-8 text-amber-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-amber-900">{communityStats?.totalMembers || 0}</div>
+              <p className="text-sm text-amber-700">Members</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 text-center">
+              <Coffee className="h-8 w-8 text-amber-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-amber-900">{communityStats?.totalPoints?.toLocaleString() || 0}</div>
+              <p className="text-sm text-amber-700">Total Points</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 text-center">
+              <Star className="h-8 w-8 text-amber-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-amber-900">{communityStats?.goldMembers || 0}</div>
+              <p className="text-sm text-amber-700">Gold Members</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 text-center">
+              <TrendingUp className="h-8 w-8 text-amber-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-amber-900">{communityStats?.averagePoints || 0}</div>
+              <p className="text-sm text-amber-700">Avg Points</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="goals" className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              Community Goals
+            </TabsTrigger>
+            <TabsTrigger value="achievements" className="flex items-center gap-2">
+              <Trophy className="h-4 w-4" />
+              Achievements
+            </TabsTrigger>
+            <TabsTrigger value="leaderboard" className="flex items-center gap-2">
+              <Award className="h-4 w-4" />
+              Leaderboard
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="goals" className="space-y-4">
+            <CommunityGoalsList />
             
-            {activeTab === "discussions" && user && (
-              <Button 
-                onClick={() => setIsNewThreadDialogOpen(true)} 
-                size="sm"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                New Thread
-              </Button>
-            )}
-          </div>
-          
-          <TabsContent value="events" className="space-y-4">
-            {eventsLoading ? (
-              <div className="text-center py-8">Loading announcements...</div>
-            ) : events && events.length > 0 ? (
-              events.map(event => (
-                <Card key={event.id}>
-                  <CardHeader>
-                    <CardTitle>{event.title}</CardTitle>
-                    <CardDescription>
-                      Posted by {event.author_name} on {formatDate(event.created_at)}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="prose prose-sm">
-                      <p>{event.body}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <Card>
-                <CardContent className="text-center py-8">
-                  No announcements yet. Check back later!
-                </CardContent>
-              </Card>
-            )}
+            {/* Contribution Tips */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-amber-600" />
+                  How to Contribute
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-amber-50 rounded-lg">
+                    <Coffee className="h-8 w-8 text-amber-600 mx-auto mb-2" />
+                    <h4 className="font-semibold text-amber-900">Visit Often</h4>
+                    <p className="text-sm text-amber-700">Every visit earns points for community goals</p>
+                  </div>
+                  <div className="text-center p-4 bg-amber-50 rounded-lg">
+                    <Heart className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                    <h4 className="font-semibold text-amber-900">Go Green</h4>
+                    <p className="text-sm text-amber-700">Use reusable cups for bonus contributions</p>
+                  </div>
+                  <div className="text-center p-4 bg-amber-50 rounded-lg">
+                    <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                    <h4 className="font-semibold text-amber-900">Refer Friends</h4>
+                    <p className="text-sm text-amber-700">Bring new members to grow our community</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
-          
-          <TabsContent value="discussions">
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="md:col-span-1 space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Community Threads</CardTitle>
-                    <CardDescription>
-                      Join the conversation with other coffee lovers
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    {threadsLoading ? (
-                      <div className="text-center py-8">Loading threads...</div>
-                    ) : threads && threads.length > 0 ? (
-                      <div className="divide-y">
-                        {threads.map(thread => (
-                          <div 
-                            key={thread.id}
-                            onClick={() => setSelectedThread(thread)}
-                            className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
-                              selectedThread?.id === thread.id ? 'bg-muted' : ''
-                            }`}
-                          >
-                            <h3 className="font-medium">{thread.title}</h3>
-                            <div className="text-sm text-muted-foreground">
-                              By {thread.user_name} • {formatDate(thread.created_at)}
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {thread.message_count} {thread.message_count === 1 ? 'message' : 'messages'}
-                            </div>
+
+          <TabsContent value="achievements" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Community Achievements</CardTitle>
+                <CardDescription>Celebrating our collective successes</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {recentAchievements?.map((achievement) => (
+                    <div key={achievement.id} className="flex items-start gap-4 p-4 bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg">
+                      <div className="p-2 bg-white rounded-full">
+                        {getAchievementIcon(achievement.type)}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-amber-900">{achievement.title}</h4>
+                        <p className="text-sm text-amber-700 mb-2">{achievement.description}</p>
+                        <div className="flex items-center gap-4 text-xs text-amber-600">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {formatDate(achievement.date)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {achievement.participants} participants
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="leaderboard" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Monthly Contributors</CardTitle>
+                <CardDescription>Top community contributors this month</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg border border-yellow-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-yellow-900 font-bold">1</div>
+                      <div>
+                        <p className="font-semibold text-yellow-900">Sarah M.</p>
+                        <p className="text-sm text-yellow-700">Gold Member</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-yellow-400 text-yellow-900">1,250 pts contributed</Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-gray-900 font-bold">2</div>
+                      <div>
+                        <p className="font-semibold text-gray-900">Mike D.</p>
+                        <p className="text-sm text-gray-700">Silver Member</p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary">890 pts contributed</Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border border-orange-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-orange-400 rounded-full flex items-center justify-center text-orange-900 font-bold">3</div>
+                      <div>
+                        <p className="font-semibold text-orange-900">Emma L.</p>
+                        <p className="text-sm text-orange-700">Silver Member</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-orange-400 text-orange-900">720 pts contributed</Badge>
+                  </div>
+
+                  {/* User's position if they're not in top 3 */}
+                  {profile && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg border border-amber-200">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center text-amber-900 font-bold">12</div>
+                          <div>
+                            <p className="font-semibold text-amber-900">You ({profile.first_name || 'User'})</p>
+                            <p className="text-sm text-amber-700 capitalize">{profile.membership_tier} Member</p>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        No discussion threads yet. Start a new one!
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-              
-              <div className="md:col-span-2">
-                {selectedThread ? (
-                  <Card className="h-full flex flex-col">
-                    <CardHeader>
-                      <CardTitle>{selectedThread.title}</CardTitle>
-                      <CardDescription>
-                        Started by {selectedThread.user_name} on {formatDate(selectedThread.created_at)}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex-grow overflow-auto">
-                      {messagesLoading ? (
-                        <div className="text-center py-8">Loading messages...</div>
-                      ) : messages && messages.length > 0 ? (
-                        <div className="space-y-4">
-                          {messages.map(message => (
-                            <div key={message.id} className="flex flex-col">
-                              <div className="bg-muted rounded-lg p-3">
-                                <div className="text-sm font-semibold mb-1">
-                                  {message.user_name}
-                                </div>
-                                <div>{message.body}</div>
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-1">
-                                {formatDate(message.created_at)}
-                              </div>
-                            </div>
-                          ))}
                         </div>
-                      ) : (
-                        <div className="text-center py-8">No messages in this thread yet.</div>
-                      )}
-                    </CardContent>
-                    <CardFooter className="border-t p-3">
-                      {user ? (
-                        <form onSubmit={handleSendMessage} className="w-full flex gap-2">
-                          <Input
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder="Type your message..."
-                            className="flex-grow"
-                          />
-                          <Button 
-                            type="submit" 
-                            size="sm" 
-                            disabled={!newMessage.trim() || addMessageMutation.isPending}
-                          >
-                            <Send className="h-4 w-4" />
-                          </Button>
-                        </form>
-                      ) : (
-                        <div className="w-full text-center text-sm text-muted-foreground">
-                          Please sign in to participate in discussions
-                        </div>
-                      )}
-                    </CardFooter>
-                  </Card>
-                ) : (
-                  <Card className="h-full flex items-center justify-center">
-                    <CardContent className="text-center py-12">
-                      <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-medium">Select a thread</h3>
-                      <p className="text-muted-foreground mt-1">
-                        Choose a discussion thread from the list to join the conversation
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </div>
+                        <Badge className="bg-amber-400 text-amber-900">150 pts contributed</Badge>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
-      
-      {/* New Thread Dialog */}
-      <Dialog open={isNewThreadDialogOpen} onOpenChange={setIsNewThreadDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Start a New Discussion</DialogTitle>
-          </DialogHeader>
-          
-          <form onSubmit={handleCreateThread} className="space-y-4">
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium mb-1">
-                Discussion Title
-              </label>
-              <Input
-                id="title"
-                value={newThreadTitle}
-                onChange={(e) => setNewThreadTitle(e.target.value)}
-                placeholder="What would you like to discuss?"
-                required
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="message" className="block text-sm font-medium mb-1">
-                First Message
-              </label>
-              <Textarea
-                id="message"
-                value={newThreadFirstMessage}
-                onChange={(e) => setNewThreadFirstMessage(e.target.value)}
-                placeholder="Share your thoughts..."
-                rows={5}
-                required
-              />
-            </div>
-            
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setIsNewThreadDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={createThreadMutation.isPending || !newThreadTitle.trim() || !newThreadFirstMessage.trim()}
-              >
-                {createThreadMutation.isPending ? "Creating..." : "Start Discussion"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </Layout>
   );
 };
