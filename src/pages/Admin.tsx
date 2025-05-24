@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,6 +8,7 @@ import Layout from '@/components/layout/Layout';
 import CustomersList from '@/components/admin/CustomersList';
 import TransactionsList from '@/components/admin/TransactionsList';
 import RewardsList from '@/components/admin/RewardsList';
+import EnhancedRewardsManagement from '@/components/admin/EnhancedRewardsManagement';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';

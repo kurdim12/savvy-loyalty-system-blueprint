@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,7 +50,7 @@ interface Reward {
   name: string;
   description?: string;
   points_required: number;
-  membership_required?: string;
+  membership_required?: 'bronze' | 'silver' | 'gold' | null;
   inventory?: number;
   active: boolean;
   image_url?: string;
@@ -70,7 +69,7 @@ const EnhancedRewardsManagement = () => {
     name: '',
     description: '',
     points_required: 100,
-    membership_required: '',
+    membership_required: null as 'bronze' | 'silver' | 'gold' | null,
     inventory: null as number | null,
     active: true,
     image_url: '',
@@ -79,7 +78,7 @@ const EnhancedRewardsManagement = () => {
 
   const queryClient = useQueryClient();
 
-  // Predefined coffee reward images
+  // Coffee reward images from uploaded assets
   const coffeeImages = [
     '/lovable-uploads/680bf950-de42-45c2-bcfd-0e9b786df840.png',
     '/lovable-uploads/8d4d71ac-a5a9-4e5d-92d5-3083e04eeda7.png'
@@ -108,7 +107,7 @@ const EnhancedRewardsManagement = () => {
           name: rewardData.name,
           description: rewardData.description || null,
           points_required: rewardData.points_required,
-          membership_required: rewardData.membership_required || null,
+          membership_required: rewardData.membership_required,
           inventory: rewardData.inventory,
           active: rewardData.active,
           image_url: rewardData.image_url || null,
@@ -137,7 +136,7 @@ const EnhancedRewardsManagement = () => {
           name: rewardData.name,
           description: rewardData.description || null,
           points_required: rewardData.points_required,
-          membership_required: rewardData.membership_required || null,
+          membership_required: rewardData.membership_required,
           inventory: rewardData.inventory,
           active: rewardData.active,
           image_url: rewardData.image_url || null,
@@ -187,7 +186,8 @@ const EnhancedRewardsManagement = () => {
         points_required: 150,
         category: "drink",
         image_url: coffeeImages[0],
-        active: true
+        active: true,
+        membership_required: null as 'bronze' | 'silver' | 'gold' | null
       },
       {
         name: "Specialty Latte Art",
@@ -195,14 +195,16 @@ const EnhancedRewardsManagement = () => {
         points_required: 200,
         category: "drink", 
         image_url: coffeeImages[1],
-        active: true
+        active: true,
+        membership_required: null as 'bronze' | 'silver' | 'gold' | null
       },
       {
         name: "Coffee Bean Tasting",
         description: "Free tasting session of our premium coffee beans",
         points_required: 100,
         category: "experience",
-        active: true
+        active: true,
+        membership_required: null as 'bronze' | 'silver' | 'gold' | null
       }
     ];
 
@@ -222,7 +224,7 @@ const EnhancedRewardsManagement = () => {
       name: '',
       description: '',
       points_required: 100,
-      membership_required: '',
+      membership_required: null,
       inventory: null,
       active: true,
       image_url: '',
@@ -482,7 +484,13 @@ const EnhancedRewardsManagement = () => {
               </div>
               <div>
                 <Label>Membership Tier</Label>
-                <Select value={newReward.membership_required} onValueChange={(value) => setNewReward({...newReward, membership_required: value})}>
+                <Select 
+                  value={newReward.membership_required || ''} 
+                  onValueChange={(value) => setNewReward({
+                    ...newReward, 
+                    membership_required: value === '' ? null : value as 'bronze' | 'silver' | 'gold'
+                  })}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Any" />
                   </SelectTrigger>
@@ -603,7 +611,13 @@ const EnhancedRewardsManagement = () => {
                 </div>
                 <div>
                   <Label>Membership Tier</Label>
-                  <Select value={selectedReward.membership_required || ''} onValueChange={(value) => setSelectedReward({...selectedReward, membership_required: value})}>
+                  <Select 
+                    value={selectedReward.membership_required || ''} 
+                    onValueChange={(value) => setSelectedReward({
+                      ...selectedReward, 
+                      membership_required: value === '' ? null : value as 'bronze' | 'silver' | 'gold'
+                    })}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Any" />
                     </SelectTrigger>
