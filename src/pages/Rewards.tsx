@@ -130,7 +130,7 @@ const Rewards = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user'] });
       queryClient.invalidateQueries({ queryKey: ['user-redemptions'] });
-      toast.success('Reward redemption request submitted! Waiting for admin approval.');
+      toast.success('🎉 Reward redemption submitted! Your request is pending admin approval - we\'ll notify you once it\'s processed.');
       setIsRedeemDialogOpen(false);
       setSelectedReward(null);
     },
@@ -194,8 +194,8 @@ const Rewards = () => {
         <div className="space-y-6">
           {/* Header */}
           <div className="text-center">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Rewards</h1>
-            <p className="text-gray-600 mt-2">Redeem your points for amazing rewards</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Rewards Catalog</h1>
+            <p className="text-gray-600 mt-2">Redeem your loyalty points for premium coffee rewards</p>
           </div>
 
           {/* User Points Display */}
@@ -207,8 +207,8 @@ const Rewards = () => {
                     <Award className="h-6 w-6 text-amber-700" />
                   </div>
                   <div className="text-center sm:text-left">
-                    <h3 className="font-semibold text-amber-900">Your Points</h3>
-                    <p className="text-2xl font-bold text-amber-800">{profile?.current_points || 0}</p>
+                    <h3 className="font-semibold text-amber-900">Your Balance</h3>
+                    <p className="text-2xl font-bold text-amber-800">{profile?.current_points || 0} Points</p>
                   </div>
                 </div>
                 <div className="text-center sm:text-right">
@@ -219,7 +219,7 @@ const Rewards = () => {
                     <div className="mt-2">
                       <Badge variant="outline" className="text-orange-600 border-orange-300">
                         <Clock className="h-3 w-3 mr-1" />
-                        {pendingRedemptions.length} Pending
+                        {pendingRedemptions.length} Pending Approval
                       </Badge>
                     </div>
                   )}
@@ -230,14 +230,14 @@ const Rewards = () => {
 
           {/* Pending Redemptions Alert */}
           {pendingRedemptions && pendingRedemptions.length > 0 && (
-            <Card className="border-orange-200 bg-orange-50">
+            <Card className="border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5 text-orange-600" />
                   <div>
-                    <h3 className="font-semibold text-orange-900">Pending Redemptions</h3>
+                    <h3 className="font-semibold text-orange-900">Pending Admin Approval</h3>
                     <p className="text-sm text-orange-700">
-                      You have {pendingRedemptions.length} redemption(s) waiting for admin approval.
+                      You have {pendingRedemptions.length} redemption request(s) waiting for admin approval. We'll notify you once they're processed!
                     </p>
                   </div>
                 </div>
@@ -251,8 +251,8 @@ const Rewards = () => {
               const redemptionStatus = getRedemptionStatus(reward);
               
               return (
-                <Card key={reward.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-video relative bg-gray-100">
+                <Card key={reward.id} className="overflow-hidden hover:shadow-lg transition-shadow border-0 bg-white shadow-md">
+                  <div className="aspect-video relative bg-gradient-to-br from-amber-50 to-orange-100">
                     <RewardImage
                       src={reward.image_url}
                       alt={reward.name}
@@ -306,8 +306,8 @@ const Rewards = () => {
                         className="w-full bg-amber-700 hover:bg-amber-800 disabled:opacity-50"
                       >
                         <Gift className="h-4 w-4 mr-2" />
-                        {redemptionStatus === 'pending' ? 'Pending Approval' :
-                         canRedeem(reward) ? 'Redeem' : 
+                        {redemptionStatus === 'pending' ? 'Awaiting Approval' :
+                         canRedeem(reward) ? 'Redeem Now' : 
                          profile && profile.current_points < reward.points_required ? 'Not Enough Points' : 
                          'Requirements Not Met'}
                       </Button>
@@ -334,10 +334,9 @@ const Rewards = () => {
       <Dialog open={isRedeemDialogOpen} onOpenChange={setIsRedeemDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Confirm Redemption</DialogTitle>
+            <DialogTitle>Confirm Redemption Request</DialogTitle>
             <DialogDescription>
-              Are you sure you want to redeem "{selectedReward?.name}" for {selectedReward?.points_required} points?
-              This will require admin approval.
+              Submit a redemption request for "{selectedReward?.name}" for {selectedReward?.points_required} points?
             </DialogDescription>
           </DialogHeader>
           
@@ -351,19 +350,19 @@ const Rewards = () => {
                 />
               </div>
               
-              <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
-                <div className="flex items-center gap-2 text-orange-700">
+              <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
+                <div className="flex items-center gap-2 text-amber-700">
                   <Clock className="h-4 w-4" />
                   <span className="text-sm font-medium">Requires Admin Approval</span>
                 </div>
-                <p className="text-xs text-orange-600 mt-1">
-                  Your redemption will be pending until an admin reviews and approves it.
+                <p className="text-xs text-amber-600 mt-1">
+                  Your redemption request will be pending until an admin reviews and approves it. You'll receive a notification once it's processed!
                 </p>
               </div>
               
               <div className="text-center">
                 <p className="text-sm text-gray-600">
-                  Your remaining balance will be: {(profile?.current_points || 0) - selectedReward.points_required} points
+                  Your remaining balance will be: <strong>{(profile?.current_points || 0) - selectedReward.points_required} points</strong>
                 </p>
               </div>
             </div>
@@ -382,7 +381,7 @@ const Rewards = () => {
               disabled={redeemReward.isPending}
               className="w-full sm:w-auto bg-amber-700 hover:bg-amber-800"
             >
-              {redeemReward.isPending ? 'Submitting...' : 'Submit for Approval'}
+              {redeemReward.isPending ? 'Submitting Request...' : 'Submit Request'}
             </Button>
           </DialogFooter>
         </DialogContent>
