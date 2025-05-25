@@ -36,14 +36,18 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { Database } from '@/integrations/supabase/types';
+
+type UserRole = Database['public']['Enums']['user_role'];
+type MembershipTier = Database['public']['Enums']['membership_tier'];
 
 interface CommunityMember {
   id: string;
   first_name: string;
   last_name: string;
   email: string;
-  role: string;
-  membership_tier: string;
+  role: UserRole;
+  membership_tier: MembershipTier;
   current_points: number;
   visits: number;
   created_at: string;
@@ -72,8 +76,8 @@ const CommunityControl = () => {
   const [selectedMember, setSelectedMember] = useState<CommunityMember | null>(null);
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [tierFilter, setTierFilter] = useState('all');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [tierFilter, setTierFilter] = useState<string>('all');
 
   // Fetch community members
   const { data: members, isLoading: membersLoading } = useQuery({
@@ -89,11 +93,11 @@ const CommunityControl = () => {
       }
 
       if (roleFilter !== 'all') {
-        query = query.eq('role', roleFilter);
+        query = query.eq('role', roleFilter as UserRole);
       }
 
       if (tierFilter !== 'all') {
-        query = query.eq('membership_tier', tierFilter);
+        query = query.eq('membership_tier', tierFilter as MembershipTier);
       }
 
       const { data, error } = await query;
@@ -127,7 +131,7 @@ const CommunityControl = () => {
 
   // Update user role mutation
   const updateUserRoleMutation = useMutation({
-    mutationFn: async ({ userId, newRole }: { userId: string; newRole: string }) => {
+    mutationFn: async ({ userId, newRole }: { userId: string; newRole: UserRole }) => {
       const { error } = await supabase
         .from('profiles')
         .update({ role: newRole })
@@ -182,7 +186,7 @@ const CommunityControl = () => {
     setIsUserDialogOpen(true);
   };
 
-  const handleRoleChange = (userId: string, newRole: string) => {
+  const handleRoleChange = (userId: string, newRole: UserRole) => {
     updateUserRoleMutation.mutate({ userId, newRole });
   };
 
@@ -192,15 +196,14 @@ const CommunityControl = () => {
     }
   };
 
-  const getRoleBadgeColor = (role: string) => {
+  const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
       case 'admin': return 'bg-red-500';
-      case 'moderator': return 'bg-blue-500';
       default: return 'bg-gray-500';
     }
   };
 
-  const getTierBadgeColor = (tier: string) => {
+  const getTierBadgeColor = (tier: MembershipTier) => {
     switch (tier) {
       case 'gold': return 'bg-yellow-500 text-black';
       case 'silver': return 'bg-gray-400';
