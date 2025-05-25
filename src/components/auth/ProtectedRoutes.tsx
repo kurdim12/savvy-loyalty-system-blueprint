@@ -17,17 +17,17 @@ export function UserRoute({ children }: { children: ReactNode }) {
     isAdmin 
   });
 
-  // Emergency timeout to prevent indefinite loading
+  // Reduced timeout to prevent white screens
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      console.log('UserRoute: Emergency timeout reached, forcing display');
+      console.log('UserRoute: Timeout reached, forcing display');
       setIsPageReady(true);
-    }, 2000);
+    }, 1000); // Reduced from 2000ms to 1000ms
 
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // Regular progress tracking - allow render when auth loading completes
+  // Allow render when auth loading completes
   useEffect(() => {
     if (!loading) {
       console.log('UserRoute: Auth loading complete, preparing page');
@@ -35,20 +35,13 @@ export function UserRoute({ children }: { children: ReactNode }) {
     }
   }, [loading]);
 
-  // Emergency page loading state
-  if (!isPageReady) {
+  // Show loading only briefly
+  if (!isPageReady && loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center p-6">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#8B4513] text-sm">Loading authentication...</p>
-          <div className="mt-6 p-4 bg-[#f0f0f0] rounded text-left text-sm">
-            <p className="font-semibold mb-2">Debug Info:</p>
-            <p>Current URL: {location.pathname}</p>
-            <p>Auth Loading: {loading ? 'Yes' : 'No'}</p>
-            <p>User: {user ? 'Yes' : 'No'}</p>
-            <p>Time: {new Date().toLocaleTimeString()}</p>
-          </div>
+          <p className="text-[#8B4513] text-sm">Loading...</p>
         </div>
       </div>
     );
@@ -57,7 +50,6 @@ export function UserRoute({ children }: { children: ReactNode }) {
   // Not authenticated at all
   if (!user) {
     console.log('UserRoute: No user found, redirecting to auth');
-    toast.error('Please sign in to access this page');
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
@@ -75,7 +67,6 @@ export function UserRoute({ children }: { children: ReactNode }) {
 
   // Fallback - something is wrong with the role
   console.log('UserRoute: No valid role found (not user or admin)');
-  // Redirect without showing error message
   return <Navigate to="/auth" replace />;
 }
 
@@ -91,17 +82,17 @@ export function AdminRoute({ children }: { children: ReactNode }) {
     isAdmin 
   });
 
-  // Emergency timeout to prevent indefinite loading - reduced timeout
+  // Reduced timeout to prevent white screens
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      console.log('AdminRoute: Emergency timeout reached, forcing display');
+      console.log('AdminRoute: Timeout reached, forcing display');
       setIsPageReady(true);
-    }, 1500); // Reduced timeout to prevent excessive wait
+    }, 1000); // Reduced from 1500ms to 1000ms
 
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // Regular progress tracking - allow render when auth loading completes
+  // Allow render when auth loading completes
   useEffect(() => {
     if (!loading) {
       console.log('AdminRoute: Auth loading complete, preparing page');
@@ -109,20 +100,13 @@ export function AdminRoute({ children }: { children: ReactNode }) {
     }
   }, [loading]);
 
-  // Emergency page loading state
-  if (!isPageReady) {
+  // Show loading only briefly
+  if (!isPageReady && loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center p-6">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent mx-auto mb-4"></div>
           <p className="text-[#8B4513] text-sm">Loading admin access...</p>
-          <div className="mt-6 p-4 bg-[#f0f0f0] rounded text-left text-sm">
-            <p className="font-semibold mb-2">Debug Info:</p>
-            <p>Current URL: {location.pathname}</p>
-            <p>Auth Loading: {loading ? 'Yes' : 'No'}</p>
-            <p>User: {user ? 'Yes' : 'No'}</p>
-            <p>Time: {new Date().toLocaleTimeString()}</p>
-          </div>
         </div>
       </div>
     );
@@ -131,7 +115,6 @@ export function AdminRoute({ children }: { children: ReactNode }) {
   // Not authenticated at all
   if (!user) {
     console.log('AdminRoute: No user found, redirecting to admin login');
-    toast.error('Please sign in to access the admin area');
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
@@ -158,17 +141,17 @@ export function PublicRoute({ children }: { children: ReactNode }) {
     isUser 
   });
   
-  // Emergency timeout to prevent indefinite loading - reduced timeout
+  // Reduced timeout to prevent white screens
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      console.log('PublicRoute: Emergency timeout reached, forcing display');
+      console.log('PublicRoute: Timeout reached, forcing display');
       setIsPageReady(true);
-    }, 1500); // Reduced timeout to prevent excessive wait
+    }, 1000); // Reduced from 1500ms to 1000ms
 
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // Regular progress tracking - allow render when auth loading completes
+  // Allow render when auth loading completes
   useEffect(() => {
     if (!loading) {
       console.log('PublicRoute: Auth loading complete, preparing page');
@@ -176,8 +159,8 @@ export function PublicRoute({ children }: { children: ReactNode }) {
     }
   }, [loading]);
 
-  // Emergency page loading state
-  if (!isPageReady) {
+  // Show loading only briefly
+  if (!isPageReady && loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center">

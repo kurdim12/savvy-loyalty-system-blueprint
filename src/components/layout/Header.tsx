@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { secureSignOut } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -23,18 +22,24 @@ import {
   Menu,
   X
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Header = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = async () => {
+    if (isSigningOut) return; // Prevent double clicks
+    
+    setIsSigningOut(true);
     try {
-      await secureSignOut();
+      console.log('Header: Starting sign out process');
+      await signOut();
     } catch (error) {
-      console.error('Sign out error:', error);
-      // Force navigation even if sign out fails
-      window.location.href = '/auth';
+      console.error('Header: Sign out error:', error);
+      toast.error('Sign out failed, please try again');
+      setIsSigningOut(false);
     }
   };
 
@@ -152,9 +157,13 @@ const Header = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                  <DropdownMenuItem 
+                    onClick={handleSignOut} 
+                    className="text-red-600"
+                    disabled={isSigningOut}
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
-                    Sign out
+                    {isSigningOut ? 'Signing out...' : 'Sign out'}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

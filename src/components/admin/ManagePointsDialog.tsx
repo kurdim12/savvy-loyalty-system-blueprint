@@ -52,55 +52,82 @@ const ManagePointsDialog = ({
   userId,
   customerName,
 }: ManagePointsDialogProps) => {
-  const [points, setPoints] = useState<number>(0);
+  const [points, setPoints] = useState<number>(1);
   const [transactionType, setTransactionType] = useState<Database['public']['Enums']['transaction_type']>('earn');
   const [notes, setNotes] = useState<string>('');
   const [pointsCalculationMethod, setPointsCalculationMethod] = useState<'custom' | 'drink' | 'amount'>('custom');
   const [selectedDrink, setSelectedDrink] = useState<string>('');
-  const [amountSpent, setAmountSpent] = useState<number>(0);
+  const [amountSpent, setAmountSpent] = useState<number>(1);
   const queryClient = useQueryClient();
 
   const handlePointsChange = (value: string) => {
     const numValue = parseInt(value);
-    setPoints(isNaN(numValue) ? 0 : numValue);
+    if (isNaN(numValue) || numValue < 1) {
+      setPoints(1);
+    } else {
+      setPoints(numValue);
+    }
+  };
+
+  const handleAmountChange = (value: string) => {
+    const numValue = parseFloat(value);
+    if (isNaN(numValue) || numValue < 0.01) {
+      setAmountSpent(0.01);
+      setPoints(1);
+    } else {
+      setAmountSpent(numValue);
+      setPoints(Math.round(numValue));
+    }
   };
 
   const resetForm = () => {
-    setPoints(0);
+    setPoints(1);
     setTransactionType('earn');
     setNotes('');
     setPointsCalculationMethod('custom');
     setSelectedDrink('');
-    setAmountSpent(0);
+    setAmountSpent(1);
   };
 
   const createTransaction = useMutation({
     mutationFn: async () => {
-      if (!userId) return;
+      if (!userId) throw new Error('User ID is required');
       
       // Calculate final points based on selected method
       let finalPoints = points;
       if (pointsCalculationMethod === 'drink' && selectedDrink) {
         const selectedCategory = drinkCategories.find(d => d.id === selectedDrink);
-        finalPoints = selectedCategory?.points || 0;
+        finalPoints = selectedCategory?.points || points;
       } else if (pointsCalculationMethod === 'amount') {
-        // Use exact amount for points (1:1 ratio)
-        finalPoints = amountSpent;
+        finalPoints = Math.round(amountSpent);
       }
       
-      // Create the transaction record with the exact points value
-      const transactionData = {
+      // Ensure points are positive
+      if (finalPoints < 1) {
+        throw new Error('Points must be at least 1');
+      }
+      
+      console.log('Creating transaction:', {
         user_id: userId,
         transaction_type: transactionType,
         points: finalPoints,
-        notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} ${finalPoints} points manually by admin`,
-      } as unknown as Database['public']['Tables']['transactions']['Insert'];
+        notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} ${finalPoints} points manually by admin`
+      });
       
+      // Create the transaction record with exact points value
       const { error: transactionError } = await supabase
         .from('transactions')
-        .insert(transactionData);
+        .insert({
+          user_id: userId,
+          transaction_type: transactionType,
+          points: finalPoints,
+          notes: notes || `${transactionType === 'earn' ? 'Added' : 'Deducted'} ${finalPoints} points manually by admin`,
+        });
       
-      if (transactionError) throw transactionError;
+      if (transactionError) {
+        console.error('Transaction error:', transactionError);
+        throw transactionError;
+      }
       
       return { points: finalPoints };
     },
@@ -117,6 +144,7 @@ const ManagePointsDialog = ({
       resetForm();
     },
     onError: (error: any) => {
+      console.error('Points management error:', error);
       toast({
         title: "Error",
         description: `Failed to update points: ${error.message}`,
@@ -128,10 +156,10 @@ const ManagePointsDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (pointsCalculationMethod === 'custom' && points <= 0) {
+    if (pointsCalculationMethod === 'custom' && points < 1) {
       toast({
         title: "Validation Error",
-        description: 'Points must be a positive number',
+        description: 'Points must be at least 1',
         variant: "destructive"
       });
       return;
@@ -146,7 +174,7 @@ const ManagePointsDialog = ({
       return;
     }
     
-    if (pointsCalculationMethod === 'amount' && amountSpent <= 0) {
+    if (pointsCalculationMethod === 'amount' && amountSpent < 0.01) {
       toast({
         title: "Validation Error",
         description: 'Amount spent must be greater than 0',
@@ -243,19 +271,14 @@ const ManagePointsDialog = ({
                 <Input
                   id="amount-spent"
                   type="number"
-                  min="0"
+                  min="0.01"
                   step="0.01"
                   value={amountSpent}
-                  onChange={(e) => {
-                    const value = parseFloat(e.target.value);
-                    setAmountSpent(isNaN(value) ? 0 : value);
-                    // Use the exact amount for points (no rounding)
-                    setPoints(isNaN(value) ? 0 : value);
-                  }}
+                  onChange={(e) => handleAmountChange(e.target.value)}
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  This will award {amountSpent} points ($1 = 1 point)
+                  This will award {Math.round(amountSpent)} points ($1 = 1 point)
                 </p>
               </div>
             )}
@@ -271,6 +294,9 @@ const ManagePointsDialog = ({
                   onChange={(e) => handlePointsChange(e.target.value)}
                   required
                 />
+                <p className="text-xs text-muted-foreground">
+                  Minimum: 1 point
+                </p>
               </div>
             )}
 
@@ -295,7 +321,7 @@ const ManagePointsDialog = ({
               <Button 
                 type="submit" 
                 className="bg-amber-700 hover:bg-amber-800"
-                disabled={createTransaction.isPending || points <= 0}
+                disabled={createTransaction.isPending || points < 1}
               >
                 {createTransaction.isPending ? 'Processing...' : 'Submit'}
               </Button>

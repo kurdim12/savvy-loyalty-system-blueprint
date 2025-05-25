@@ -54,12 +54,12 @@ const drinkCategories: DrinkCategory[] = [
 const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps) => {
   const [customerId, setCustomerId] = useState('');
   const [transactionType, setTransactionType] = useState<Database['public']['Enums']['transaction_type']>('earn');
-  const [points, setPoints] = useState<number>(0);
+  const [points, setPoints] = useState<number>(1);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [notes, setNotes] = useState('');
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
   const [pointsCalculationMethod, setPointsCalculationMethod] = useState<'drink' | 'amount'>('drink');
-  const [amountSpent, setAmountSpent] = useState<number>(0);
+  const [amountSpent, setAmountSpent] = useState<number>(1);
   
   const queryClient = useQueryClient();
   
@@ -91,7 +91,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
     mutationFn: async () => {
       if (!customerId) throw new Error('Customer is required');
       
-      let finalPoints = 0;
+      let finalPoints = 1;
       
       // Calculate points based on selected method
       if (pointsCalculationMethod === 'drink') {
@@ -103,29 +103,35 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
         }
       } else {
         // Amount-based: Use exact amount for points (1:1 ratio)
-        finalPoints = amountSpent;
+        finalPoints = Math.round(amountSpent);
       }
       
       // Ensure points are positive
-      finalPoints = Math.max(0, finalPoints);
-      
-      if (finalPoints <= 0) {
-        throw new Error('Points must be greater than 0');
+      if (finalPoints < 1) {
+        throw new Error('Points must be at least 1');
       }
       
-      // Create the transaction record with exact points value
-      const transactionData = {
+      console.log('Creating transaction:', {
         user_id: customerId,
         transaction_type: transactionType,
         points: finalPoints,
-        notes: notes || `${transactionType === 'earn' ? 'Earned' : 'Redeemed'} ${finalPoints} points`,
-      } as unknown as Database['public']['Tables']['transactions']['Insert'];
+        notes: notes || `${transactionType === 'earn' ? 'Earned' : 'Redeemed'} ${finalPoints} points`
+      });
       
+      // Create the transaction record with exact points value
       const { error: transactionError } = await supabase
         .from('transactions')
-        .insert(transactionData);
+        .insert({
+          user_id: customerId,
+          transaction_type: transactionType,
+          points: finalPoints,
+          notes: notes || `${transactionType === 'earn' ? 'Earned' : 'Redeemed'} ${finalPoints} points`,
+        });
       
-      if (transactionError) throw transactionError;
+      if (transactionError) {
+        console.error('Transaction error:', transactionError);
+        throw transactionError;
+      }
       
       return { points: finalPoints };
     },
@@ -141,6 +147,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
       queryClient.invalidateQueries({ queryKey: ['admin', 'transactions'] });
     },
     onError: (error: any) => {
+      console.error('Transaction creation error:', error);
       toast({
         title: "Error",
         description: `Failed to create transaction: ${error.message}`,
@@ -152,12 +159,12 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
   const resetForm = () => {
     setCustomerId('');
     setTransactionType('earn');
-    setPoints(0);
+    setPoints(1);
     setSelectedCategory('');
     setNotes('');
     setCustomerSearchQuery('');
     setPointsCalculationMethod('drink');
-    setAmountSpent(0);
+    setAmountSpent(1);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -173,6 +180,26 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
       if (category) {
         setPoints(category.points);
       }
+    }
+  };
+
+  const handlePointsChange = (value: string) => {
+    const numValue = parseInt(value);
+    if (isNaN(numValue) || numValue < 1) {
+      setPoints(1);
+    } else {
+      setPoints(numValue);
+    }
+  };
+
+  const handleAmountChange = (value: string) => {
+    const numValue = parseFloat(value);
+    if (isNaN(numValue) || numValue < 0.01) {
+      setAmountSpent(0.01);
+      setPoints(1);
+    } else {
+      setAmountSpent(numValue);
+      setPoints(Math.round(numValue));
     }
   };
 
@@ -285,19 +312,14 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
                   <Input
                     id="amount-spent"
                     type="number"
-                    min="0"
+                    min="0.01"
                     step="0.01"
                     value={amountSpent}
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value);
-                      setAmountSpent(isNaN(value) ? 0 : value);
-                      // Use exact value for points (no rounding)
-                      setPoints(isNaN(value) ? 0 : value);
-                    }}
+                    onChange={(e) => handleAmountChange(e.target.value)}
                     required
                   />
                   <p className="text-xs text-muted-foreground">
-                    This will award {amountSpent} points ($1 = 1 point)
+                    This will award {Math.round(amountSpent)} points ($1 = 1 point)
                   </p>
                 </div>
               )}
@@ -311,13 +333,13 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
               type="number"
               min="1"
               value={points}
-              onChange={(e) => {
-                const value = parseInt(e.target.value);
-                setPoints(isNaN(value) ? 0 : value);
-              }}
+              onChange={(e) => handlePointsChange(e.target.value)}
               required
               disabled={pointsCalculationMethod === 'amount'}
             />
+            <p className="text-xs text-muted-foreground">
+              Minimum: 1 point
+            </p>
           </div>
           
           <div className="space-y-2">
@@ -344,7 +366,7 @@ const AddTransactionDialog = ({ open, onOpenChange }: AddTransactionDialogProps)
             <Button 
               type="submit" 
               className="bg-amber-700 hover:bg-amber-800"
-              disabled={createTransaction.isPending || !customerId || points <= 0}
+              disabled={createTransaction.isPending || !customerId || points < 1}
             >
               {createTransaction.isPending ? 'Processing...' : 'Create Transaction'}
             </Button>

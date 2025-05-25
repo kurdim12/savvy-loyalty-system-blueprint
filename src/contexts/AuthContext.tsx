@@ -20,7 +20,7 @@ interface AuthContextType {
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
 
-const AUTH_CHECK_TIMEOUT_MS = 5000; // 5 seconds max for auth check
+const AUTH_CHECK_TIMEOUT_MS = 2000; // Reduced to 2 seconds for faster loading
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -35,11 +35,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = profile?.role === 'admin';
   const isUser = profile?.role === 'customer';
 
-  // Initialize authentication
+  // Initialize authentication with faster timeout
   useEffect(() => {
     console.log('AuthContext: Initializing authentication...');
     
-    // Force auth resolution after timeout
+    // Reduced timeout for faster response
     const timeoutId = setTimeout(() => {
       console.log('AuthContext: Force completing auth check after timeout');
       setLoading(false);
@@ -50,24 +50,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
+      async (event, newSession) => {
         console.log('AuthContext: Auth event received:', event);
         
         if (!mounted) return;
         
-        // Update session and user state
+        // Update session and user state immediately
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
-        // Using setTimeout to avoid deadlocks with Supabase client
-        if (newSession?.user) {
+        // Handle different auth events
+        if (event === 'SIGNED_IN' && newSession?.user) {
+          console.log('AuthContext: User signed in, fetching profile');
+          // Use immediate timeout to prevent blocking
           setTimeout(() => {
             if (mounted) {
               fetchUserProfile(newSession.user.id);
             }
           }, 0);
         } else if (event === 'SIGNED_OUT') {
+          console.log('AuthContext: User signed out, clearing profile');
           setProfile(null);
+          setLoading(false);
+          setAuthInitialized(true);
         }
       }
     );
@@ -86,10 +91,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (currentSession?.user) {
           await fetchUserProfile(currentSession.user.id);
+        } else {
+          setLoading(false);
+          setAuthInitialized(true);
         }
-        
-        setLoading(false);
-        setAuthInitialized(true);
       } catch (error) {
         console.error('AuthContext: Error getting initial session:', error);
         
@@ -127,6 +132,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log('AuthContext: Profile not found, attempting to create it');
           await createUserProfile(userId);
         }
+        setLoading(false);
+        setAuthInitialized(true);
         return;
       }
 
@@ -136,6 +143,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('AuthContext: Unexpected error fetching profile:', error);
+    } finally {
+      setLoading(false);
+      setAuthInitialized(true);
     }
   };
   
@@ -209,6 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     try {
       console.log('AuthContext: Signing out user...');
+      setLoading(true);
       
       // Clean up auth state first
       cleanupAuthState();
@@ -216,10 +227,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Attempt global sign out
       await supabase.auth.signOut({ scope: 'global' });
       
-      // Clear state
+      // Clear state immediately
       setProfile(null);
       setUser(null);
       setSession(null);
+      setLoading(false);
       
       console.log('AuthContext: Signed out successfully, redirecting...');
       
