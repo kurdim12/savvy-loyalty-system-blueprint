@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Award, Star, Gift } from 'lucide-react';
+import { Award, Star, Gift, Clock, CheckCircle } from 'lucide-react';
 import { RewardImage } from '@/components/rewards/RewardImage';
 import {
   Dialog,
@@ -30,6 +30,16 @@ interface Reward {
   image_url?: string;
 }
 
+interface Redemption {
+  id: string;
+  reward_id: string;
+  status: string;
+  created_at: string;
+  rewards: {
+    name: string;
+  };
+}
+
 const Rewards = () => {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
@@ -49,6 +59,31 @@ const Rewards = () => {
       if (error) throw error;
       return data as Reward[];
     }
+  });
+
+  // Fetch user's pending redemptions
+  const { data: pendingRedemptions } = useQuery({
+    queryKey: ['user-redemptions', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('redemptions')
+        .select(`
+          id,
+          reward_id,
+          status,
+          created_at,
+          rewards (name)
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as Redemption[];
+    },
+    enabled: !!user
   });
 
   // Redeem reward mutation
@@ -87,14 +122,15 @@ const Rewards = () => {
         .from('notifications')
         .insert({
           user_id: user.id,
-          title: 'Reward Redeemed!',
-          message: `You've successfully redeemed ${reward.name} for ${reward.points_required} points.`,
+          title: 'Reward Redemption Pending!',
+          message: `Your redemption of ${reward.name} is pending admin approval. You'll be notified once it's processed.`,
           type: 'reward'
         });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user'] });
-      toast.success('Reward redeemed successfully! Check your profile for details.');
+      queryClient.invalidateQueries({ queryKey: ['user-redemptions'] });
+      toast.success('Reward redemption request submitted! Waiting for admin approval.');
       setIsRedeemDialogOpen(false);
       setSelectedReward(null);
     },
@@ -124,7 +160,17 @@ const Rewards = () => {
       (reward.membership_required === 'silver' && ['silver', 'gold'].includes(profile.membership_tier)) ||
       (reward.membership_required === 'gold' && profile.membership_tier === 'gold');
     
-    return hasEnoughPoints && meetsRequirement && reward.active;
+    const hasActivePendingRedemption = pendingRedemptions?.some(r => r.reward_id === reward.id);
+    
+    return hasEnoughPoints && meetsRequirement && reward.active && !hasActivePendingRedemption;
+  };
+
+  const getRedemptionStatus = (reward: Reward) => {
+    const pendingRedemption = pendingRedemptions?.find(r => r.reward_id === reward.id);
+    if (pendingRedemption) {
+      return 'pending';
+    }
+    return null;
   };
 
   if (isLoading) {
@@ -169,68 +215,107 @@ const Rewards = () => {
                   <Badge variant="secondary" className="capitalize">
                     {profile?.membership_tier || 'Bronze'} Member
                   </Badge>
+                  {pendingRedemptions && pendingRedemptions.length > 0 && (
+                    <div className="mt-2">
+                      <Badge variant="outline" className="text-orange-600 border-orange-300">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {pendingRedemptions.length} Pending
+                      </Badge>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Pending Redemptions Alert */}
+          {pendingRedemptions && pendingRedemptions.length > 0 && (
+            <Card className="border-orange-200 bg-orange-50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-orange-600" />
+                  <div>
+                    <h3 className="font-semibold text-orange-900">Pending Redemptions</h3>
+                    <p className="text-sm text-orange-700">
+                      You have {pendingRedemptions.length} redemption(s) waiting for admin approval.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Rewards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {rewards?.map((reward) => (
-              <Card key={reward.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="aspect-video relative bg-gray-100">
-                  <RewardImage
-                    src={reward.image_url}
-                    alt={reward.name}
-                    className="absolute inset-0 w-full h-full rounded-t-lg"
-                  />
-                  {reward.inventory !== null && reward.inventory <= 5 && (
-                    <Badge 
-                      variant="destructive" 
-                      className="absolute top-2 right-2"
-                    >
-                      Only {reward.inventory} left
-                    </Badge>
-                  )}
-                </div>
-                
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-lg leading-tight">{reward.name}</CardTitle>
-                    <div className="flex items-center gap-1 text-amber-600 shrink-0">
-                      <Star className="h-4 w-4 fill-current" />
-                      <span className="font-bold">{reward.points_required}</span>
-                    </div>
-                  </div>
-                  {reward.description && (
-                    <CardDescription className="text-sm line-clamp-2">
-                      {reward.description}
-                    </CardDescription>
-                  )}
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  <div className="space-y-3">
-                    {reward.membership_required && (
-                      <Badge variant="outline" className="capitalize text-xs">
-                        {reward.membership_required}+ Members
+            {rewards?.map((reward) => {
+              const redemptionStatus = getRedemptionStatus(reward);
+              
+              return (
+                <Card key={reward.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="aspect-video relative bg-gray-100">
+                    <RewardImage
+                      src={reward.image_url}
+                      alt={reward.name}
+                      className="absolute inset-0 w-full h-full rounded-t-lg"
+                    />
+                    {reward.inventory !== null && reward.inventory <= 5 && (
+                      <Badge 
+                        variant="destructive" 
+                        className="absolute top-2 left-2"
+                      >
+                        Only {reward.inventory} left
                       </Badge>
                     )}
-                    
-                    <Button
-                      onClick={() => handleRedeemClick(reward)}
-                      disabled={!canRedeem(reward)}
-                      className="w-full bg-amber-700 hover:bg-amber-800 disabled:opacity-50"
-                    >
-                      <Gift className="h-4 w-4 mr-2" />
-                      {canRedeem(reward) ? 'Redeem' : 
-                       profile && profile.current_points < reward.points_required ? 'Not Enough Points' : 
-                       'Requirements Not Met'}
-                    </Button>
+                    {redemptionStatus === 'pending' && (
+                      <Badge 
+                        variant="outline" 
+                        className="absolute top-2 right-2 bg-orange-100 text-orange-600 border-orange-300"
+                      >
+                        <Clock className="h-3 w-3 mr-1" />
+                        Pending Approval
+                      </Badge>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="text-lg leading-tight">{reward.name}</CardTitle>
+                      <div className="flex items-center gap-1 text-amber-600 shrink-0">
+                        <Star className="h-4 w-4 fill-current" />
+                        <span className="font-bold">{reward.points_required}</span>
+                      </div>
+                    </div>
+                    {reward.description && (
+                      <CardDescription className="text-sm line-clamp-2">
+                        {reward.description}
+                      </CardDescription>
+                    )}
+                  </CardHeader>
+                  
+                  <CardContent className="pt-0">
+                    <div className="space-y-3">
+                      {reward.membership_required && (
+                        <Badge variant="outline" className="capitalize text-xs">
+                          {reward.membership_required}+ Members
+                        </Badge>
+                      )}
+                      
+                      <Button
+                        onClick={() => handleRedeemClick(reward)}
+                        disabled={!canRedeem(reward) || redemptionStatus === 'pending'}
+                        className="w-full bg-amber-700 hover:bg-amber-800 disabled:opacity-50"
+                      >
+                        <Gift className="h-4 w-4 mr-2" />
+                        {redemptionStatus === 'pending' ? 'Pending Approval' :
+                         canRedeem(reward) ? 'Redeem' : 
+                         profile && profile.current_points < reward.points_required ? 'Not Enough Points' : 
+                         'Requirements Not Met'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {!rewards || rewards.length === 0 && (
@@ -252,6 +337,7 @@ const Rewards = () => {
             <DialogTitle>Confirm Redemption</DialogTitle>
             <DialogDescription>
               Are you sure you want to redeem "{selectedReward?.name}" for {selectedReward?.points_required} points?
+              This will require admin approval.
             </DialogDescription>
           </DialogHeader>
           
@@ -263,6 +349,16 @@ const Rewards = () => {
                   alt={selectedReward.name}
                   className="absolute inset-0 w-full h-full"
                 />
+              </div>
+              
+              <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                <div className="flex items-center gap-2 text-orange-700">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-sm font-medium">Requires Admin Approval</span>
+                </div>
+                <p className="text-xs text-orange-600 mt-1">
+                  Your redemption will be pending until an admin reviews and approves it.
+                </p>
               </div>
               
               <div className="text-center">
@@ -286,7 +382,7 @@ const Rewards = () => {
               disabled={redeemReward.isPending}
               className="w-full sm:w-auto bg-amber-700 hover:bg-amber-800"
             >
-              {redeemReward.isPending ? 'Redeeming...' : 'Confirm Redemption'}
+              {redeemReward.isPending ? 'Submitting...' : 'Submit for Approval'}
             </Button>
           </DialogFooter>
         </DialogContent>
