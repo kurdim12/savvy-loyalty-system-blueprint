@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Edit, Trash, Upload } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/components/ui/use-toast';
 
 type Reward = {
   id: string;
@@ -23,7 +23,6 @@ type Reward = {
 };
 
 const EnhancedRewardsManagement = () => {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -68,10 +67,17 @@ const EnhancedRewardsManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enhanced-rewards'] });
-      toast.success('Reward status updated successfully');
+      toast({
+        title: "Success",
+        description: "Reward status updated successfully",
+      });
     },
     onError: () => {
-      toast.error('Failed to update reward status');
+      toast({
+        title: "Error",
+        description: "Failed to update reward status",
+        variant: "destructive",
+      });
     },
   });
 
