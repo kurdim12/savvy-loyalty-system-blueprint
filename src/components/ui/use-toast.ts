@@ -1,18 +1,37 @@
 
-import { useToast, toast as baseToast } from "@/hooks/use-toast";
-import type { ToastProps } from "@/components/ui/toast";
+import { useToast as useToastOriginal } from "@/hooks/use-toast";
 
-// Create a properly callable function with additional methods
-const toast = Object.assign(
-  // The main function
-  (props: ToastProps) => baseToast(props),
-  // Additional utility methods
-  {
-    success: (message: string) => baseToast({ title: "Success", description: message }),
-    error: (message: string) => baseToast({ title: "Error", description: message, variant: "destructive" }),
-    info: (message: string) => baseToast({ title: "Info", description: message }),
-    warning: (message: string) => baseToast({ title: "Warning", description: message }),
-  }
-);
+// Simplified toast interface - use only the shadcn toast system
+export const useToast = useToastOriginal;
 
-export { useToast, toast };
+export const toast = {
+  success: (message: string) => {
+    const { toast: showToast } = useToastOriginal();
+    showToast({
+      title: "Success",
+      description: message,
+    });
+  },
+  error: (message: string) => {
+    const { toast: showToast } = useToastOriginal();
+    showToast({
+      title: "Error", 
+      description: message,
+      variant: "destructive"
+    });
+  },
+  info: (message: string) => {
+    const { toast: showToast } = useToastOriginal();
+    showToast({
+      title: "Info",
+      description: message,
+    });
+  },
+  warning: (message: string) => {
+    const { toast: showToast } = useToastOriginal();
+    showToast({
+      title: "Warning",
+      description: message,
+    });
+  },
+};

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -23,7 +22,6 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    // Redirect non-admins away
     if (!loading && !isAdmin) {
       navigate('/dashboard');
     }
@@ -32,7 +30,6 @@ const Admin = () => {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['adminStats'],
     queryFn: async () => {
-      // Get count of customers (role = 'customer')
       const { count: usersCount, error: usersError } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
@@ -40,7 +37,6 @@ const Admin = () => {
 
       if (usersError) throw usersError;
 
-      // Get count of transactions in last 30 days
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
@@ -51,7 +47,6 @@ const Admin = () => {
 
       if (transactionsError) throw transactionsError;
 
-      // Get count of active rewards
       const { count: activeRewardsCount, error: rewardsError } = await supabase
         .from('rewards')
         .select('*', { count: 'exact', head: true })
@@ -59,14 +54,12 @@ const Admin = () => {
 
       if (rewardsError) throw rewardsError;
 
-      // Get count of community goals
       const { count: goalsCount, error: goalsError } = await supabase
         .from('community_goals')
         .select('*', { count: 'exact', head: true });
         
       if (goalsError) throw goalsError;
 
-      // Get count of pending redemptions
       const { count: pendingRedemptionsCount, error: redemptionsError } = await supabase
         .from('redemptions')
         .select('*', { count: 'exact', head: true })
@@ -90,7 +83,7 @@ const Admin = () => {
   }
 
   if (!isAdmin) {
-    return null; // Will redirect in useEffect
+    return null;
   }
 
   return (
@@ -106,7 +99,6 @@ const Admin = () => {
           </div>
         </div>
 
-        {/* Enhanced Stats Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
           <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
             <CardHeader className="pb-2">
@@ -194,7 +186,6 @@ const Admin = () => {
           </Card>
         </div>
 
-        {/* Enhanced Quick Actions */}
         <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
           <Card className="lg:col-span-2 bg-gradient-to-br from-amber-50 to-orange-50">
             <CardHeader>

@@ -1,20 +1,9 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 // Supabase project configuration
 const SUPABASE_URL = "https://egeufofnkpvwbmffgoxw.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnZXVmb2Zua3B2d2JtZmZnb3h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxODE3NDUsImV4cCI6MjA2MTc1Nzc0NX0.rQbKbndK2BB-oDfp0_v4xrpYAXizNgpFOQMfxbzhQ-A";
-
-// Get the app URL for auth redirects (defaults to current URL in production or localhost in dev)
-const getRedirectURL = () => {
-  if (typeof window !== 'undefined') {
-    // Use current origin in production
-    return window.location.origin;
-  }
-  // Fallback for non-browser environments
-  return 'http://localhost:8080';
-};
 
 // Create the Supabase client with enhanced security and persistence configuration
 export const supabase = createClient<Database>(
@@ -26,17 +15,16 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      flowType: 'pkce', // More secure authentication flow
+      flowType: 'pkce',
     },
     global: {
       headers: {
         'X-Client-Info': 'raw-smith-loyalty@1.0.0',
       },
     },
-    // Safe defaults for data transfers
     realtime: {
       params: {
-        eventsPerSecond: 5, // Rate limiting for realtime events
+        eventsPerSecond: 5,
       }
     },
     db: {
@@ -45,17 +33,17 @@ export const supabase = createClient<Database>(
   }
 );
 
-// Thorough cleanup function for auth state
+// Enhanced cleanup function for auth state
 export const cleanupAuthState = () => {
   console.log("Cleaning up auth state");
   
   try {
-    // Remove standard auth tokens
-    localStorage.removeItem('supabase.auth.token');
+    // Get all storage keys first to avoid modification during iteration
+    const localStorageKeys = Object.keys(localStorage);
     
     // Remove all Supabase auth keys from localStorage
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+    localStorageKeys.forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-egeufofnkpvwbmffgoxw')) {
         console.log(`Removing auth key: ${key}`);
         localStorage.removeItem(key);
       }
@@ -63,8 +51,9 @@ export const cleanupAuthState = () => {
     
     // Try to remove from sessionStorage if it exists
     if (typeof sessionStorage !== 'undefined') {
-      Object.keys(sessionStorage).forEach((key) => {
-        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+      const sessionStorageKeys = Object.keys(sessionStorage);
+      sessionStorageKeys.forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-egeufofnkpvwbmffgoxw')) {
           console.log(`Removing session key: ${key}`);
           sessionStorage.removeItem(key);
         }
@@ -80,30 +69,31 @@ export const cleanupAuthState = () => {
 // Secure sign out function to prevent session issues
 export const secureSignOut = async () => {
   try {
+    console.log("Starting secure sign out process");
+    
     // Clean up auth state first
     cleanupAuthState();
     
     // Attempt global sign out for complete logout
     await supabase.auth.signOut({ scope: 'global' });
     
-    // Force page reload for a clean state
-    window.location.href = '/auth';
+    // Additional cleanup after sign out
+    setTimeout(() => {
+      cleanupAuthState();
+      // Force page reload for a clean state
+      window.location.href = '/auth';
+    }, 100);
   } catch (error) {
     console.error('Error during secure sign out:', error);
     // Fallback: force reload anyway for safety
+    cleanupAuthState();
     window.location.href = '/auth';
   }
 };
 
-/**
- * Sanitize input to prevent XSS and injection attacks
- * @param input The input to sanitize
- * @returns Sanitized input
- */
 export const sanitizeInput = (input: string): string => {
   if (!input) return '';
   
-  // Basic sanitization for XSS prevention
   return input
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -113,10 +103,6 @@ export const sanitizeInput = (input: string): string => {
     .trim();
 };
 
-/**
- * Utility function to require admin role, throws error if not admin
- * @throws Error if user is not an admin
- */
 export const requireAdmin = async (): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
   
@@ -135,10 +121,6 @@ export const requireAdmin = async (): Promise<void> => {
   }
 };
 
-/**
- * Utility function to require authentication, throws error if not authenticated
- * @throws Error if user is not authenticated
- */
 export const requireAuth = async (): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
   
@@ -147,7 +129,6 @@ export const requireAuth = async (): Promise<void> => {
   }
 };
 
-// Export additional helper functions from functions.ts
 export { 
   getUserPoints,
   getUserVisits,
