@@ -40,8 +40,8 @@ export function UserRoute({ children }: { children: ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center p-6">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#8B4513] text-sm">Loading...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-[#95A5A6] text-sm">Loading...</p>
         </div>
       </div>
     );
@@ -105,8 +105,8 @@ export function AdminRoute({ children }: { children: ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center p-6">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#8B4513] text-sm">Loading admin access...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-[#95A5A6] text-sm">Loading admin access...</p>
         </div>
       </div>
     );
@@ -164,8 +164,8 @@ export function PublicRoute({ children }: { children: ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#8B4513] text-sm">Loading...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-[#95A5A6] text-sm">Loading...</p>
         </div>
       </div>
     );
@@ -182,5 +182,56 @@ export function PublicRoute({ children }: { children: ReactNode }) {
   }
 
   console.log('PublicRoute: No authenticated user, showing public content');
+  return <>{children}</>;
+}
+
+// Generic protected route component - requires any authenticated user
+export function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+  const [isPageReady, setIsPageReady] = useState(false);
+  
+  console.log("ProtectedRoute: Init with auth state:", { 
+    user: user ? 'exists' : 'null', 
+    loading
+  });
+
+  // Reduced timeout to prevent white screens
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      console.log('ProtectedRoute: Timeout reached, forcing display');
+      setIsPageReady(true);
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  // Allow render when auth loading completes
+  useEffect(() => {
+    if (!loading) {
+      console.log('ProtectedRoute: Auth loading complete, preparing page');
+      setIsPageReady(true);
+    }
+  }, [loading]);
+
+  // Show loading only briefly
+  if (!isPageReady && loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
+        <div className="text-center p-6">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-[#95A5A6] text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not authenticated at all
+  if (!user) {
+    console.log('ProtectedRoute: No user found, redirecting to auth');
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  console.log('ProtectedRoute: User authenticated, access granted');
   return <>{children}</>;
 }
