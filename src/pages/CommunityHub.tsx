@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Layout from '@/components/layout/Layout';
 import { CommunityChallenge } from '@/components/community/CommunityChallenge';
@@ -8,126 +9,245 @@ import { SocialShare } from '@/components/community/SocialShare';
 import CommunityGoalsList from '@/components/community/CommunityGoalsList';
 import { Trophy, Camera, Share2, Target } from 'lucide-react';
 import { toast } from 'sonner';
-
-// Mock data - in real app, this would come from API
-const mockChallenges = [
-  {
-    id: '1',
-    title: 'Morning Coffee Streak',
-    description: 'Visit us 7 days in a row for your morning coffee',
-    type: 'weekly' as const,
-    target: 7,
-    current: 3,
-    reward: '50 Bonus Points',
-    expiresAt: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
-    participants: 127
-  },
-  {
-    id: '2',
-    title: 'Social Media Share',
-    description: 'Share your coffee experience on social media',
-    type: 'daily' as const,
-    target: 1,
-    current: 0,
-    reward: '15 Points',
-    expiresAt: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-    participants: 89
-  },
-  {
-    id: '3',
-    title: 'Coffee Connoisseur',
-    description: 'Try 5 different coffee varieties this month',
-    type: 'monthly' as const,
-    target: 5,
-    current: 2,
-    reward: 'Free Premium Blend',
-    expiresAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
-    participants: 203
-  }
-];
-
-const mockPhotoContest = {
-  id: '1',
-  title: 'Perfect Coffee Moment',
-  description: 'Capture your perfect coffee moment and win amazing prizes!',
-  theme: 'Perfect Coffee Moment',
-  prize: 'Free Coffee for a Month + Premium Merchandise',
-  endsAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
-  maxSubmissions: 100,
-  submissions: [
-    {
-      id: '1',
-      imageUrl: '/lovable-uploads/e2fc2611-a942-411c-a3e2-676b7cf86455.png',
-      title: 'Morning Bliss',
-      description: 'Perfect start to my day with Raw Smith coffee',
-      author: 'Sarah J.',
-      votes: 45,
-      submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-    },
-    {
-      id: '2',
-      imageUrl: '/lovable-uploads/5404e14c-b49d-4de3-b6c1-4d58b8ec620f.png',
-      title: 'Cozy Corner',
-      description: 'My favorite spot for afternoon coffee',
-      author: 'Mike R.',
-      votes: 38,
-      submittedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
-    },
-    {
-      id: '3',
-      imageUrl: '/lovable-uploads/e14bae4b-002f-43c3-afc6-604e5d3976a7.png',
-      title: 'Latte Art Love',
-      description: 'Beautiful latte art that made my day',
-      author: 'Emma K.',
-      votes: 52,
-      submittedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
-    }
-  ]
-};
-
-const mockLeaderboard = [
-  { id: '1', name: 'Coffee King Alex', referrals: 23, pointsEarned: 1150, rank: 1, badge: 'Champion' },
-  { id: '2', name: 'Brew Master Sarah', referrals: 19, pointsEarned: 950, rank: 2, badge: 'Elite' },
-  { id: '3', name: 'Latte Legend Mike', referrals: 16, pointsEarned: 800, rank: 3, badge: 'Pro' },
-  { id: '4', name: 'Emma Coffee', referrals: 12, pointsEarned: 600, rank: 4 },
-  { id: '5', name: 'David Espresso', referrals: 10, pointsEarned: 500, rank: 5 },
-  { id: '6', name: 'Lisa Mocha', referrals: 8, pointsEarned: 400, rank: 6 },
-  { id: '7', name: 'John Cappuccino', referrals: 6, pointsEarned: 300, rank: 7 },
-  { id: '8', name: 'Amy Americano', referrals: 4, pointsEarned: 200, rank: 8 }
-];
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CommunityHub = () => {
+  const { isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('challenges');
+  const queryClient = useQueryClient();
+
+  // Fetch real challenges from database
+  const { data: challenges = [], isLoading: challengesLoading } = useQuery({
+    queryKey: ['challenges'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('challenges')
+        .select('*')
+        .eq('active', true)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Fetch real photo contests from database
+  const { data: photoContests = [], isLoading: contestsLoading } = useQuery({
+    queryKey: ['photo_contests'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('photo_contests')
+        .select(`
+          *,
+          photo_contest_submissions(
+            id,
+            image_url,
+            title,
+            description,
+            votes,
+            created_at,
+            profiles(first_name, last_name)
+          )
+        `)
+        .eq('active', true)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Fetch leaderboard data
+  const { data: leaderboard = [] } = useQuery({
+    queryKey: ['leaderboard'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, current_points, membership_tier')
+        .eq('role', 'customer')
+        .order('current_points', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      return data?.map((profile, index) => ({
+        id: profile.id,
+        name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Anonymous',
+        referrals: 0, // This would need a separate query for referrals
+        pointsEarned: profile.current_points,
+        rank: index + 1,
+        badge: profile.membership_tier === 'gold' ? 'Champion' : 
+               profile.membership_tier === 'silver' ? 'Elite' : undefined
+      })) || [];
+    }
+  });
+
+  // Join challenge mutation
+  const joinChallengeMutation = useMutation({
+    mutationFn: async (challengeId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('challenge_participants')
+        .insert({
+          challenge_id: challengeId,
+          user_id: user.id
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('🎯 Challenge joined! Start earning points now!');
+      queryClient.invalidateQueries({ queryKey: ['challenges'] });
+    },
+    onError: (error: any) => {
+      if (error.message?.includes('duplicate')) {
+        toast.error('You have already joined this challenge!');
+      } else {
+        toast.error('Failed to join challenge. Please try again.');
+      }
+    }
+  });
+
+  // Submit photo mutation
+  const submitPhotoMutation = useMutation({
+    mutationFn: async ({ contestId, photo, title, description }: {
+      contestId: string;
+      photo: File;
+      title: string;
+      description: string;
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // For now, we'll use a placeholder URL. In a real implementation,
+      // you'd upload to Supabase Storage first
+      const imageUrl = URL.createObjectURL(photo);
+
+      const { error } = await supabase
+        .from('photo_contest_submissions')
+        .insert({
+          contest_id: contestId,
+          user_id: user.id,
+          image_url: imageUrl,
+          title,
+          description
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('📸 Photo submitted successfully! Good luck in the contest!');
+      queryClient.invalidateQueries({ queryKey: ['photo_contests'] });
+    },
+    onError: () => {
+      toast.error('Failed to submit photo. Please try again.');
+    }
+  });
+
+  // Vote photo mutation
+  const votePhotoMutation = useMutation({
+    mutationFn: async (submissionId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('photo_contest_votes')
+        .insert({
+          submission_id: submissionId,
+          user_id: user.id
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('❤️ Vote cast! Thanks for supporting fellow coffee lovers!');
+      queryClient.invalidateQueries({ queryKey: ['photo_contests'] });
+    },
+    onError: (error: any) => {
+      if (error.message?.includes('duplicate')) {
+        toast.error('You have already voted for this submission!');
+      } else {
+        toast.error('Failed to vote. Please try again.');
+      }
+    }
+  });
 
   const handleJoinChallenge = (challengeId: string) => {
-    toast.success('🎯 Challenge joined! Start earning points now!');
+    joinChallengeMutation.mutate(challengeId);
   };
 
   const handleSubmitPhoto = (contestId: string, photo: File, title: string, description: string) => {
-    toast.success('📸 Photo submitted successfully! Good luck in the contest!');
+    submitPhotoMutation.mutate({ contestId, photo, title, description });
   };
 
   const handleVotePhoto = (submissionId: string) => {
-    toast.success('❤️ Vote cast! Thanks for supporting fellow coffee lovers!');
+    votePhotoMutation.mutate(submissionId);
   };
+
+  // Format challenges for the component
+  const formattedChallenges = challenges.map(challenge => ({
+    id: challenge.id,
+    title: challenge.title,
+    description: challenge.description,
+    type: challenge.type as 'daily' | 'weekly' | 'monthly',
+    target: challenge.target,
+    current: 0, // This would need to be calculated from participants
+    reward: challenge.reward,
+    expiresAt: new Date(challenge.expires_at),
+    participants: 0 // This would need a count query
+  }));
+
+  // Format photo contests for the component
+  const currentContest = photoContests[0] ? {
+    id: photoContests[0].id,
+    title: photoContests[0].title,
+    description: photoContests[0].description || '',
+    theme: photoContests[0].theme || '',
+    prize: photoContests[0].prize || '',
+    endsAt: new Date(photoContests[0].ends_at),
+    maxSubmissions: photoContests[0].max_submissions || 100,
+    submissions: (photoContests[0].photo_contest_submissions || []).map((sub: any) => ({
+      id: sub.id,
+      imageUrl: sub.image_url,
+      title: sub.title,
+      description: sub.description || '',
+      author: sub.profiles ? 
+        `${sub.profiles.first_name || ''} ${sub.profiles.last_name || ''}`.trim() : 
+        'Anonymous',
+      votes: sub.votes,
+      submittedAt: new Date(sub.created_at)
+    }))
+  } : null;
+
+  if (challengesLoading || contestsLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gradient-to-br from-[#95A5A6]/5 via-white to-[#95A5A6]/10 flex items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent"></div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-concrete/5 via-white to-concrete/10">
+      <div className="min-h-screen bg-gradient-to-br from-[#95A5A6]/5 via-white to-[#95A5A6]/10">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-bold text-black mb-4">
               Community Hub
             </h1>
-            <p className="text-xl text-concrete max-w-2xl mx-auto">
+            <p className="text-xl text-[#95A5A6] max-w-2xl mx-auto">
               Connect, compete, and celebrate coffee culture with fellow enthusiasts
             </p>
           </div>
 
           {/* Navigation Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-8 bg-concrete/10 p-1 rounded-xl">
+            <TabsList className="grid w-full grid-cols-4 mb-8 bg-[#95A5A6]/10 p-1 rounded-xl">
               <TabsTrigger 
                 value="challenges" 
                 className="flex items-center gap-2 data-[state=active]:bg-black data-[state=active]:text-white"
@@ -160,17 +280,25 @@ const CommunityHub = () => {
 
             <TabsContent value="challenges" className="space-y-6">
               <CommunityChallenge 
-                challenges={mockChallenges}
+                challenges={formattedChallenges}
                 onJoinChallenge={handleJoinChallenge}
               />
             </TabsContent>
 
             <TabsContent value="photos" className="space-y-6">
-              <PhotoContest
-                contest={mockPhotoContest}
-                onSubmitPhoto={handleSubmitPhoto}
-                onVotePhoto={handleVotePhoto}
-              />
+              {currentContest ? (
+                <PhotoContest
+                  contest={currentContest}
+                  onSubmitPhoto={handleSubmitPhoto}
+                  onVotePhoto={handleVotePhoto}
+                />
+              ) : (
+                <div className="text-center py-12">
+                  <Camera className="h-12 w-12 text-[#95A5A6] mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-black mb-2">No Active Photo Contest</h3>
+                  <p className="text-[#95A5A6]">Check back soon for new photo contests!</p>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="social" className="space-y-6">
@@ -178,7 +306,7 @@ const CommunityHub = () => {
                 referralCode="COFFEE2024"
                 totalReferrals={5}
                 pointsFromReferrals={250}
-                leaderboard={mockLeaderboard}
+                leaderboard={leaderboard}
                 userRank={12}
               />
             </TabsContent>

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Heart, Upload, Trophy, Users, Clock } from 'lucide-react';
+import { Camera, Heart, Trophy, Users, Clock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface PhotoSubmission {
@@ -59,7 +59,7 @@ export const PhotoContest = ({ contest, onSubmitPhoto, onVotePhoto }: PhotoConte
   return (
     <div className="space-y-6">
       {/* Contest Header */}
-      <Card className="bg-gradient-to-r from-black to-concrete text-white border-0">
+      <Card className="bg-gradient-to-r from-black to-[#95A5A6] text-white border-0">
         <CardHeader className="text-center pb-6">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Camera className="h-8 w-8" />
@@ -105,7 +105,7 @@ export const PhotoContest = ({ contest, onSubmitPhoto, onVotePhoto }: PhotoConte
                     type="file"
                     accept="image/*"
                     onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
-                    className="border-concrete focus:border-black"
+                    className="border-[#95A5A6] focus:border-black"
                   />
                 </div>
                 <div>
@@ -113,7 +113,7 @@ export const PhotoContest = ({ contest, onSubmitPhoto, onVotePhoto }: PhotoConte
                     placeholder="Photo title"
                     value={photoTitle}
                     onChange={(e) => setPhotoTitle(e.target.value)}
-                    className="border-concrete focus:border-black"
+                    className="border-[#95A5A6] focus:border-black"
                   />
                 </div>
                 <div>
@@ -121,13 +121,13 @@ export const PhotoContest = ({ contest, onSubmitPhoto, onVotePhoto }: PhotoConte
                     placeholder="Describe your photo..."
                     value={photoDescription}
                     onChange={(e) => setPhotoDescription(e.target.value)}
-                    className="border-concrete focus:border-black"
+                    className="border-[#95A5A6] focus:border-black"
                   />
                 </div>
                 <Button 
                   onClick={handlePhotoSubmit}
                   disabled={!photoFile || !photoTitle.trim()}
-                  className="w-full bg-black hover:bg-concrete text-white"
+                  className="w-full bg-black hover:bg-[#95A5A6] text-white"
                 >
                   Submit Photo
                 </Button>
@@ -140,60 +140,68 @@ export const PhotoContest = ({ contest, onSubmitPhoto, onVotePhoto }: PhotoConte
       {/* Photo Gallery */}
       <div className="space-y-4">
         <h3 className="text-2xl font-bold text-black">Contest Entries</h3>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {topSubmissions.map((submission) => (
-            <Card key={submission.id} className="overflow-hidden border-2 border-concrete/20 hover:border-black transition-all duration-300 hover:shadow-xl">
-              <div className="aspect-square relative">
-                <img 
-                  src={submission.imageUrl} 
-                  alt={submission.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-2 right-2">
-                  <Badge className="bg-black/80 text-white">
-                    #{topSubmissions.indexOf(submission) + 1}
-                  </Badge>
-                </div>
-              </div>
-              
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={submission.authorAvatar} />
-                      <AvatarFallback className="bg-concrete text-black text-xs">
-                        {submission.author.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h4 className="font-medium text-black text-sm">{submission.title}</h4>
-                      <p className="text-xs text-concrete">by {submission.author}</p>
-                    </div>
+        {topSubmissions.length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {topSubmissions.map((submission) => (
+              <Card key={submission.id} className="overflow-hidden border-2 border-[#95A5A6]/20 hover:border-black transition-all duration-300 hover:shadow-xl">
+                <div className="aspect-square relative">
+                  <img 
+                    src={submission.imageUrl} 
+                    alt={submission.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-2 right-2">
+                    <Badge className="bg-black/80 text-white">
+                      #{topSubmissions.indexOf(submission) + 1}
+                    </Badge>
                   </div>
                 </div>
                 
-                {submission.description && (
-                  <p className="text-sm text-concrete mb-3 line-clamp-2">{submission.description}</p>
-                )}
-                
-                <div className="flex items-center justify-between">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onVotePhoto(submission.id)}
-                    className="border-concrete text-black hover:bg-black hover:text-white transition-colors duration-200"
-                  >
-                    <Heart className="h-4 w-4 mr-1" />
-                    {submission.votes}
-                  </Button>
-                  <span className="text-xs text-concrete">
-                    {new Date(submission.submittedAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={submission.authorAvatar} />
+                        <AvatarFallback className="bg-[#95A5A6] text-black text-xs">
+                          {submission.author.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h4 className="font-medium text-black text-sm">{submission.title}</h4>
+                        <p className="text-xs text-[#95A5A6]">by {submission.author}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {submission.description && (
+                    <p className="text-sm text-[#95A5A6] mb-3 line-clamp-2">{submission.description}</p>
+                  )}
+                  
+                  <div className="flex items-center justify-between">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onVotePhoto(submission.id)}
+                      className="border-[#95A5A6] text-black hover:bg-black hover:text-white transition-colors duration-200"
+                    >
+                      <Heart className="h-4 w-4 mr-1" />
+                      {submission.votes}
+                    </Button>
+                    <span className="text-xs text-[#95A5A6]">
+                      {new Date(submission.submittedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <Camera className="h-12 w-12 text-[#95A5A6] mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-black mb-2">No Submissions Yet</h3>
+            <p className="text-[#95A5A6]">Be the first to submit a photo!</p>
+          </div>
+        )}
       </div>
     </div>
   );

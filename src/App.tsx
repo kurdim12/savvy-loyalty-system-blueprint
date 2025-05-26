@@ -1,3 +1,4 @@
+
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
@@ -15,6 +16,7 @@ import TransactionsManagement from './pages/admin/TransactionsManagement';
 import RewardsManagement from './pages/admin/RewardsManagement';
 import DrinksManagement from './pages/admin/DrinksList';
 import CommunityManagement from './pages/admin/CommunityManagement';
+import CommunityHubManagement from './pages/admin/CommunityHubManagement';
 import SettingsManagement from './pages/admin/SettingsManagement';
 import AdminLogin from './pages/admin/Login';
 import RedemptionManagement from './pages/admin/RedemptionManagement';
@@ -91,6 +93,11 @@ function App() {
       <Route path="/admin/community" element={
         <AdminRoute>
           <CommunityManagement />
+        </AdminRoute>
+      } />
+      <Route path="/admin/community-hub" element={
+        <AdminRoute>
+          <CommunityHubManagement />
         </AdminRoute>
       } />
       <Route path="/admin/settings" element={

@@ -9,6 +9,86 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      challenge_participants: {
+        Row: {
+          challenge_id: string
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          current_progress: number
+          id: string
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number
+          id?: string
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_participants_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      challenges: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          expires_at: string
+          id: string
+          reward: string
+          starts_at: string
+          target: number
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description: string
+          expires_at: string
+          id?: string
+          reward: string
+          starts_at?: string
+          target: number
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          expires_at?: string
+          id?: string
+          reward?: string
+          starts_at?: string
+          target?: number
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       community_goals: {
         Row: {
           active: boolean
@@ -198,6 +278,121 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      photo_contest_submissions: {
+        Row: {
+          contest_id: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          title: string
+          updated_at: string
+          user_id: string
+          votes: number
+        }
+        Insert: {
+          contest_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          title: string
+          updated_at?: string
+          user_id: string
+          votes?: number
+        }
+        Update: {
+          contest_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          votes?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_contest"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "photo_contests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photo_contest_votes: {
+        Row: {
+          created_at: string
+          id: string
+          submission_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          submission_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          submission_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_contest_votes_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "photo_contest_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photo_contests: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          ends_at: string
+          id: string
+          max_submissions: number | null
+          prize: string | null
+          starts_at: string
+          theme: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          ends_at: string
+          id?: string
+          max_submissions?: number | null
+          prize?: string | null
+          starts_at?: string
+          theme?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          ends_at?: string
+          id?: string
+          max_submissions?: number | null
+          prize?: string | null
+          starts_at?: string
+          theme?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
