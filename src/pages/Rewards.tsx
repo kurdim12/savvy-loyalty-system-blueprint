@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Layout from '@/components/layout/Layout';
@@ -179,8 +178,8 @@ const Rewards = () => {
         <div className="container mx-auto px-4 py-6 max-w-6xl">
           <div className="space-y-6">
             <div className="text-center">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Rewards</h1>
-              <p className="text-gray-600 mt-2">Loading available rewards...</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-black">Rewards</h1>
+              <p className="text-concrete mt-2">Loading available rewards...</p>
             </div>
           </div>
         </div>
@@ -194,30 +193,30 @@ const Rewards = () => {
         <div className="space-y-6">
           {/* Header */}
           <div className="text-center">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Rewards Catalog</h1>
-            <p className="text-gray-600 mt-2">Redeem your loyalty points for premium coffee rewards</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-black">Rewards Catalog</h1>
+            <p className="text-concrete mt-2">Redeem your loyalty points for premium coffee rewards</p>
           </div>
 
           {/* User Points Display */}
-          <Card className="bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200">
+          <Card className="bg-gradient-to-r from-concrete/10 to-concrete/20 border-concrete">
             <CardContent className="p-4 md:p-6">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-amber-200 rounded-full">
-                    <Award className="h-6 w-6 text-amber-700" />
+                  <div className="p-3 bg-concrete rounded-full">
+                    <Award className="h-6 w-6 text-black" />
                   </div>
                   <div className="text-center sm:text-left">
-                    <h3 className="font-semibold text-amber-900">Your Balance</h3>
-                    <p className="text-2xl font-bold text-amber-800">{profile?.current_points || 0} Points</p>
+                    <h3 className="font-semibold text-black">Your Balance</h3>
+                    <p className="text-2xl font-bold text-black">{profile?.current_points || 0} Points</p>
                   </div>
                 </div>
                 <div className="text-center sm:text-right">
-                  <Badge variant="secondary" className="capitalize">
+                  <Badge variant="secondary" className="capitalize bg-concrete text-black">
                     {profile?.membership_tier || 'Bronze'} Member
                   </Badge>
                   {pendingRedemptions && pendingRedemptions.length > 0 && (
                     <div className="mt-2">
-                      <Badge variant="outline" className="text-orange-600 border-orange-300">
+                      <Badge variant="outline" className="text-black border-concrete">
                         <Clock className="h-3 w-3 mr-1" />
                         {pendingRedemptions.length} Pending Approval
                       </Badge>
@@ -230,13 +229,13 @@ const Rewards = () => {
 
           {/* Pending Redemptions Alert */}
           {pendingRedemptions && pendingRedemptions.length > 0 && (
-            <Card className="border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50">
+            <Card className="border-concrete bg-gradient-to-r from-concrete/10 to-concrete/20">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-orange-600" />
+                  <Clock className="h-5 w-5 text-concrete" />
                   <div>
-                    <h3 className="font-semibold text-orange-900">Pending Admin Approval</h3>
-                    <p className="text-sm text-orange-700">
+                    <h3 className="font-semibold text-black">Pending Admin Approval</h3>
+                    <p className="text-sm text-concrete">
                       You have {pendingRedemptions.length} redemption request(s) waiting for admin approval. We'll notify you once they're processed!
                     </p>
                   </div>
@@ -251,8 +250,8 @@ const Rewards = () => {
               const redemptionStatus = getRedemptionStatus(reward);
               
               return (
-                <Card key={reward.id} className="overflow-hidden hover:shadow-lg transition-shadow border-0 bg-white shadow-md">
-                  <div className="aspect-video relative bg-gradient-to-br from-amber-50 to-orange-100">
+                <Card key={reward.id} className="overflow-hidden hover:shadow-lg transition-shadow border-concrete bg-white shadow-md">
+                  <div className="aspect-video relative bg-gradient-to-br from-concrete/10 to-concrete/20">
                     <RewardImage
                       src={reward.image_url}
                       alt={reward.name}
@@ -269,7 +268,7 @@ const Rewards = () => {
                     {redemptionStatus === 'pending' && (
                       <Badge 
                         variant="outline" 
-                        className="absolute top-2 right-2 bg-orange-100 text-orange-600 border-orange-300"
+                        className="absolute top-2 right-2 bg-concrete/20 text-black border-concrete"
                       >
                         <Clock className="h-3 w-3 mr-1" />
                         Pending Approval
@@ -279,14 +278,14 @@ const Rewards = () => {
                   
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-lg leading-tight">{reward.name}</CardTitle>
-                      <div className="flex items-center gap-1 text-amber-600 shrink-0">
+                      <CardTitle className="text-lg leading-tight text-black">{reward.name}</CardTitle>
+                      <div className="flex items-center gap-1 text-concrete shrink-0">
                         <Star className="h-4 w-4 fill-current" />
                         <span className="font-bold">{reward.points_required}</span>
                       </div>
                     </div>
                     {reward.description && (
-                      <CardDescription className="text-sm line-clamp-2">
+                      <CardDescription className="text-sm line-clamp-2 text-concrete">
                         {reward.description}
                       </CardDescription>
                     )}
@@ -295,7 +294,7 @@ const Rewards = () => {
                   <CardContent className="pt-0">
                     <div className="space-y-3">
                       {reward.membership_required && (
-                        <Badge variant="outline" className="capitalize text-xs">
+                        <Badge variant="outline" className="capitalize text-xs border-concrete text-black">
                           {reward.membership_required}+ Members
                         </Badge>
                       )}
@@ -303,7 +302,7 @@ const Rewards = () => {
                       <Button
                         onClick={() => handleRedeemClick(reward)}
                         disabled={!canRedeem(reward) || redemptionStatus === 'pending'}
-                        className="w-full bg-amber-700 hover:bg-amber-800 disabled:opacity-50"
+                        className="w-full bg-black hover:bg-concrete text-white disabled:opacity-50"
                       >
                         <Gift className="h-4 w-4 mr-2" />
                         {redemptionStatus === 'pending' ? 'Awaiting Approval' :
@@ -319,11 +318,11 @@ const Rewards = () => {
           </div>
 
           {!rewards || rewards.length === 0 && (
-            <Card>
+            <Card className="border-concrete">
               <CardContent className="p-8 text-center">
-                <Gift className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No rewards available</h3>
-                <p className="text-gray-600">Check back soon for new rewards!</p>
+                <Gift className="h-12 w-12 text-concrete mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-black mb-2">No rewards available</h3>
+                <p className="text-concrete">Check back soon for new rewards!</p>
               </CardContent>
             </Card>
           )}
@@ -334,15 +333,15 @@ const Rewards = () => {
       <Dialog open={isRedeemDialogOpen} onOpenChange={setIsRedeemDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Confirm Redemption Request</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-black">Confirm Redemption Request</DialogTitle>
+            <DialogDescription className="text-concrete">
               Submit a redemption request for "{selectedReward?.name}" for {selectedReward?.points_required} points?
             </DialogDescription>
           </DialogHeader>
           
           {selectedReward && (
             <div className="space-y-4">
-              <div className="aspect-video relative bg-gray-100 rounded-lg overflow-hidden">
+              <div className="aspect-video relative bg-concrete/10 rounded-lg overflow-hidden">
                 <RewardImage
                   src={selectedReward.image_url}
                   alt={selectedReward.name}
@@ -350,19 +349,19 @@ const Rewards = () => {
                 />
               </div>
               
-              <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
-                <div className="flex items-center gap-2 text-amber-700">
+              <div className="bg-concrete/10 p-3 rounded-lg border border-concrete">
+                <div className="flex items-center gap-2 text-black">
                   <Clock className="h-4 w-4" />
                   <span className="text-sm font-medium">Requires Admin Approval</span>
                 </div>
-                <p className="text-xs text-amber-600 mt-1">
+                <p className="text-xs text-concrete mt-1">
                   Your redemption request will be pending until an admin reviews and approves it. You'll receive a notification once it's processed!
                 </p>
               </div>
               
               <div className="text-center">
-                <p className="text-sm text-gray-600">
-                  Your remaining balance will be: <strong>{(profile?.current_points || 0) - selectedReward.points_required} points</strong>
+                <p className="text-sm text-concrete">
+                  Your remaining balance will be: <strong className="text-black">{(profile?.current_points || 0) - selectedReward.points_required} points</strong>
                 </p>
               </div>
             </div>
@@ -372,14 +371,14 @@ const Rewards = () => {
             <Button 
               variant="outline" 
               onClick={() => setIsRedeemDialogOpen(false)}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto border-concrete text-black hover:bg-concrete/20"
             >
               Cancel
             </Button>
             <Button 
               onClick={handleConfirmRedeem}
               disabled={redeemReward.isPending}
-              className="w-full sm:w-auto bg-amber-700 hover:bg-amber-800"
+              className="w-full sm:w-auto bg-black hover:bg-concrete text-white"
             >
               {redeemReward.isPending ? 'Submitting Request...' : 'Submit Request'}
             </Button>

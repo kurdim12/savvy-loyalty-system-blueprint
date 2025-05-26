@@ -30,7 +30,7 @@ const Header = () => {
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = async () => {
-    if (isSigningOut) return; // Prevent double clicks
+    if (isSigningOut) return;
     
     setIsSigningOut(true);
     try {
@@ -61,13 +61,13 @@ const Header = () => {
   ];
 
   return (
-    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+    <header className="bg-white shadow-sm border-b border-concrete sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <Coffee className="h-8 w-8 text-amber-700" />
-            <span className="text-xl font-bold text-gray-900">Raw Smith</span>
+            <Coffee className="h-8 w-8 text-black" />
+            <span className="text-xl font-bold text-black">Raw Smith</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -76,19 +76,19 @@ const Header = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className="text-gray-600 hover:text-amber-700 transition-colors font-medium"
+                className="text-concrete hover:text-black transition-colors font-medium"
               >
                 {item.name}
               </Link>
             ))}
             {profile?.role === 'admin' && (
               <>
-                <div className="border-l border-gray-300 mx-4"></div>
+                <div className="border-l border-concrete mx-4"></div>
                 {adminNavigation.map((item) => (
                   <Link
                     key={item.name}
                     to={item.href}
-                    className="text-amber-600 hover:text-amber-800 transition-colors font-medium"
+                    className="text-concrete hover:text-black transition-colors font-medium"
                   >
                     {item.name}
                   </Link>
@@ -101,24 +101,24 @@ const Header = () => {
           {user && profile ? (
             <div className="flex items-center space-x-4">
               {/* Points Display */}
-              <div className="hidden sm:flex items-center space-x-2 bg-amber-50 px-3 py-1 rounded-full">
-                <Award className="h-4 w-4 text-amber-600" />
-                <span className="text-sm font-semibold text-amber-800">
+              <div className="hidden sm:flex items-center space-x-2 bg-concrete/20 px-3 py-1 rounded-full">
+                <Award className="h-4 w-4 text-black" />
+                <span className="text-sm font-semibold text-black">
                   {profile.current_points} pts
                 </span>
               </div>
 
               {/* Notifications */}
-              <Button variant="ghost" size="sm" className="relative">
+              <Button variant="ghost" size="sm" className="relative hover:bg-concrete/20">
                 <Bell className="h-5 w-5" />
               </Button>
 
               {/* User Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-concrete/20">
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-amber-100 text-amber-800">
+                      <AvatarFallback className="bg-concrete text-black">
                         {getInitials(profile.first_name, profile.last_name)}
                       </AvatarFallback>
                     </Avatar>
@@ -133,11 +133,11 @@ const Header = () => {
                       {profile.email}
                     </p>
                     <div className="flex items-center space-x-2 pt-1">
-                      <Badge variant="secondary" className="capitalize text-xs">
+                      <Badge variant="secondary" className="capitalize text-xs bg-concrete text-black">
                         {profile.membership_tier}
                       </Badge>
                       {profile.role === 'admin' && (
-                        <Badge className="bg-red-100 text-red-800 text-xs">
+                        <Badge className="bg-black text-white text-xs">
                           Admin
                         </Badge>
                       )}
@@ -172,7 +172,7 @@ const Header = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="md:hidden"
+                className="md:hidden hover:bg-concrete/20"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
                 {isMobileMenuOpen ? (
@@ -185,7 +185,7 @@ const Header = () => {
           ) : (
             <div className="flex items-center space-x-4">
               <Link to="/auth">
-                <Button variant="outline">Sign In</Button>
+                <Button variant="outline" className="border-concrete text-black hover:bg-concrete/20">Sign In</Button>
               </Link>
             </div>
           )}
@@ -193,13 +193,13 @@ const Header = () => {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && user && (
-          <div className="md:hidden py-4 border-t">
+          <div className="md:hidden py-4 border-t border-concrete">
             <div className="flex flex-col space-y-2">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className="text-gray-600 hover:text-amber-700 transition-colors font-medium py-2"
+                  className="text-concrete hover:text-black transition-colors font-medium py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
@@ -207,12 +207,12 @@ const Header = () => {
               ))}
               {profile?.role === 'admin' && (
                 <>
-                  <div className="border-t border-gray-200 my-2"></div>
+                  <div className="border-t border-concrete my-2"></div>
                   {adminNavigation.map((item) => (
                     <Link
                       key={item.name}
                       to={item.href}
-                      className="text-amber-600 hover:text-amber-800 transition-colors font-medium py-2"
+                      className="text-concrete hover:text-black transition-colors font-medium py-2"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       {item.name}
@@ -220,9 +220,9 @@ const Header = () => {
                   ))}
                 </>
               )}
-              <div className="flex items-center space-x-2 bg-amber-50 px-3 py-2 rounded-lg mt-4">
-                <Award className="h-4 w-4 text-amber-600" />
-                <span className="text-sm font-semibold text-amber-800">
+              <div className="flex items-center space-x-2 bg-concrete/20 px-3 py-2 rounded-lg mt-4">
+                <Award className="h-4 w-4 text-black" />
+                <span className="text-sm font-semibold text-black">
                   {profile?.current_points} points
                 </span>
               </div>

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Coffee } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface RewardImageProps {
   src?: string | null;
@@ -13,10 +14,29 @@ export const RewardImage = ({ src, alt, className = "" }: RewardImageProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  if (!src || hasError) {
+  // Helper function to get the full image URL from Supabase storage
+  const getImageUrl = (imagePath?: string | null) => {
+    if (!imagePath) return null;
+    
+    // If it's already a full URL, return as is
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    // If it's a storage path, get the public URL
+    const { data } = supabase.storage
+      .from('reward-images')
+      .getPublicUrl(imagePath);
+    
+    return data.publicUrl;
+  };
+
+  const imageUrl = getImageUrl(src);
+
+  if (!imageUrl || hasError) {
     return (
-      <div className={`bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center ${className}`}>
-        <Coffee className="h-8 w-8 text-amber-600" />
+      <div className={`bg-gradient-to-br from-concrete/20 to-concrete/40 flex items-center justify-center ${className}`}>
+        <Coffee className="h-8 w-8 text-concrete" />
       </div>
     );
   }
@@ -27,7 +47,7 @@ export const RewardImage = ({ src, alt, className = "" }: RewardImageProps) => {
         <Skeleton className="absolute inset-0 w-full h-full" />
       )}
       <img
-        src={src}
+        src={imageUrl}
         alt={alt}
         className={`w-full h-full object-cover ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         onLoad={() => setIsLoading(false)}
