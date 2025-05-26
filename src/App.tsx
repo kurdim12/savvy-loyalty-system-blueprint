@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
@@ -7,6 +6,7 @@ import Rewards from './pages/Rewards';
 import NotFound from './pages/NotFound';
 import Index from './pages/Index';
 import CommunityPage from './pages/CommunityPage';
+import CommunityHub from '@/pages/CommunityHub';
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -20,7 +20,7 @@ import AdminLogin from './pages/admin/Login';
 import RedemptionManagement from './pages/admin/RedemptionManagement';
 
 // Auth route protection
-import { AdminRoute, UserRoute, PublicRoute } from './components/auth/ProtectedRoutes';
+import { AdminRoute, UserRoute, PublicRoute, ProtectedRoute } from './components/auth/ProtectedRoutes';
 
 function App() {
   return (
@@ -105,6 +105,11 @@ function App() {
       } />
       
       {/* Fallback route */}
+      <Route path="/community-hub" element={
+        <ProtectedRoute>
+          <CommunityHub />
+        </ProtectedRoute>
+      } />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

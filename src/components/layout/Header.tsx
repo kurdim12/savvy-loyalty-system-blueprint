@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -52,6 +51,7 @@ const Header = () => {
     { name: 'Home', href: '/' },
     { name: 'Rewards', href: '/rewards' },
     { name: 'Community', href: '/community' },
+    { name: 'Community Hub', href: '/community-hub' },
   ];
 
   const adminNavigation = [
