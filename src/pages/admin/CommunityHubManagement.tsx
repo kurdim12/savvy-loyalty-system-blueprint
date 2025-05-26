@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trophy, Camera, Plus, Edit, Trash2 } from 'lucide-react';
+import { Trophy, Camera, Plus, Edit, Trash2, Users, Eye, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -39,28 +39,57 @@ const CommunityHubManagement = () => {
     max_submissions: 100
   });
 
-  // Fetch challenges
+  // Fetch challenges with participant counts
   const { data: challenges = [], isLoading: challengesLoading } = useQuery({
     queryKey: ['admin_challenges'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('challenges')
-        .select('*')
+        .select(`
+          *,
+          challenge_participants (id)
+        `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data || [];
+      return data?.map(challenge => ({
+        ...challenge,
+        participant_count: challenge.challenge_participants?.length || 0
+      })) || [];
     }
   });
 
-  // Fetch photo contests
+  // Fetch photo contests with submission counts
   const { data: contests = [], isLoading: contestsLoading } = useQuery({
     queryKey: ['admin_contests'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('photo_contests')
-        .select('*')
+        .select(`
+          *,
+          photo_contest_submissions (id, votes)
+        `)
         .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data?.map(contest => ({
+        ...contest,
+        submission_count: contest.photo_contest_submissions?.length || 0,
+        total_votes: contest.photo_contest_submissions?.reduce((sum: number, sub: any) => sum + (sub.votes || 0), 0) || 0
+      })) || [];
+    }
+  });
+
+  // Fetch user leaderboard
+  const { data: leaderboard = [] } = useQuery({
+    queryKey: ['admin_leaderboard'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, current_points, membership_tier, visits')
+        .eq('role', 'customer')
+        .order('current_points', { ascending: false })
+        .limit(20);
       
       if (error) throw error;
       return data || [];
@@ -72,7 +101,10 @@ const CommunityHubManagement = () => {
     mutationFn: async (challenge: typeof challengeForm) => {
       const { error } = await supabase
         .from('challenges')
-        .insert(challenge);
+        .insert({
+          ...challenge,
+          expires_at: new Date(challenge.expires_at).toISOString()
+        });
       
       if (error) throw error;
     },
@@ -99,7 +131,10 @@ const CommunityHubManagement = () => {
     mutationFn: async (contest: typeof contestForm) => {
       const { error } = await supabase
         .from('photo_contests')
-        .insert(contest);
+        .insert({
+          ...contest,
+          ends_at: new Date(contest.ends_at).toISOString()
+        });
       
       if (error) throw error;
     },
@@ -153,6 +188,38 @@ const CommunityHubManagement = () => {
     }
   });
 
+  // Delete challenge mutation
+  const deleteChallengeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('challenges')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin_challenges'] });
+      toast.success('Challenge deleted successfully!');
+    }
+  });
+
+  // Delete contest mutation
+  const deleteContestMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('photo_contests')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin_contests'] });
+      toast.success('Contest deleted successfully!');
+    }
+  });
+
   const handleCreateChallenge = () => {
     if (!challengeForm.title || !challengeForm.description || !challengeForm.expires_at) {
       toast.error('Please fill in all required fields');
@@ -174,11 +241,55 @@ const CommunityHubManagement = () => {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-black">Community Hub Management</h1>
-          <p className="text-[#95A5A6]">Manage challenges, photo contests, and community features</p>
+          <p className="text-[#95A5A6]">Complete control over challenges, photo contests, and community features</p>
+        </div>
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Challenges</CardTitle>
+              <Trophy className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{challenges.filter(c => c.active).length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Contests</CardTitle>
+              <Camera className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{contests.filter(c => c.active).length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Participants</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {challenges.reduce((sum, c) => sum + (c.participant_count || 0), 0)}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Votes</CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {contests.reduce((sum, c) => sum + (c.total_votes || 0), 0)}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Tabs defaultValue="challenges" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="challenges" className="flex items-center gap-2">
               <Trophy className="h-4 w-4" />
               Challenges
@@ -186,6 +297,10 @@ const CommunityHubManagement = () => {
             <TabsTrigger value="contests" className="flex items-center gap-2">
               <Camera className="h-4 w-4" />
               Photo Contests
+            </TabsTrigger>
+            <TabsTrigger value="leaderboard" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Leaderboard
             </TabsTrigger>
           </TabsList>
 
@@ -268,25 +383,37 @@ const CommunityHubManagement = () => {
                         </CardTitle>
                         <CardDescription>{challenge.description}</CardDescription>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleChallengeMutation.mutate({ 
-                          id: challenge.id, 
-                          active: !challenge.active 
-                        })}
-                      >
-                        {challenge.active ? 'Deactivate' : 'Activate'}
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleChallengeMutation.mutate({ 
+                            id: challenge.id, 
+                            active: !challenge.active 
+                          })}
+                        >
+                          {challenge.active ? 'Deactivate' : 'Activate'}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => deleteChallengeMutation.mutate(challenge.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="grid grid-cols-4 gap-4 text-sm">
                       <div>
                         <span className="font-medium">Target:</span> {challenge.target}
                       </div>
                       <div>
                         <span className="font-medium">Reward:</span> {challenge.reward}
+                      </div>
+                      <div>
+                        <span className="font-medium">Participants:</span> {challenge.participant_count}
                       </div>
                       <div>
                         <span className="font-medium">Expires:</span> {new Date(challenge.expires_at).toLocaleDateString()}
@@ -366,25 +493,37 @@ const CommunityHubManagement = () => {
                         </CardTitle>
                         <CardDescription>{contest.description}</CardDescription>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleContestMutation.mutate({ 
-                          id: contest.id, 
-                          active: !contest.active 
-                        })}
-                      >
-                        {contest.active ? 'Deactivate' : 'Activate'}
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleContestMutation.mutate({ 
+                            id: contest.id, 
+                            active: !contest.active 
+                          })}
+                        >
+                          {contest.active ? 'Deactivate' : 'Activate'}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => deleteContestMutation.mutate(contest.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="grid grid-cols-4 gap-4 text-sm">
                       <div>
                         <span className="font-medium">Theme:</span> {contest.theme || 'No theme'}
                       </div>
                       <div>
                         <span className="font-medium">Prize:</span> {contest.prize || 'No prize set'}
+                      </div>
+                      <div>
+                        <span className="font-medium">Submissions:</span> {contest.submission_count}
                       </div>
                       <div>
                         <span className="font-medium">Ends:</span> {new Date(contest.ends_at).toLocaleDateString()}
@@ -394,6 +533,45 @@ const CommunityHubManagement = () => {
                 </Card>
               ))}
             </div>
+          </TabsContent>
+
+          <TabsContent value="leaderboard" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-black">User Leaderboard</h2>
+              <Badge variant="outline">{leaderboard.length} Active Users</Badge>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Users by Points</CardTitle>
+                <CardDescription>Current rankings based on loyalty points</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {leaderboard.map((user, index) => (
+                    <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-bold">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <div className="font-medium">
+                            {user.first_name} {user.last_name}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {user.visits} visits • {user.membership_tier} tier
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-lg">{user.current_points}</div>
+                        <div className="text-sm text-gray-500">points</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

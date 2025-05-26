@@ -62,6 +62,11 @@ function App() {
           <CommunityPage />
         </UserRoute>
       } />
+      <Route path="/community-hub" element={
+        <ProtectedRoute>
+          <CommunityHub />
+        </ProtectedRoute>
+      } />
       
       {/* Admin routes */}
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
@@ -112,11 +117,6 @@ function App() {
       } />
       
       {/* Fallback route */}
-      <Route path="/community-hub" element={
-        <ProtectedRoute>
-          <CommunityHub />
-        </ProtectedRoute>
-      } />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

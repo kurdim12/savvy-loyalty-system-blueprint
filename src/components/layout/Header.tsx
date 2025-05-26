@@ -45,10 +45,16 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <img 
-              src="/logo.png" 
+              src="/lovable-uploads/5404e14c-b49d-4de3-b6c1-4d58b8ec620f.png" 
               alt="Raw Smith Coffee" 
               className="h-10 w-auto"
+              onError={(e) => {
+                console.log('Logo failed to load, using fallback');
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling.style.display = 'block';
+              }}
             />
+            <div className="hidden text-xl font-bold text-black">Raw Smith Coffee</div>
           </Link>
 
           {/* Desktop Navigation */}
