@@ -1,9 +1,10 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import ProtectedRoutes from "@/components/auth/ProtectedRoutes";
+import { UserRoute, AdminRoute } from "@/components/auth/ProtectedRoutes";
 
 // Import pages
 import Index from "./pages/Index";
@@ -45,7 +46,7 @@ function App() {
             <Route path="/auth" element={<Auth />} />
             
             {/* Protected user routes */}
-            <Route element={<ProtectedRoutes />}>
+            <Route element={<UserRoute><div /></UserRoute>}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/rewards" element={<Rewards />} />
@@ -56,7 +57,7 @@ function App() {
 
             {/* Admin routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
-            <Route element={<ProtectedRoutes adminOnly />}>
+            <Route element={<AdminRoute><div /></AdminRoute>}>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/hub" element={<Hub />} />
               <Route path="/admin/users" element={<UserManagement />} />

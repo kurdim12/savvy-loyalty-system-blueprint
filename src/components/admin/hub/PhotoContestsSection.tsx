@@ -61,21 +61,28 @@ const PhotoContestsSection = () => {
     queryFn: async () => {
       if (!selectedContest?.id) return [];
       
-      const { data, error } = await supabase
+      const { data: submissionsData, error: submissionsError } = await supabase
         .from('photo_contest_submissions')
-        .select(`
-          *,
-          profiles!photo_contest_submissions_user_id_fkey (
-            first_name,
-            last_name,
-            email
-          )
-        `)
+        .select('*')
         .eq('contest_id', selectedContest.id)
         .order('votes', { ascending: false });
       
-      if (error) throw error;
-      return data || [];
+      if (submissionsError) throw submissionsError;
+      
+      // Get user details separately
+      const userIds = submissionsData?.map(s => s.user_id) || [];
+      const { data: usersData, error: usersError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .in('id', userIds);
+      
+      if (usersError) throw usersError;
+      
+      // Combine submissions with user data
+      return submissionsData?.map(submission => ({
+        ...submission,
+        user: usersData?.find(user => user.id === submission.user_id)
+      })) || [];
     },
     enabled: !!selectedContest?.id
   });
@@ -148,8 +155,8 @@ const PhotoContestsSection = () => {
       .map((submission, index) => ({
         Rank: index + 1,
         Title: submission.title,
-        'User Name': `${submission.profiles?.first_name || ''} ${submission.profiles?.last_name || ''}`.trim(),
-        Email: submission.profiles?.email,
+        'User Name': submission.user ? `${submission.user.first_name || ''} ${submission.user.last_name || ''}`.trim() : 'Unknown',
+        Email: submission.user?.email || 'Unknown',
         Votes: submission.votes,
         'Image URL': submission.image_url
       }));
@@ -323,7 +330,7 @@ const PhotoContestsSection = () => {
                 <div className="flex-1">
                   <h4 className="font-medium">{submission.title}</h4>
                   <p className="text-sm text-gray-500">
-                    {submission.profiles?.first_name} {submission.profiles?.last_name}
+                    {submission.user ? `${submission.user.first_name || ''} ${submission.user.last_name || ''}`.trim() : 'Unknown User'}
                   </p>
                   <p className="text-sm">Votes: {submission.votes}</p>
                 </div>
