@@ -1,3 +1,4 @@
+
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
@@ -24,12 +25,16 @@ import RedemptionManagement from './pages/admin/RedemptionManagement';
 // Auth route protection
 import { AdminRoute, UserRoute, PublicRoute, ProtectedRoute } from './components/auth/ProtectedRoutes';
 
-import { QueryClient, Toaster } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'sonner';
 import { BrowserRouter } from 'react-router-dom';
+
+// Create a client
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClient client={queryClient}>
+    <QueryClientProvider client={queryClient}>
       <Toaster />
       <BrowserRouter>
         <Routes>
@@ -126,7 +131,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 
