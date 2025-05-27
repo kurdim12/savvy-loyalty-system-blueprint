@@ -53,7 +53,7 @@ export function Nav({ className }: { className?: string }) {
           <UserLink to="/admin/users" label="Manage Users" icon={<Users size={16} />} />
           <UserLink to="/admin/rewards" label="Manage Rewards" icon={<Gift size={16} />} />
           <UserLink to="/admin/drinks" label="Manage Drinks" icon={<Coffee size={16} />} />
-          <UserLink to="/admin/community-hub" label="Community Hub" icon={<Camera size={16} />} />
+          <UserLink to="/admin/community-hub" label="Community Hub Control" icon={<Camera size={16} />} />
           <UserLink to="/admin/community" label="Community Posts" icon={<MessageSquare size={16} />} />
           <UserLink to="/admin/redeem" label="Redemptions" icon={<Gift size={16} />} />
         </>

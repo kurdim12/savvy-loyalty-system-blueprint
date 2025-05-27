@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trophy, Camera, Plus, Edit, Trash2, Users, Eye, BarChart3 } from 'lucide-react';
+import { Trophy, Camera, Plus, Edit, Trash2, Users, BarChart3, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -24,7 +24,7 @@ const CommunityHubManagement = () => {
     title: '',
     description: '',
     type: 'weekly' as 'daily' | 'weekly' | 'monthly',
-    target: 0,
+    target: 1,
     reward: '',
     expires_at: ''
   });
@@ -40,9 +40,10 @@ const CommunityHubManagement = () => {
   });
 
   // Fetch challenges with participant counts
-  const { data: challenges = [], isLoading: challengesLoading } = useQuery({
+  const { data: challenges = [], isLoading: challengesLoading, error: challengesError } = useQuery({
     queryKey: ['admin_challenges'],
     queryFn: async () => {
+      console.log('Fetching challenges...');
       const { data, error } = await supabase
         .from('challenges')
         .select(`
@@ -51,7 +52,12 @@ const CommunityHubManagement = () => {
         `)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching challenges:', error);
+        throw error;
+      }
+      
+      console.log('Challenges fetched:', data);
       return data?.map(challenge => ({
         ...challenge,
         participant_count: challenge.challenge_participants?.length || 0
@@ -60,9 +66,10 @@ const CommunityHubManagement = () => {
   });
 
   // Fetch photo contests with submission counts
-  const { data: contests = [], isLoading: contestsLoading } = useQuery({
+  const { data: contests = [], isLoading: contestsLoading, error: contestsError } = useQuery({
     queryKey: ['admin_contests'],
     queryFn: async () => {
+      console.log('Fetching contests...');
       const { data, error } = await supabase
         .from('photo_contests')
         .select(`
@@ -71,7 +78,12 @@ const CommunityHubManagement = () => {
         `)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching contests:', error);
+        throw error;
+      }
+      
+      console.log('Contests fetched:', data);
       return data?.map(contest => ({
         ...contest,
         submission_count: contest.photo_contest_submissions?.length || 0,
@@ -99,47 +111,86 @@ const CommunityHubManagement = () => {
   // Create challenge mutation
   const createChallengeMutation = useMutation({
     mutationFn: async (challenge: typeof challengeForm) => {
-      const { error } = await supabase
+      console.log('Creating challenge:', challenge);
+      
+      if (!challenge.title.trim() || !challenge.description.trim() || !challenge.expires_at) {
+        throw new Error('Please fill in all required fields');
+      }
+
+      const { data, error } = await supabase
         .from('challenges')
         .insert({
-          ...challenge,
-          expires_at: new Date(challenge.expires_at).toISOString()
-        });
+          title: challenge.title.trim(),
+          description: challenge.description.trim(),
+          type: challenge.type,
+          target: challenge.target,
+          reward: challenge.reward.trim(),
+          expires_at: new Date(challenge.expires_at).toISOString(),
+          active: true
+        })
+        .select()
+        .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating challenge:', error);
+        throw error;
+      }
+      
+      console.log('Challenge created:', data);
+      return data;
     },
     onSuccess: () => {
-      toast.success('Challenge created successfully!');
+      toast.success('🎯 Challenge created successfully!');
       queryClient.invalidateQueries({ queryKey: ['admin_challenges'] });
       setIsCreateChallengeOpen(false);
       setChallengeForm({
         title: '',
         description: '',
         type: 'weekly',
-        target: 0,
+        target: 1,
         reward: '',
         expires_at: ''
       });
     },
-    onError: () => {
-      toast.error('Failed to create challenge');
+    onError: (error: any) => {
+      console.error('Challenge creation failed:', error);
+      toast.error(`Failed to create challenge: ${error.message}`);
     }
   });
 
   // Create contest mutation
   const createContestMutation = useMutation({
     mutationFn: async (contest: typeof contestForm) => {
-      const { error } = await supabase
+      console.log('Creating contest:', contest);
+      
+      if (!contest.title.trim() || !contest.ends_at) {
+        throw new Error('Please fill in all required fields');
+      }
+
+      const { data, error } = await supabase
         .from('photo_contests')
         .insert({
-          ...contest,
-          ends_at: new Date(contest.ends_at).toISOString()
-        });
+          title: contest.title.trim(),
+          description: contest.description.trim(),
+          theme: contest.theme.trim(),
+          prize: contest.prize.trim(),
+          ends_at: new Date(contest.ends_at).toISOString(),
+          max_submissions: contest.max_submissions,
+          active: true
+        })
+        .select()
+        .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating contest:', error);
+        throw error;
+      }
+      
+      console.log('Contest created:', data);
+      return data;
     },
     onSuccess: () => {
-      toast.success('Photo contest created successfully!');
+      toast.success('📸 Photo contest created successfully!');
       queryClient.invalidateQueries({ queryKey: ['admin_contests'] });
       setIsCreateContestOpen(false);
       setContestForm({
@@ -151,77 +202,106 @@ const CommunityHubManagement = () => {
         max_submissions: 100
       });
     },
-    onError: () => {
-      toast.error('Failed to create photo contest');
+    onError: (error: any) => {
+      console.error('Contest creation failed:', error);
+      toast.error(`Failed to create photo contest: ${error.message}`);
     }
   });
 
   // Toggle challenge active status
   const toggleChallengeMutation = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      console.log('Toggling challenge status:', id, active);
       const { error } = await supabase
         .from('challenges')
         .update({ active })
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error toggling challenge:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin_challenges'] });
-      toast.success('Challenge updated successfully!');
+      toast.success('✅ Challenge updated successfully!');
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to update challenge: ${error.message}`);
     }
   });
 
   // Toggle contest active status
   const toggleContestMutation = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      console.log('Toggling contest status:', id, active);
       const { error } = await supabase
         .from('photo_contests')
         .update({ active })
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error toggling contest:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin_contests'] });
-      toast.success('Contest updated successfully!');
+      toast.success('✅ Contest updated successfully!');
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to update contest: ${error.message}`);
     }
   });
 
   // Delete challenge mutation
   const deleteChallengeMutation = useMutation({
     mutationFn: async (id: string) => {
+      console.log('Deleting challenge:', id);
       const { error } = await supabase
         .from('challenges')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting challenge:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin_challenges'] });
-      toast.success('Challenge deleted successfully!');
+      toast.success('🗑️ Challenge deleted successfully!');
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to delete challenge: ${error.message}`);
     }
   });
 
   // Delete contest mutation
   const deleteContestMutation = useMutation({
     mutationFn: async (id: string) => {
+      console.log('Deleting contest:', id);
       const { error } = await supabase
         .from('photo_contests')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting contest:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin_contests'] });
-      toast.success('Contest deleted successfully!');
+      toast.success('🗑️ Contest deleted successfully!');
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to delete contest: ${error.message}`);
     }
   });
 
   const handleCreateChallenge = () => {
-    if (!challengeForm.title || !challengeForm.description || !challengeForm.expires_at) {
+    if (!challengeForm.title.trim() || !challengeForm.description.trim() || !challengeForm.expires_at) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -229,12 +309,55 @@ const CommunityHubManagement = () => {
   };
 
   const handleCreateContest = () => {
-    if (!contestForm.title || !contestForm.ends_at) {
+    if (!contestForm.title.trim() || !contestForm.ends_at) {
       toast.error('Please fill in all required fields');
       return;
     }
     createContestMutation.mutate(contestForm);
   };
+
+  // Set default datetime for forms
+  const getDefaultDateTime = () => {
+    const now = new Date();
+    now.setDate(now.getDate() + 7); // Default to 1 week from now
+    return now.toISOString().slice(0, 16);
+  };
+
+  if (challengesLoading || contestsLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-96">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+          <span className="ml-3 text-black">Loading community hub data...</span>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (challengesError || contestsError) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-black mb-2">Error Loading Data</h3>
+            <p className="text-[#95A5A6]">
+              {challengesError?.message || contestsError?.message || 'Failed to load community hub data'}
+            </p>
+            <Button 
+              onClick={() => {
+                queryClient.invalidateQueries({ queryKey: ['admin_challenges'] });
+                queryClient.invalidateQueries({ queryKey: ['admin_contests'] });
+              }}
+              className="mt-4 bg-black hover:bg-[#95A5A6] text-white"
+            >
+              Retry
+            </Button>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -292,11 +415,11 @@ const CommunityHubManagement = () => {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="challenges" className="flex items-center gap-2">
               <Trophy className="h-4 w-4" />
-              Challenges
+              Challenges ({challenges.length})
             </TabsTrigger>
             <TabsTrigger value="contests" className="flex items-center gap-2">
               <Camera className="h-4 w-4" />
-              Photo Contests
+              Photo Contests ({contests.length})
             </TabsTrigger>
             <TabsTrigger value="leaderboard" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -320,12 +443,12 @@ const CommunityHubManagement = () => {
                   </DialogHeader>
                   <div className="space-y-4">
                     <Input
-                      placeholder="Challenge title"
+                      placeholder="Challenge title*"
                       value={challengeForm.title}
                       onChange={(e) => setChallengeForm({ ...challengeForm, title: e.target.value })}
                     />
                     <Textarea
-                      placeholder="Challenge description"
+                      placeholder="Challenge description*"
                       value={challengeForm.description}
                       onChange={(e) => setChallengeForm({ ...challengeForm, description: e.target.value })}
                     />
@@ -339,16 +462,17 @@ const CommunityHubManagement = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="daily">Daily Challenge</SelectItem>
+                        <SelectItem value="weekly">Weekly Challenge</SelectItem>
+                        <SelectItem value="monthly">Monthly Challenge</SelectItem>
                       </SelectContent>
                     </Select>
                     <Input
                       type="number"
-                      placeholder="Target (e.g., 7 for 7 visits)"
+                      placeholder="Target (e.g., 7 for 7 visits)*"
+                      min="1"
                       value={challengeForm.target}
-                      onChange={(e) => setChallengeForm({ ...challengeForm, target: parseInt(e.target.value) || 0 })}
+                      onChange={(e) => setChallengeForm({ ...challengeForm, target: parseInt(e.target.value) || 1 })}
                     />
                     <Input
                       placeholder="Reward description"
@@ -357,11 +481,15 @@ const CommunityHubManagement = () => {
                     />
                     <Input
                       type="datetime-local"
-                      value={challengeForm.expires_at}
+                      value={challengeForm.expires_at || getDefaultDateTime()}
                       onChange={(e) => setChallengeForm({ ...challengeForm, expires_at: e.target.value })}
                     />
-                    <Button onClick={handleCreateChallenge} className="w-full bg-black hover:bg-[#95A5A6] text-white">
-                      Create Challenge
+                    <Button 
+                      onClick={handleCreateChallenge} 
+                      disabled={createChallengeMutation.isPending}
+                      className="w-full bg-black hover:bg-[#95A5A6] text-white"
+                    >
+                      {createChallengeMutation.isPending ? 'Creating...' : 'Create Challenge'}
                     </Button>
                   </div>
                 </DialogContent>
@@ -369,59 +497,75 @@ const CommunityHubManagement = () => {
             </div>
 
             <div className="grid gap-4">
-              {challenges.map((challenge) => (
-                <Card key={challenge.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          {challenge.title}
-                          <Badge variant={challenge.active ? "default" : "secondary"}>
-                            {challenge.active ? "Active" : "Inactive"}
-                          </Badge>
-                          <Badge variant="outline">{challenge.type}</Badge>
-                        </CardTitle>
-                        <CardDescription>{challenge.description}</CardDescription>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => toggleChallengeMutation.mutate({ 
-                            id: challenge.id, 
-                            active: !challenge.active 
-                          })}
-                        >
-                          {challenge.active ? 'Deactivate' : 'Activate'}
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => deleteChallengeMutation.mutate(challenge.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium">Target:</span> {challenge.target}
-                      </div>
-                      <div>
-                        <span className="font-medium">Reward:</span> {challenge.reward}
-                      </div>
-                      <div>
-                        <span className="font-medium">Participants:</span> {challenge.participant_count}
-                      </div>
-                      <div>
-                        <span className="font-medium">Expires:</span> {new Date(challenge.expires_at).toLocaleDateString()}
-                      </div>
-                    </div>
+              {challenges.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <Trophy className="h-12 w-12 text-[#95A5A6] mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-black mb-2">No challenges yet</h3>
+                    <p className="text-[#95A5A6] mb-4">Create your first community challenge to engage users!</p>
                   </CardContent>
                 </Card>
-              ))}
+              ) : (
+                challenges.map((challenge) => (
+                  <Card key={challenge.id}>
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="flex items-center gap-2">
+                            {challenge.title}
+                            <Badge variant={challenge.active ? "default" : "secondary"}>
+                              {challenge.active ? "Active" : "Inactive"}
+                            </Badge>
+                            <Badge variant="outline" className="capitalize">{challenge.type}</Badge>
+                          </CardTitle>
+                          <CardDescription>{challenge.description}</CardDescription>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => toggleChallengeMutation.mutate({ 
+                              id: challenge.id, 
+                              active: !challenge.active 
+                            })}
+                            disabled={toggleChallengeMutation.isPending}
+                          >
+                            {challenge.active ? 'Deactivate' : 'Activate'}
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              if (window.confirm('Are you sure you want to delete this challenge?')) {
+                                deleteChallengeMutation.mutate(challenge.id);
+                              }
+                            }}
+                            disabled={deleteChallengeMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <span className="font-medium">Target:</span> {challenge.target}
+                        </div>
+                        <div>
+                          <span className="font-medium">Reward:</span> {challenge.reward || 'None'}
+                        </div>
+                        <div>
+                          <span className="font-medium">Participants:</span> {challenge.participant_count}
+                        </div>
+                        <div>
+                          <span className="font-medium">Expires:</span> {new Date(challenge.expires_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </TabsContent>
 
@@ -441,7 +585,7 @@ const CommunityHubManagement = () => {
                   </DialogHeader>
                   <div className="space-y-4">
                     <Input
-                      placeholder="Contest title"
+                      placeholder="Contest title*"
                       value={contestForm.title}
                       onChange={(e) => setContestForm({ ...contestForm, title: e.target.value })}
                     />
@@ -463,16 +607,21 @@ const CommunityHubManagement = () => {
                     <Input
                       type="number"
                       placeholder="Max submissions"
+                      min="1"
                       value={contestForm.max_submissions}
                       onChange={(e) => setContestForm({ ...contestForm, max_submissions: parseInt(e.target.value) || 100 })}
                     />
                     <Input
                       type="datetime-local"
-                      value={contestForm.ends_at}
+                      value={contestForm.ends_at || getDefaultDateTime()}
                       onChange={(e) => setContestForm({ ...contestForm, ends_at: e.target.value })}
                     />
-                    <Button onClick={handleCreateContest} className="w-full bg-black hover:bg-[#95A5A6] text-white">
-                      Create Contest
+                    <Button 
+                      onClick={handleCreateContest} 
+                      disabled={createContestMutation.isPending}
+                      className="w-full bg-black hover:bg-[#95A5A6] text-white"
+                    >
+                      {createContestMutation.isPending ? 'Creating...' : 'Create Contest'}
                     </Button>
                   </div>
                 </DialogContent>
@@ -480,58 +629,74 @@ const CommunityHubManagement = () => {
             </div>
 
             <div className="grid gap-4">
-              {contests.map((contest) => (
-                <Card key={contest.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          {contest.title}
-                          <Badge variant={contest.active ? "default" : "secondary"}>
-                            {contest.active ? "Active" : "Inactive"}
-                          </Badge>
-                        </CardTitle>
-                        <CardDescription>{contest.description}</CardDescription>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => toggleContestMutation.mutate({ 
-                            id: contest.id, 
-                            active: !contest.active 
-                          })}
-                        >
-                          {contest.active ? 'Deactivate' : 'Activate'}
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => deleteContestMutation.mutate(contest.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium">Theme:</span> {contest.theme || 'No theme'}
-                      </div>
-                      <div>
-                        <span className="font-medium">Prize:</span> {contest.prize || 'No prize set'}
-                      </div>
-                      <div>
-                        <span className="font-medium">Submissions:</span> {contest.submission_count}
-                      </div>
-                      <div>
-                        <span className="font-medium">Ends:</span> {new Date(contest.ends_at).toLocaleDateString()}
-                      </div>
-                    </div>
+              {contests.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <Camera className="h-12 w-12 text-[#95A5A6] mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-black mb-2">No photo contests yet</h3>
+                    <p className="text-[#95A5A6] mb-4">Create your first photo contest to showcase community creativity!</p>
                   </CardContent>
                 </Card>
-              ))}
+              ) : (
+                contests.map((contest) => (
+                  <Card key={contest.id}>
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="flex items-center gap-2">
+                            {contest.title}
+                            <Badge variant={contest.active ? "default" : "secondary"}>
+                              {contest.active ? "Active" : "Inactive"}
+                            </Badge>
+                          </CardTitle>
+                          <CardDescription>{contest.description}</CardDescription>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => toggleContestMutation.mutate({ 
+                              id: contest.id, 
+                              active: !contest.active 
+                            })}
+                            disabled={toggleContestMutation.isPending}
+                          >
+                            {contest.active ? 'Deactivate' : 'Activate'}
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              if (window.confirm('Are you sure you want to delete this contest?')) {
+                                deleteContestMutation.mutate(contest.id);
+                              }
+                            }}
+                            disabled={deleteContestMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <span className="font-medium">Theme:</span> {contest.theme || 'No theme'}
+                        </div>
+                        <div>
+                          <span className="font-medium">Prize:</span> {contest.prize || 'No prize set'}
+                        </div>
+                        <div>
+                          <span className="font-medium">Submissions:</span> {contest.submission_count}
+                        </div>
+                        <div>
+                          <span className="font-medium">Ends:</span> {new Date(contest.ends_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </TabsContent>
 
@@ -548,27 +713,35 @@ const CommunityHubManagement = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {leaderboard.map((user, index) => (
-                    <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-bold">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <div className="font-medium">
-                            {user.first_name} {user.last_name}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {user.visits} visits • {user.membership_tier} tier
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-lg">{user.current_points}</div>
-                        <div className="text-sm text-gray-500">points</div>
-                      </div>
+                  {leaderboard.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Users className="h-12 w-12 text-[#95A5A6] mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-black mb-2">No active users yet</h3>
+                      <p className="text-[#95A5A6]">Users will appear here as they start earning points!</p>
                     </div>
-                  ))}
+                  ) : (
+                    leaderboard.map((user, index) => (
+                      <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-bold">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <div className="font-medium">
+                              {user.first_name} {user.last_name}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {user.visits} visits • {user.membership_tier} tier
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-lg">{user.current_points}</div>
+                          <div className="text-sm text-gray-500">points</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>

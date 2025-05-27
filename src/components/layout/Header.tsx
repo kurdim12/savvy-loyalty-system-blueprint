@@ -19,6 +19,7 @@ const Header = () => {
   const { user, profile, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -44,20 +45,19 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <img 
-              src="/logo.png" 
-              alt="Raw Smith Coffee" 
-              className="h-10 w-auto"
-              onError={(e) => {
-                console.log('Logo failed to load, using fallback');
-                e.currentTarget.style.display = 'none';
-                const fallbackElement = e.currentTarget.nextElementSibling as HTMLElement;
-                if (fallbackElement) {
-                  fallbackElement.style.display = 'block';
-                }
-              }}
-            />
-            <div className="hidden text-xl font-bold text-black">Raw Smith Coffee</div>
+            {!logoError ? (
+              <img 
+                src="/logo.png" 
+                alt="Raw Smith Coffee" 
+                className="h-10 w-auto"
+                onError={() => {
+                  console.log('Logo failed to load, using fallback');
+                  setLogoError(true);
+                }}
+              />
+            ) : (
+              <div className="text-xl font-bold text-black">Raw Smith Coffee</div>
+            )}
           </Link>
 
           {/* Desktop Navigation */}
