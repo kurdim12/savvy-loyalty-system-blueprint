@@ -27,7 +27,6 @@ import { AdminRoute, UserRoute, PublicRoute, ProtectedRoute } from './components
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
-import { BrowserRouter } from 'react-router-dom';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -36,101 +35,99 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster />
-      <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={
-            <PublicRoute>
-              <Auth />
-            </PublicRoute>
-          } />
-          
-          <Route path="/admin/login" element={
-            <PublicRoute>
-              <AdminLogin />
-            </PublicRoute>
-          } />
-          
-          {/* Authenticated User routes */}
-          <Route path="/dashboard" element={
-            <UserRoute>
-              <Dashboard />
-            </UserRoute>
-          } />
-          <Route path="/profile" element={
-            <UserRoute>
-              <Profile />
-            </UserRoute>
-          } />
-          <Route path="/rewards" element={
-            <UserRoute>
-              <Rewards />
-            </UserRoute>
-          } />
-          <Route path="/community" element={
-            <UserRoute>
-              <CommunityPage />
-            </UserRoute>
-          } />
-          <Route path="/community-hub" element={
-            <ProtectedRoute>
-              <CommunityHub />
-            </ProtectedRoute>
-          } />
-          
-          {/* Admin routes */}
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="/admin/dashboard" element={
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          } />
-          <Route path="/admin/users" element={
-            <AdminRoute>
-              <UserManagement />
-            </AdminRoute>
-          } />
-          <Route path="/admin/transactions" element={
-            <AdminRoute>
-              <TransactionsManagement />
-            </AdminRoute>
-          } />
-          <Route path="/admin/rewards" element={
-            <AdminRoute>
-              <RewardsManagement />
-            </AdminRoute>
-          } />
-          <Route path="/admin/drinks" element={
-            <AdminRoute>
-              <DrinksManagement />
-            </AdminRoute>
-          } />
-          <Route path="/admin/community" element={
-            <AdminRoute>
-              <CommunityManagement />
-            </AdminRoute>
-          } />
-          <Route path="/admin/community-hub" element={
-            <AdminRoute>
-              <AdminCommunityHub />
-            </AdminRoute>
-          } />
-          <Route path="/admin/settings" element={
-            <AdminRoute>
-              <SettingsManagement />
-            </AdminRoute>
-          } />
-          <Route path="/admin/redeem" element={
-            <AdminRoute>
-              <RedemptionManagement />
-            </AdminRoute>
-          } />
-          
-          {/* Fallback route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={
+          <PublicRoute>
+            <Auth />
+          </PublicRoute>
+        } />
+        
+        <Route path="/admin/login" element={
+          <PublicRoute>
+            <AdminLogin />
+          </PublicRoute>
+        } />
+        
+        {/* Authenticated User routes */}
+        <Route path="/dashboard" element={
+          <UserRoute>
+            <Dashboard />
+          </UserRoute>
+        } />
+        <Route path="/profile" element={
+          <UserRoute>
+            <Profile />
+          </UserRoute>
+        } />
+        <Route path="/rewards" element={
+          <UserRoute>
+            <Rewards />
+          </UserRoute>
+        } />
+        <Route path="/community" element={
+          <UserRoute>
+            <CommunityPage />
+          </UserRoute>
+        } />
+        <Route path="/community-hub" element={
+          <ProtectedRoute>
+            <CommunityHub />
+          </ProtectedRoute>
+        } />
+        
+        {/* Admin routes */}
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/admin/dashboard" element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        } />
+        <Route path="/admin/users" element={
+          <AdminRoute>
+            <UserManagement />
+          </AdminRoute>
+        } />
+        <Route path="/admin/transactions" element={
+          <AdminRoute>
+            <TransactionsManagement />
+          </AdminRoute>
+        } />
+        <Route path="/admin/rewards" element={
+          <AdminRoute>
+            <RewardsManagement />
+          </AdminRoute>
+        } />
+        <Route path="/admin/drinks" element={
+          <AdminRoute>
+            <DrinksManagement />
+          </AdminRoute>
+        } />
+        <Route path="/admin/community" element={
+          <AdminRoute>
+            <CommunityManagement />
+          </AdminRoute>
+        } />
+        <Route path="/admin/community-hub" element={
+          <AdminRoute>
+            <AdminCommunityHub />
+          </AdminRoute>
+        } />
+        <Route path="/admin/settings" element={
+          <AdminRoute>
+            <SettingsManagement />
+          </AdminRoute>
+        } />
+        <Route path="/admin/redeem" element={
+          <AdminRoute>
+            <RedemptionManagement />
+          </AdminRoute>
+        } />
+        
+        {/* Fallback route */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </QueryClientProvider>
   );
 }
