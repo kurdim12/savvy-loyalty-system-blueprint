@@ -12,15 +12,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, BarChart3, Filter } from 'lucide-react';
+import { Search, Plus, BarChart3, Filter, Trophy, Camera, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import RewardsList from '@/components/admin/RewardsList';
 import UpdateRewardsSystem from '@/components/admin/UpdateRewardsSystem';
+import CommunityHubControl from '@/components/admin/CommunityHubControl';
 
 const RewardsManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showCommunityHub, setShowCommunityHub] = useState(false);
   
   const handleCreateReward = () => {
     setShowCreateForm(true);
@@ -36,6 +38,14 @@ const RewardsManagement = () => {
             <p className="text-gray-500">Create and manage loyalty program rewards</p>
           </div>
           <div className="flex space-x-2">
+            <Button 
+              variant="outline"
+              onClick={() => setShowCommunityHub(!showCommunityHub)}
+              className="bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100"
+            >
+              <Trophy className="mr-2 h-4 w-4" />
+              Community Hub Control
+            </Button>
             <Button variant="outline">
               <BarChart3 className="mr-2 h-4 w-4" />
               Redemption Analytics
@@ -46,6 +56,24 @@ const RewardsManagement = () => {
             </Button>
           </div>
         </div>
+
+        {/* Community Hub Control Section */}
+        {showCommunityHub && (
+          <Card className="bg-amber-50 border-amber-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-amber-900">
+                <Settings className="h-5 w-5" />
+                Community Hub Management
+              </CardTitle>
+              <CardDescription className="text-amber-700">
+                Control challenges, photo contests, and community activities
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CommunityHubControl />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Update Rewards System */}
         <UpdateRewardsSystem />
