@@ -52,6 +52,7 @@ export type Database = {
           active: boolean
           created_at: string
           description: string
+          difficulty_level: string | null
           expires_at: string
           id: string
           reward: string
@@ -65,6 +66,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           description: string
+          difficulty_level?: string | null
           expires_at: string
           id?: string
           reward: string
@@ -78,6 +80,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           description?: string
+          difficulty_level?: string | null
           expires_at?: string
           id?: string
           reward?: string
@@ -88,6 +91,45 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      community_goal_contributions: {
+        Row: {
+          created_at: string
+          goal_id: string
+          id: string
+          points_contributed: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          goal_id: string
+          id?: string
+          points_contributed: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          goal_id?: string
+          id?: string
+          points_contributed?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_goal_contributions_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "community_goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_goal_contributions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       community_goals: {
         Row: {
@@ -286,6 +328,7 @@ export type Database = {
           description: string | null
           id: string
           image_url: string
+          status: string | null
           title: string
           updated_at: string
           user_id: string
@@ -297,6 +340,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url: string
+          status?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -308,6 +352,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string
+          status?: string | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -358,6 +403,7 @@ export type Database = {
           created_at: string
           description: string | null
           ends_at: string
+          header_image_url: string | null
           id: string
           max_submissions: number | null
           prize: string | null
@@ -371,6 +417,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           ends_at: string
+          header_image_url?: string | null
           id?: string
           max_submissions?: number | null
           prize?: string | null
@@ -384,6 +431,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           ends_at?: string
+          header_image_url?: string | null
           id?: string
           max_submissions?: number | null
           prize?: string | null
@@ -405,6 +453,7 @@ export type Database = {
           last_name: string | null
           membership_tier: Database["public"]["Enums"]["membership_tier"]
           phone: string | null
+          referral_code: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
           visits: number
@@ -419,6 +468,7 @@ export type Database = {
           last_name?: string | null
           membership_tier?: Database["public"]["Enums"]["membership_tier"]
           phone?: string | null
+          referral_code?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           visits?: number
@@ -433,6 +483,7 @@ export type Database = {
           last_name?: string | null
           membership_tier?: Database["public"]["Enums"]["membership_tier"]
           phone?: string | null
+          referral_code?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           visits?: number
@@ -484,9 +535,49 @@ export type Database = {
           },
         ]
       }
+      referral_campaigns: {
+        Row: {
+          active: boolean
+          bonus_points: number
+          created_at: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          invite_count_required: number
+          name: string
+          starts_at: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          bonus_points?: number
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          invite_count_required?: number
+          name: string
+          starts_at?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          bonus_points?: number
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          invite_count_required?: number
+          name?: string
+          starts_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           bonus_points: number
+          campaign_id: string | null
           completed: boolean
           completed_at: string | null
           created_at: string
@@ -496,6 +587,7 @@ export type Database = {
         }
         Insert: {
           bonus_points?: number
+          campaign_id?: string | null
           completed?: boolean
           completed_at?: string | null
           created_at?: string
@@ -505,6 +597,7 @@ export type Database = {
         }
         Update: {
           bonus_points?: number
+          campaign_id?: string | null
           completed?: boolean
           completed_at?: string | null
           created_at?: string
@@ -513,6 +606,13 @@ export type Database = {
           referrer_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "referrals_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "referral_campaigns"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "referrals_referee_id_fkey"
             columns: ["referee_id"]
@@ -677,7 +777,26 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      referral_stats: {
+        Row: {
+          completed_referrals: number | null
+          email: string | null
+          first_name: string | null
+          last_name: string | null
+          referrer_id: string | null
+          total_bonus_points: number | null
+          total_referrals: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       admin_create_reward: {
@@ -705,6 +824,10 @@ export type Database = {
       earn_points: {
         Args: { uid: string; points: number; notes?: string }
         Returns: undefined
+      }
+      generate_referral_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_community_goal_points: {
         Args: { p_goal_id: string }
