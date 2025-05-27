@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Award, Star, Gift, Clock } from 'lucide-react';
+import { Award, Star, Gift, Clock, Trophy } from 'lucide-react';
 import { RewardImage } from '@/components/rewards/RewardImage';
 import {
   Dialog,
