@@ -58,7 +58,7 @@ const Rewards = () => {
   };
 
   // Fetch available rewards filtered by user's membership tier
-  const { data: rewards, isLoading } = useQuery({
+  const { data: rewards, isLoading, error } = useQuery({
     queryKey: ['rewards', profile?.membership_tier],
     queryFn: async () => {
       let query = supabase
@@ -69,7 +69,10 @@ const Rewards = () => {
 
       const { data, error } = await query;
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching rewards:', error);
+        throw error;
+      }
       
       // Filter rewards client-side based on membership tier
       const filteredRewards = (data as Reward[]).filter(reward => 
@@ -78,7 +81,9 @@ const Rewards = () => {
       
       return filteredRewards;
     },
-    enabled: !!profile
+    enabled: !!profile,
+    retry: 3,
+    retryDelay: 1000
   });
 
   // Fetch user's pending redemptions
@@ -100,17 +105,27 @@ const Rewards = () => {
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching redemptions:', error);
+        throw error;
+      }
       return data as Redemption[];
     },
-    enabled: !!user
+    enabled: !!user,
+    retry: 2
   });
 
   // Redeem reward mutation
   const redeemReward = useMutation({
     mutationFn: async (rewardId: string) => {
       const reward = rewards?.find(r => r.id === rewardId);
-      if (!reward || !user) throw new Error('Invalid reward or user');
+      if (!reward || !user) {
+        throw new Error('Invalid reward or user');
+      }
+
+      if (!profile || profile.current_points < reward.points_required) {
+        throw new Error('Insufficient points');
+      }
 
       // Create redemption record
       const { error: redemptionError } = await supabase
@@ -122,7 +137,10 @@ const Rewards = () => {
           status: 'pending'
         });
 
-      if (redemptionError) throw redemptionError;
+      if (redemptionError) {
+        console.error('Redemption error:', redemptionError);
+        throw redemptionError;
+      }
 
       // Create transaction record
       const { error: transactionError } = await supabase
@@ -135,7 +153,10 @@ const Rewards = () => {
           notes: `Redeemed: ${reward.name}`
         });
 
-      if (transactionError) throw transactionError;
+      if (transactionError) {
+        console.error('Transaction error:', transactionError);
+        throw transactionError;
+      }
 
       // Create notification
       await supabase
@@ -154,7 +175,8 @@ const Rewards = () => {
       setIsRedeemDialogOpen(false);
       setSelectedReward(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('Redemption failed:', error);
       toast.error(`Failed to redeem reward: ${error.message}`);
     }
   });
@@ -195,6 +217,32 @@ const Rewards = () => {
             <div className="text-center">
               <h1 className="text-2xl md:text-3xl font-bold text-black">Rewards</h1>
               <p className="text-[#95A5A6] mt-2">Loading available rewards...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-6 max-w-6xl">
+          <div className="space-y-6">
+            <div className="text-center">
+              <h1 className="text-2xl md:text-3xl font-bold text-black">Rewards</h1>
+              <Card className="border-red-200 bg-red-50 max-w-md mx-auto">
+                <CardContent className="p-6 text-center">
+                  <p className="text-red-600">Failed to load rewards. Please try again later.</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4"
+                    onClick={() => window.location.reload()}
+                  >
+                    Retry
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>

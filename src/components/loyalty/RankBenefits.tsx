@@ -10,7 +10,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { CrownIcon, Award, TrendingUp } from 'lucide-react';
-import { getDiscountRate } from '@/integrations/supabase/functions';
 import { Database } from '@/integrations/supabase/types';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
