@@ -8,8 +8,11 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Award, Star, Gift, Clock, Trophy } from 'lucide-react';
+import { Award, Star, Gift, Clock, Trophy, AlertTriangle } from 'lucide-react';
 import { RewardImage } from '@/components/rewards/RewardImage';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import EmptyState from '@/components/common/EmptyState';
 import {
   Dialog,
   DialogContent,
@@ -28,6 +31,7 @@ interface Reward {
   inventory?: number;
   active: boolean;
   image_url?: string;
+  cupping_score_min?: number;
 }
 
 interface Redemption {
@@ -43,6 +47,7 @@ interface Redemption {
 const Rewards = () => {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
+  const { handleError } = useErrorHandler();
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   const [isRedeemDialogOpen, setIsRedeemDialogOpen] = useState(false);
 
@@ -57,33 +62,33 @@ const Rewards = () => {
            tierHierarchy[rewardTier as keyof typeof tierHierarchy];
   };
 
-  // Fetch available rewards filtered by user's membership tier
-  const { data: rewards, isLoading, error } = useQuery({
+  // Fetch available rewards with error handling
+  const { data: rewards, isLoading, error, refetch } = useQuery({
     queryKey: ['rewards', profile?.membership_tier],
     queryFn: async () => {
-      let query = supabase
-        .from('rewards')
-        .select('*')
-        .eq('active', true)
-        .order('points_required');
+      try {
+        const { data, error } = await supabase
+          .from('rewards')
+          .select('*')
+          .eq('active', true)
+          .order('points_required');
 
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error('Error fetching rewards:', error);
-        throw error;
+        if (error) throw error;
+        
+        // Filter rewards client-side based on membership tier
+        const filteredRewards = (data as Reward[]).filter(reward => 
+          canAccessTier(reward.membership_required)
+        );
+        
+        return filteredRewards;
+      } catch (err) {
+        handleError(err, 'fetching rewards');
+        throw err;
       }
-      
-      // Filter rewards client-side based on membership tier
-      const filteredRewards = (data as Reward[]).filter(reward => 
-        canAccessTier(reward.membership_required)
-      );
-      
-      return filteredRewards;
     },
     enabled: !!profile,
     retry: 3,
-    retryDelay: 1000
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   // Fetch user's pending redemptions
@@ -92,30 +97,32 @@ const Rewards = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
-        .from('redemptions')
-        .select(`
-          id,
-          reward_id,
-          status,
-          created_at,
-          rewards (name)
-        `)
-        .eq('user_id', user.id)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error('Error fetching redemptions:', error);
-        throw error;
+      try {
+        const { data, error } = await supabase
+          .from('redemptions')
+          .select(`
+            id,
+            reward_id,
+            status,
+            created_at,
+            rewards (name)
+          `)
+          .eq('user_id', user.id)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        return data as Redemption[];
+      } catch (err) {
+        handleError(err, 'fetching redemptions');
+        return [];
       }
-      return data as Redemption[];
     },
     enabled: !!user,
     retry: 2
   });
 
-  // Redeem reward mutation
+  // Redeem reward mutation with proper error handling
   const redeemReward = useMutation({
     mutationFn: async (rewardId: string) => {
       const reward = rewards?.find(r => r.id === rewardId);
@@ -137,10 +144,7 @@ const Rewards = () => {
           status: 'pending'
         });
 
-      if (redemptionError) {
-        console.error('Redemption error:', redemptionError);
-        throw redemptionError;
-      }
+      if (redemptionError) throw redemptionError;
 
       // Create transaction record
       const { error: transactionError } = await supabase
@@ -153,10 +157,7 @@ const Rewards = () => {
           notes: `Redeemed: ${reward.name}`
         });
 
-      if (transactionError) {
-        console.error('Transaction error:', transactionError);
-        throw transactionError;
-      }
+      if (transactionError) throw transactionError;
 
       // Create notification
       await supabase
@@ -176,8 +177,7 @@ const Rewards = () => {
       setSelectedReward(null);
     },
     onError: (error: any) => {
-      console.error('Redemption failed:', error);
-      toast.error(`Failed to redeem reward: ${error.message}`);
+      handleError(error, 'redeeming reward');
     }
   });
 
@@ -197,8 +197,10 @@ const Rewards = () => {
     
     const hasEnoughPoints = profile.current_points >= reward.points_required;
     const hasActivePendingRedemption = pendingRedemptions?.some(r => r.reward_id === reward.id);
+    const isInStock = reward.inventory === null || reward.inventory > 0;
     
-    return hasEnoughPoints && reward.active && !hasActivePendingRedemption && canAccessTier(reward.membership_required);
+    return hasEnoughPoints && reward.active && !hasActivePendingRedemption && 
+           canAccessTier(reward.membership_required) && isInStock;
   };
 
   const getRedemptionStatus = (reward: Reward) => {
@@ -209,14 +211,23 @@ const Rewards = () => {
     return null;
   };
 
+  const getUnavailableReason = (reward: Reward) => {
+    if (!profile) return 'Profile not loaded';
+    if (profile.current_points < reward.points_required) return 'Not enough points';
+    if (!canAccessTier(reward.membership_required)) return `Requires ${reward.membership_required} tier`;
+    if (reward.inventory !== null && reward.inventory <= 0) return 'Out of stock';
+    if (!reward.active) return 'Currently unavailable';
+    return null;
+  };
+
   if (isLoading) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-6 max-w-6xl">
           <div className="space-y-6">
             <div className="text-center">
-              <h1 className="text-2xl md:text-3xl font-bold text-black">Rewards</h1>
-              <p className="text-[#95A5A6] mt-2">Loading available rewards...</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-black">Rewards Catalog</h1>
+              <LoadingSpinner size="lg" text="Loading available rewards..." className="mt-4" />
             </div>
           </div>
         </div>
@@ -230,16 +241,23 @@ const Rewards = () => {
         <div className="container mx-auto px-4 py-6 max-w-6xl">
           <div className="space-y-6">
             <div className="text-center">
-              <h1 className="text-2xl md:text-3xl font-bold text-black">Rewards</h1>
-              <Card className="border-red-200 bg-red-50 max-w-md mx-auto">
+              <h1 className="text-2xl md:text-3xl font-bold text-black">Rewards Catalog</h1>
+              <Card className="border-red-200 bg-red-50 max-w-md mx-auto mt-4">
                 <CardContent className="p-6 text-center">
-                  <p className="text-red-600">Failed to load rewards. Please try again later.</p>
+                  <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                  <p className="text-red-600 mb-4">Failed to load rewards. Please try again.</p>
                   <Button 
                     variant="outline" 
-                    className="mt-4"
-                    onClick={() => window.location.reload()}
+                    onClick={() => refetch()}
+                    className="mr-2"
                   >
                     Retry
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => window.location.reload()}
+                  >
+                    Refresh Page
                   </Button>
                 </CardContent>
               </Card>
@@ -329,90 +347,105 @@ const Rewards = () => {
           )}
 
           {/* Rewards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {rewards?.map((reward) => {
-              const redemptionStatus = getRedemptionStatus(reward);
-              
-              return (
-                <Card key={reward.id} className="overflow-hidden hover:shadow-lg transition-shadow border-[#95A5A6] bg-white shadow-md">
-                  <div className="aspect-video relative bg-gradient-to-br from-[#95A5A6]/10 to-[#95A5A6]/20">
-                    <RewardImage
-                      src={reward.image_url}
-                      alt={reward.name}
-                      className="absolute inset-0 w-full h-full rounded-t-lg object-cover"
-                    />
-                    {reward.inventory !== null && reward.inventory <= 5 && (
-                      <Badge 
-                        variant="destructive" 
-                        className="absolute top-2 left-2"
-                      >
-                        Only {reward.inventory} left
-                      </Badge>
-                    )}
-                    {redemptionStatus === 'pending' && (
-                      <Badge 
-                        variant="outline" 
-                        className="absolute top-2 right-2 bg-[#95A5A6]/20 text-black border-[#95A5A6]"
-                      >
-                        <Clock className="h-3 w-3 mr-1" />
-                        Pending Approval
-                      </Badge>
-                    )}
-                    {reward.membership_required && (
-                      <Badge 
-                        variant="secondary" 
-                        className="absolute bottom-2 left-2 capitalize bg-[#95A5A6] text-white"
-                      >
-                        {reward.membership_required} Tier
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-lg leading-tight text-black">{reward.name}</CardTitle>
-                      <div className="flex items-center gap-1 text-[#95A5A6] shrink-0">
-                        <Star className="h-4 w-4 fill-current" />
-                        <span className="font-bold">{reward.points_required}</span>
-                      </div>
+          {rewards && rewards.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {rewards.map((reward) => {
+                const redemptionStatus = getRedemptionStatus(reward);
+                const unavailableReason = getUnavailableReason(reward);
+                
+                return (
+                  <Card key={reward.id} className="overflow-hidden hover:shadow-lg transition-shadow border-[#95A5A6] bg-white shadow-md">
+                    <div className="aspect-video relative bg-gradient-to-br from-[#95A5A6]/10 to-[#95A5A6]/20">
+                      <RewardImage
+                        src={reward.image_url}
+                        alt={reward.name}
+                        className="absolute inset-0 w-full h-full rounded-t-lg object-cover"
+                      />
+                      {reward.inventory !== null && reward.inventory <= 5 && reward.inventory > 0 && (
+                        <Badge 
+                          variant="destructive" 
+                          className="absolute top-2 left-2"
+                        >
+                          Only {reward.inventory} left
+                        </Badge>
+                      )}
+                      {reward.inventory !== null && reward.inventory <= 0 && (
+                        <Badge 
+                          variant="destructive" 
+                          className="absolute top-2 left-2"
+                        >
+                          Out of Stock
+                        </Badge>
+                      )}
+                      {redemptionStatus === 'pending' && (
+                        <Badge 
+                          variant="outline" 
+                          className="absolute top-2 right-2 bg-[#95A5A6]/20 text-black border-[#95A5A6]"
+                        >
+                          <Clock className="h-3 w-3 mr-1" />
+                          Pending Approval
+                        </Badge>
+                      )}
+                      {reward.membership_required && (
+                        <Badge 
+                          variant="secondary" 
+                          className="absolute bottom-2 left-2 capitalize bg-[#95A5A6] text-white"
+                        >
+                          {reward.membership_required} Tier
+                        </Badge>
+                      )}
+                      {reward.cupping_score_min && (
+                        <Badge 
+                          variant="outline" 
+                          className="absolute bottom-2 right-2 bg-white/90 text-black"
+                        >
+                          {reward.cupping_score_min}+ Score
+                        </Badge>
+                      )}
                     </div>
-                    {reward.description && (
-                      <CardDescription className="text-sm line-clamp-2 text-[#95A5A6]">
-                        {reward.description}
-                      </CardDescription>
-                    )}
-                  </CardHeader>
-                  
-                  <CardContent className="pt-0">
-                    <Button
-                      onClick={() => handleRedeemClick(reward)}
-                      disabled={!canRedeem(reward) || redemptionStatus === 'pending'}
-                      className="w-full bg-black hover:bg-[#95A5A6] text-white disabled:opacity-50"
-                    >
-                      <Gift className="h-4 w-4 mr-2" />
-                      {redemptionStatus === 'pending' ? 'Awaiting Approval' :
-                       canRedeem(reward) ? 'Redeem Now' : 
-                       profile && profile.current_points < reward.points_required ? 'Not Enough Points' : 
-                       'Requirements Not Met'}
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          {!rewards || rewards.length === 0 && (
-            <Card className="border-[#95A5A6]">
-              <CardContent className="p-8 text-center">
-                <Gift className="h-12 w-12 text-[#95A5A6] mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-black mb-2">No rewards available for your tier</h3>
-                <p className="text-[#95A5A6]">
-                  {profile?.membership_tier === 'bronze' && 'Earn more points to unlock Silver and Gold tier rewards!'}
-                  {profile?.membership_tier === 'silver' && 'Earn more points to unlock Gold tier rewards!'}
-                  {profile?.membership_tier === 'gold' && 'Check back soon for new rewards!'}
-                </p>
-              </CardContent>
-            </Card>
+                    
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <CardTitle className="text-lg leading-tight text-black">{reward.name}</CardTitle>
+                        <div className="flex items-center gap-1 text-[#95A5A6] shrink-0">
+                          <Star className="h-4 w-4 fill-current" />
+                          <span className="font-bold">{reward.points_required}</span>
+                        </div>
+                      </div>
+                      {reward.description && (
+                        <CardDescription className="text-sm line-clamp-2 text-[#95A5A6]">
+                          {reward.description}
+                        </CardDescription>
+                      )}
+                    </CardHeader>
+                    
+                    <CardContent className="pt-0">
+                      <Button
+                        onClick={() => handleRedeemClick(reward)}
+                        disabled={!canRedeem(reward) || redemptionStatus === 'pending'}
+                        className="w-full bg-black hover:bg-[#95A5A6] text-white disabled:opacity-50"
+                        title={unavailableReason || undefined}
+                      >
+                        <Gift className="h-4 w-4 mr-2" />
+                        {redemptionStatus === 'pending' ? 'Awaiting Approval' :
+                         canRedeem(reward) ? 'Redeem Now' : 
+                         unavailableReason || 'Cannot Redeem'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState
+              icon={Gift}
+              title="No rewards available for your tier"
+              description={
+                profile?.membership_tier === 'bronze' ? 'Earn more points to unlock Silver and Gold tier rewards!' :
+                profile?.membership_tier === 'silver' ? 'Earn more points to unlock Gold tier rewards!' :
+                'Check back soon for new rewards!'
+              }
+            />
           )}
         </div>
       </div>
@@ -460,6 +493,7 @@ const Rewards = () => {
               variant="outline" 
               onClick={() => setIsRedeemDialogOpen(false)}
               className="w-full sm:w-auto border-[#95A5A6] text-black hover:bg-[#95A5A6]/20"
+              disabled={redeemReward.isPending}
             >
               Cancel
             </Button>
@@ -468,7 +502,14 @@ const Rewards = () => {
               disabled={redeemReward.isPending}
               className="w-full sm:w-auto bg-black hover:bg-[#95A5A6] text-white"
             >
-              {redeemReward.isPending ? 'Submitting Request...' : 'Submit Request'}
+              {redeemReward.isPending ? (
+                <>
+                  <LoadingSpinner size="sm" className="mr-2" />
+                  Submitting...
+                </>
+              ) : (
+                'Submit Request'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
