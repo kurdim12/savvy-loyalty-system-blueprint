@@ -12,16 +12,14 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { useErrorHandler } from '@/hooks/useErrorHandler';
 
 const CommunityHub = () => {
   const { isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('challenges');
   const queryClient = useQueryClient();
-  const { handleError } = useErrorHandler();
 
-  // Optimized challenges query with better error handling
-  const { data: challenges = [], isLoading: challengesLoading, error: challengesError } = useQuery({
+  // Optimized challenges query
+  const { data: challenges = [], isLoading: challengesLoading } = useQuery({
     queryKey: ['challenges'],
     queryFn: async () => {
       try {
@@ -30,21 +28,24 @@ const CommunityHub = () => {
           .select('*')
           .eq('active', true)
           .order('created_at', { ascending: false })
-          .limit(10); // Limit results for better performance
+          .limit(5);
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching challenges:', error);
+          return [];
+        }
         return data || [];
       } catch (error) {
-        handleError(error, 'fetching challenges');
+        console.error('Error in challenges query:', error);
         return [];
       }
     },
-    staleTime: 30000, // Cache for 30 seconds
-    retry: 2
+    staleTime: 30000,
+    retry: 1
   });
 
   // Optimized photo contests query
-  const { data: photoContests = [], isLoading: contestsLoading, error: contestsError } = useQuery({
+  const { data: photoContests = [], isLoading: contestsLoading } = useQuery({
     queryKey: ['photo_contests'],
     queryFn: async () => {
       try {
@@ -64,17 +65,20 @@ const CommunityHub = () => {
           `)
           .eq('active', true)
           .order('created_at', { ascending: false })
-          .limit(5); // Limit for performance
+          .limit(3);
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching photo contests:', error);
+          return [];
+        }
         return data || [];
       } catch (error) {
-        handleError(error, 'fetching photo contests');
+        console.error('Error in photo contests query:', error);
         return [];
       }
     },
     staleTime: 30000,
-    retry: 2
+    retry: 1
   });
 
   // Optimized leaderboard query
@@ -89,7 +93,11 @@ const CommunityHub = () => {
           .order('current_points', { ascending: false })
           .limit(10);
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching leaderboard:', error);
+          return [];
+        }
+        
         return data?.map((profile, index) => ({
           id: profile.id,
           name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Anonymous',
@@ -100,15 +108,15 @@ const CommunityHub = () => {
                  profile.membership_tier === 'silver' ? 'Elite' : undefined
         })) || [];
       } catch (error) {
-        handleError(error, 'fetching leaderboard');
+        console.error('Error in leaderboard query:', error);
         return [];
       }
     },
-    staleTime: 60000, // Cache for 1 minute
-    retry: 2
+    staleTime: 60000,
+    retry: 1
   });
 
-  // Join challenge mutation with better error handling
+  // Join challenge mutation
   const joinChallengeMutation = useMutation({
     mutationFn: async (challengeId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -128,11 +136,12 @@ const CommunityHub = () => {
       queryClient.invalidateQueries({ queryKey: ['challenges'] });
     },
     onError: (error: any) => {
-      handleError(error, 'joining challenge');
+      console.error('Error joining challenge:', error);
+      toast.error('Failed to join challenge');
     }
   });
 
-  // Submit photo mutation with better error handling
+  // Submit photo mutation
   const submitPhotoMutation = useMutation({
     mutationFn: async ({ contestId, photo, title, description }: {
       contestId: string;
@@ -162,7 +171,8 @@ const CommunityHub = () => {
       queryClient.invalidateQueries({ queryKey: ['photo_contests'] });
     },
     onError: (error: any) => {
-      handleError(error, 'submitting photo');
+      console.error('Error submitting photo:', error);
+      toast.error('Failed to submit photo');
     }
   });
 
@@ -186,7 +196,8 @@ const CommunityHub = () => {
       queryClient.invalidateQueries({ queryKey: ['photo_contests'] });
     },
     onError: (error: any) => {
-      handleError(error, 'voting for photo');
+      console.error('Error voting for photo:', error);
+      toast.error('Failed to vote for photo');
     }
   });
 
@@ -201,25 +212,6 @@ const CommunityHub = () => {
   const handleVotePhoto = (submissionId: string) => {
     votePhotoMutation.mutate(submissionId);
   };
-
-  // Show error state if there are critical errors
-  if (challengesError || contestsError) {
-    return (
-      <Layout>
-        <div className="min-h-screen bg-gradient-to-br from-[#95A5A6]/5 via-white to-[#95A5A6]/10 flex items-center justify-center">
-          <div className="text-center p-8">
-            <div className="text-red-500 text-lg mb-4">⚠️ Unable to load community data</div>
-            <button 
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
-            >
-              Refresh Page
-            </button>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
 
   // Show loading state
   if (challengesLoading || contestsLoading) {

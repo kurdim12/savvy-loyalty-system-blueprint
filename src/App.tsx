@@ -31,7 +31,7 @@ import { UserRoute, AdminRoute } from '@/components/auth/ProtectedRoutes';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 3,
+      retry: 2,
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes
@@ -60,6 +60,7 @@ function App() {
                 <Route path="/rewards" element={<UserRoute><Rewards /></UserRoute>} />
                 <Route path="/community" element={<UserRoute><CommunityHub /></UserRoute>} />
                 <Route path="/community-hub" element={<Navigate to="/community" replace />} />
+                <Route path="/hub" element={<Navigate to="/community" replace />} />
                 <Route path="/community/thread/:id" element={<UserRoute><ThreadPage /></UserRoute>} />
                 
                 {/* Admin Routes */}

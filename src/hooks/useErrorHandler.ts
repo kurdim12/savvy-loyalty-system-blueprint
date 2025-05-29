@@ -1,40 +1,33 @@
 
-import { useCallback } from 'react';
 import { toast } from 'sonner';
 
-export interface AppError {
-  message: string;
-  code?: string;
-  statusCode?: number;
-}
-
 export const useErrorHandler = () => {
-  const handleError = useCallback((error: unknown, context?: string) => {
-    console.error(`Error${context ? ` in ${context}` : ''}:`, error);
+  const handleError = (error: any, context: string = '') => {
+    console.error(`Error ${context}:`, error);
     
     let message = 'An unexpected error occurred';
     
-    if (error instanceof Error) {
+    if (error?.message) {
       message = error.message;
     } else if (typeof error === 'string') {
       message = error;
-    } else if (error && typeof error === 'object' && 'message' in error) {
-      message = (error as any).message;
     }
     
-    // Handle specific error types
-    if (message.includes('auth')) {
-      message = 'Authentication error. Please sign in again.';
-    } else if (message.includes('network') || message.includes('fetch')) {
+    // Show user-friendly error messages
+    if (message.includes('JWT')) {
+      message = 'Session expired. Please log in again.';
+    } else if (message.includes('Network')) {
       message = 'Network error. Please check your connection.';
-    } else if (message.includes('permission') || message.includes('unauthorized')) {
+    } else if (message.includes('duplicate')) {
+      message = 'This item already exists.';
+    } else if (message.includes('not found')) {
+      message = 'The requested item was not found.';
+    } else if (message.includes('permission')) {
       message = 'You do not have permission to perform this action.';
     }
     
     toast.error(message);
-    
-    return { message, error };
-  }, []);
-  
+  };
+
   return { handleError };
 };
