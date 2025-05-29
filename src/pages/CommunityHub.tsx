@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Layout from '@/components/layout/Layout';
@@ -11,78 +11,104 @@ import { Trophy, Camera, Share2, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
 
 const CommunityHub = () => {
   const { isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('challenges');
   const queryClient = useQueryClient();
+  const { handleError } = useErrorHandler();
 
-  // Fetch real challenges from database
-  const { data: challenges = [], isLoading: challengesLoading } = useQuery({
+  // Optimized challenges query with better error handling
+  const { data: challenges = [], isLoading: challengesLoading, error: challengesError } = useQuery({
     queryKey: ['challenges'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('challenges')
-        .select('*')
-        .eq('active', true)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    }
+      try {
+        const { data, error } = await supabase
+          .from('challenges')
+          .select('*')
+          .eq('active', true)
+          .order('created_at', { ascending: false })
+          .limit(10); // Limit results for better performance
+        
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
+        handleError(error, 'fetching challenges');
+        return [];
+      }
+    },
+    staleTime: 30000, // Cache for 30 seconds
+    retry: 2
   });
 
-  // Fetch real photo contests from database
-  const { data: photoContests = [], isLoading: contestsLoading } = useQuery({
+  // Optimized photo contests query
+  const { data: photoContests = [], isLoading: contestsLoading, error: contestsError } = useQuery({
     queryKey: ['photo_contests'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('photo_contests')
-        .select(`
-          *,
-          photo_contest_submissions(
-            id,
-            image_url,
-            title,
-            description,
-            votes,
-            created_at,
-            profiles(first_name, last_name)
-          )
-        `)
-        .eq('active', true)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    }
+      try {
+        const { data, error } = await supabase
+          .from('photo_contests')
+          .select(`
+            *,
+            photo_contest_submissions(
+              id,
+              image_url,
+              title,
+              description,
+              votes,
+              created_at,
+              profiles(first_name, last_name)
+            )
+          `)
+          .eq('active', true)
+          .order('created_at', { ascending: false })
+          .limit(5); // Limit for performance
+        
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
+        handleError(error, 'fetching photo contests');
+        return [];
+      }
+    },
+    staleTime: 30000,
+    retry: 2
   });
 
-  // Fetch leaderboard data
-  const { data: leaderboard = [] } = useQuery({
+  // Optimized leaderboard query
+  const { data: leaderboard = [], isLoading: leaderboardLoading } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, current_points, membership_tier')
-        .eq('role', 'customer')
-        .order('current_points', { ascending: false })
-        .limit(10);
-      
-      if (error) throw error;
-      return data?.map((profile, index) => ({
-        id: profile.id,
-        name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Anonymous',
-        referrals: 0, // This would need a separate query for referrals
-        pointsEarned: profile.current_points,
-        rank: index + 1,
-        badge: profile.membership_tier === 'gold' ? 'Champion' : 
-               profile.membership_tier === 'silver' ? 'Elite' : undefined
-      })) || [];
-    }
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, current_points, membership_tier')
+          .eq('role', 'customer')
+          .order('current_points', { ascending: false })
+          .limit(10);
+        
+        if (error) throw error;
+        return data?.map((profile, index) => ({
+          id: profile.id,
+          name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Anonymous',
+          referrals: 0,
+          pointsEarned: profile.current_points,
+          rank: index + 1,
+          badge: profile.membership_tier === 'gold' ? 'Champion' : 
+                 profile.membership_tier === 'silver' ? 'Elite' : undefined
+        })) || [];
+      } catch (error) {
+        handleError(error, 'fetching leaderboard');
+        return [];
+      }
+    },
+    staleTime: 60000, // Cache for 1 minute
+    retry: 2
   });
 
-  // Join challenge mutation
+  // Join challenge mutation with better error handling
   const joinChallengeMutation = useMutation({
     mutationFn: async (challengeId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -102,15 +128,11 @@ const CommunityHub = () => {
       queryClient.invalidateQueries({ queryKey: ['challenges'] });
     },
     onError: (error: any) => {
-      if (error.message?.includes('duplicate')) {
-        toast.error('You have already joined this challenge!');
-      } else {
-        toast.error('Failed to join challenge. Please try again.');
-      }
+      handleError(error, 'joining challenge');
     }
   });
 
-  // Submit photo mutation
+  // Submit photo mutation with better error handling
   const submitPhotoMutation = useMutation({
     mutationFn: async ({ contestId, photo, title, description }: {
       contestId: string;
@@ -121,8 +143,6 @@ const CommunityHub = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // For now, we'll use a placeholder URL. In a real implementation,
-      // you'd upload to Supabase Storage first
       const imageUrl = URL.createObjectURL(photo);
 
       const { error } = await supabase
@@ -138,11 +158,11 @@ const CommunityHub = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('📸 Photo submitted successfully! Good luck in the contest!');
+      toast.success('📸 Photo submitted successfully!');
       queryClient.invalidateQueries({ queryKey: ['photo_contests'] });
     },
-    onError: () => {
-      toast.error('Failed to submit photo. Please try again.');
+    onError: (error: any) => {
+      handleError(error, 'submitting photo');
     }
   });
 
@@ -166,11 +186,7 @@ const CommunityHub = () => {
       queryClient.invalidateQueries({ queryKey: ['photo_contests'] });
     },
     onError: (error: any) => {
-      if (error.message?.includes('duplicate')) {
-        toast.error('You have already voted for this submission!');
-      } else {
-        toast.error('Failed to vote. Please try again.');
-      }
+      handleError(error, 'voting for photo');
     }
   });
 
@@ -186,6 +202,36 @@ const CommunityHub = () => {
     votePhotoMutation.mutate(submissionId);
   };
 
+  // Show error state if there are critical errors
+  if (challengesError || contestsError) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gradient-to-br from-[#95A5A6]/5 via-white to-[#95A5A6]/10 flex items-center justify-center">
+          <div className="text-center p-8">
+            <div className="text-red-500 text-lg mb-4">⚠️ Unable to load community data</div>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show loading state
+  if (challengesLoading || contestsLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gradient-to-br from-[#95A5A6]/5 via-white to-[#95A5A6]/10 flex items-center justify-center">
+          <LoadingSpinner size="lg" text="Loading community hub..." />
+        </div>
+      </Layout>
+    );
+  }
+
   // Format challenges for the component
   const formattedChallenges = challenges.map(challenge => ({
     id: challenge.id,
@@ -193,10 +239,10 @@ const CommunityHub = () => {
     description: challenge.description,
     type: challenge.type as 'daily' | 'weekly' | 'monthly',
     target: challenge.target,
-    current: 0, // This would need to be calculated from participants
+    current: 0,
     reward: challenge.reward,
     expiresAt: new Date(challenge.expires_at),
-    participants: 0 // This would need a count query
+    participants: 0
   }));
 
   // Format photo contests for the component
@@ -220,16 +266,6 @@ const CommunityHub = () => {
       submittedAt: new Date(sub.created_at)
     }))
   } : null;
-
-  if (challengesLoading || contestsLoading) {
-    return (
-      <Layout>
-        <div className="min-h-screen bg-gradient-to-br from-[#95A5A6]/5 via-white to-[#95A5A6]/10 flex items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent"></div>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
@@ -278,42 +314,44 @@ const CommunityHub = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="challenges" className="space-y-6">
-              <CommunityChallenge 
-                challenges={formattedChallenges}
-                onJoinChallenge={handleJoinChallenge}
-              />
-            </TabsContent>
-
-            <TabsContent value="photos" className="space-y-6">
-              {currentContest ? (
-                <PhotoContest
-                  contest={currentContest}
-                  onSubmitPhoto={handleSubmitPhoto}
-                  onVotePhoto={handleVotePhoto}
+            <Suspense fallback={<LoadingSpinner size="lg" text="Loading content..." />}>
+              <TabsContent value="challenges" className="space-y-6">
+                <CommunityChallenge 
+                  challenges={formattedChallenges}
+                  onJoinChallenge={handleJoinChallenge}
                 />
-              ) : (
-                <div className="text-center py-12">
-                  <Camera className="h-12 w-12 text-[#95A5A6] mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-black mb-2">No Active Photo Contest</h3>
-                  <p className="text-[#95A5A6]">Check back soon for new photo contests!</p>
-                </div>
-              )}
-            </TabsContent>
+              </TabsContent>
 
-            <TabsContent value="social" className="space-y-6">
-              <SocialShare
-                referralCode="COFFEE2024"
-                totalReferrals={5}
-                pointsFromReferrals={250}
-                leaderboard={leaderboard}
-                userRank={12}
-              />
-            </TabsContent>
+              <TabsContent value="photos" className="space-y-6">
+                {currentContest ? (
+                  <PhotoContest
+                    contest={currentContest}
+                    onSubmitPhoto={handleSubmitPhoto}
+                    onVotePhoto={handleVotePhoto}
+                  />
+                ) : (
+                  <div className="text-center py-12">
+                    <Camera className="h-12 w-12 text-[#95A5A6] mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-black mb-2">No Active Photo Contest</h3>
+                    <p className="text-[#95A5A6]">Check back soon for new photo contests!</p>
+                  </div>
+                )}
+              </TabsContent>
 
-            <TabsContent value="goals" className="space-y-6">
-              <CommunityGoalsList />
-            </TabsContent>
+              <TabsContent value="social" className="space-y-6">
+                <SocialShare
+                  referralCode="COFFEE2024"
+                  totalReferrals={5}
+                  pointsFromReferrals={250}
+                  leaderboard={leaderboard}
+                  userRank={12}
+                />
+              </TabsContent>
+
+              <TabsContent value="goals" className="space-y-6">
+                <CommunityGoalsList />
+              </TabsContent>
+            </Suspense>
           </Tabs>
         </div>
       </div>

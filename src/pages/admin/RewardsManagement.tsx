@@ -12,17 +12,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, BarChart3, Filter, Trophy, Camera, Settings } from 'lucide-react';
+import { Search, Plus, BarChart3, Filter, Trophy, Settings, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import RewardsList from '@/components/admin/RewardsList';
 import UpdateRewardsSystem from '@/components/admin/UpdateRewardsSystem';
 import CommunityHubControl from '@/components/admin/CommunityHubControl';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const RewardsManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showCommunityHub, setShowCommunityHub] = useState(false);
+  const [showUpdateSystem, setShowUpdateSystem] = useState(false);
   
   const handleCreateReward = () => {
     setShowCreateForm(true);
@@ -31,25 +33,44 @@ const RewardsManagement = () => {
   
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="space-y-6 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Rewards Management</h1>
             <p className="text-gray-500">Create and manage loyalty program rewards</p>
           </div>
-          <div className="flex space-x-2">
-            <Button 
-              variant="outline"
-              onClick={() => setShowCommunityHub(!showCommunityHub)}
-              className="bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100"
-            >
-              <Trophy className="mr-2 h-4 w-4" />
-              Community Hub Control
-            </Button>
+          
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-3">
+            <Collapsible open={showCommunityHub} onOpenChange={setShowCommunityHub}>
+              <CollapsibleTrigger asChild>
+                <Button 
+                  variant="outline"
+                  className="bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100"
+                >
+                  <Trophy className="mr-2 h-4 w-4" />
+                  Community Hub Control
+                  {showCommunityHub ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </Collapsible>
+            
+            <Collapsible open={showUpdateSystem} onOpenChange={setShowUpdateSystem}>
+              <CollapsibleTrigger asChild>
+                <Button variant="outline">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Update Rewards System
+                  {showUpdateSystem ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </Collapsible>
+            
             <Button variant="outline">
               <BarChart3 className="mr-2 h-4 w-4" />
               Redemption Analytics
             </Button>
+            
             <Button onClick={handleCreateReward}>
               <Plus className="mr-2 h-4 w-4" />
               Create New Reward
@@ -57,26 +78,48 @@ const RewardsManagement = () => {
           </div>
         </div>
 
-        {/* Community Hub Control Section */}
-        {showCommunityHub && (
-          <Card className="bg-amber-50 border-amber-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-amber-900">
-                <Settings className="h-5 w-5" />
-                Community Hub Management
-              </CardTitle>
-              <CardDescription className="text-amber-700">
-                Control challenges, photo contests, and community activities
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CommunityHubControl />
-            </CardContent>
-          </Card>
-        )}
+        {/* Collapsible Sections */}
+        <div className="space-y-4">
+          {/* Community Hub Control Section */}
+          <Collapsible open={showCommunityHub} onOpenChange={setShowCommunityHub}>
+            <CollapsibleContent>
+              <Card className="bg-amber-50 border-amber-200">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-amber-900">
+                    <Settings className="h-5 w-5" />
+                    Community Hub Management
+                  </CardTitle>
+                  <CardDescription className="text-amber-700">
+                    Control challenges, photo contests, and community activities
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="max-h-[600px] overflow-y-auto">
+                  <CommunityHubControl />
+                </CardContent>
+              </Card>
+            </CollapsibleContent>
+          </Collapsible>
 
-        {/* Update Rewards System */}
-        <UpdateRewardsSystem />
+          {/* Update Rewards System Section */}
+          <Collapsible open={showUpdateSystem} onOpenChange={setShowUpdateSystem}>
+            <CollapsibleContent>
+              <Card className="bg-blue-50 border-blue-200">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-blue-900">
+                    <Settings className="h-5 w-5" />
+                    Rewards System Configuration
+                  </CardTitle>
+                  <CardDescription className="text-blue-700">
+                    Update rewards database and system settings
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="max-h-[400px] overflow-y-auto">
+                  <UpdateRewardsSystem />
+                </CardContent>
+              </Card>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
 
         {/* Filters */}
         <Card>
@@ -116,7 +159,9 @@ const RewardsManagement = () => {
         </Card>
 
         {/* Rewards List */}
-        <RewardsList />
+        <div className="min-h-[400px]">
+          <RewardsList />
+        </div>
       </div>
     </AdminLayout>
   );

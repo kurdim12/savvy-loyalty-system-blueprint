@@ -59,6 +59,7 @@ function App() {
                 <Route path="/profile" element={<UserRoute><Profile /></UserRoute>} />
                 <Route path="/rewards" element={<UserRoute><Rewards /></UserRoute>} />
                 <Route path="/community" element={<UserRoute><CommunityHub /></UserRoute>} />
+                <Route path="/community-hub" element={<Navigate to="/community" replace />} />
                 <Route path="/community/thread/:id" element={<UserRoute><ThreadPage /></UserRoute>} />
                 
                 {/* Admin Routes */}
