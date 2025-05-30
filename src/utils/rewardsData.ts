@@ -12,9 +12,9 @@ export interface RewardDefinition {
   cuppingScore?: number;
 }
 
-// Define the rewards for each tier
+// Define the rewards for each tier - FIXED: Updated bronze tier to 87+
 export const rewardsData: RewardDefinition[] = [
-  // Bronze Rewards
+  // Bronze Rewards - FIXED: Updated cupping score to 87+
   {
     name: "Dose of Premium Coffee (87+ Score)",
     description: "A measured dose of our premium coffee with a cupping score of 87+",
@@ -24,12 +24,12 @@ export const rewardsData: RewardDefinition[] = [
     cuppingScore: 87
   },
   {
-    name: "Free Coffee Drink (88+ Score)",
-    description: "Enjoy a free coffee drink made with beans rated 88+",
+    name: "Free Coffee Drink (87+ Score)",
+    description: "Enjoy a free coffee drink made with beans rated 87+",
     points: 75,
     category: "drink",
     membership_required: "bronze",
-    cuppingScore: 88
+    cuppingScore: 87
   },
   
   // Silver Rewards

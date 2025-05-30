@@ -1,5 +1,5 @@
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Layout from '@/components/layout/Layout';
@@ -18,8 +18,8 @@ const CommunityHub = () => {
   const [activeTab, setActiveTab] = useState('challenges');
   const queryClient = useQueryClient();
 
-  // Optimized challenges query
-  const { data: challenges = [], isLoading: challengesLoading } = useQuery({
+  // Optimized challenges query with better error handling
+  const { data: challenges = [], isLoading: challengesLoading, error: challengesError } = useQuery({
     queryKey: ['challenges'],
     queryFn: async () => {
       try {
@@ -28,24 +28,25 @@ const CommunityHub = () => {
           .select('*')
           .eq('active', true)
           .order('created_at', { ascending: false })
-          .limit(5);
+          .limit(10);
         
         if (error) {
           console.error('Error fetching challenges:', error);
-          return [];
+          throw new Error(`Failed to load challenges: ${error.message}`);
         }
         return data || [];
       } catch (error) {
         console.error('Error in challenges query:', error);
-        return [];
+        throw error;
       }
     },
     staleTime: 30000,
-    retry: 1
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  // Optimized photo contests query
-  const { data: photoContests = [], isLoading: contestsLoading } = useQuery({
+  // Optimized photo contests query with better error handling
+  const { data: photoContests = [], isLoading: contestsLoading, error: contestsError } = useQuery({
     queryKey: ['photo_contests'],
     queryFn: async () => {
       try {
@@ -65,24 +66,25 @@ const CommunityHub = () => {
           `)
           .eq('active', true)
           .order('created_at', { ascending: false })
-          .limit(3);
+          .limit(5);
         
         if (error) {
           console.error('Error fetching photo contests:', error);
-          return [];
+          throw new Error(`Failed to load photo contests: ${error.message}`);
         }
         return data || [];
       } catch (error) {
         console.error('Error in photo contests query:', error);
-        return [];
+        throw error;
       }
     },
     staleTime: 30000,
-    retry: 1
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  // Optimized leaderboard query
-  const { data: leaderboard = [], isLoading: leaderboardLoading } = useQuery({
+  // Optimized leaderboard query with better error handling
+  const { data: leaderboard = [], isLoading: leaderboardLoading, error: leaderboardError } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => {
       try {
@@ -95,7 +97,7 @@ const CommunityHub = () => {
         
         if (error) {
           console.error('Error fetching leaderboard:', error);
-          return [];
+          throw new Error(`Failed to load leaderboard: ${error.message}`);
         }
         
         return data?.map((profile, index) => ({
@@ -109,14 +111,15 @@ const CommunityHub = () => {
         })) || [];
       } catch (error) {
         console.error('Error in leaderboard query:', error);
-        return [];
+        throw error;
       }
     },
     staleTime: 60000,
-    retry: 1
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  // Join challenge mutation
+  // Memoized mutation handlers to prevent recreation on every render
   const joinChallengeMutation = useMutation({
     mutationFn: async (challengeId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -137,11 +140,10 @@ const CommunityHub = () => {
     },
     onError: (error: any) => {
       console.error('Error joining challenge:', error);
-      toast.error('Failed to join challenge');
+      toast.error(`Failed to join challenge: ${error.message}`);
     }
   });
 
-  // Submit photo mutation
   const submitPhotoMutation = useMutation({
     mutationFn: async ({ contestId, photo, title, description }: {
       contestId: string;
@@ -172,11 +174,10 @@ const CommunityHub = () => {
     },
     onError: (error: any) => {
       console.error('Error submitting photo:', error);
-      toast.error('Failed to submit photo');
+      toast.error(`Failed to submit photo: ${error.message}`);
     }
   });
 
-  // Vote photo mutation
   const votePhotoMutation = useMutation({
     mutationFn: async (submissionId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -197,24 +198,52 @@ const CommunityHub = () => {
     },
     onError: (error: any) => {
       console.error('Error voting for photo:', error);
-      toast.error('Failed to vote for photo');
+      toast.error(`Failed to vote for photo: ${error.message}`);
     }
   });
 
-  const handleJoinChallenge = (challengeId: string) => {
+  // Memoized handlers
+  const handleJoinChallenge = useCallback((challengeId: string) => {
     joinChallengeMutation.mutate(challengeId);
-  };
+  }, [joinChallengeMutation]);
 
-  const handleSubmitPhoto = (contestId: string, photo: File, title: string, description: string) => {
+  const handleSubmitPhoto = useCallback((contestId: string, photo: File, title: string, description: string) => {
     submitPhotoMutation.mutate({ contestId, photo, title, description });
-  };
+  }, [submitPhotoMutation]);
 
-  const handleVotePhoto = (submissionId: string) => {
+  const handleVotePhoto = useCallback((submissionId: string) => {
     votePhotoMutation.mutate(submissionId);
-  };
+  }, [votePhotoMutation]);
+
+  // Show error state if any query failed
+  const hasErrors = challengesError || contestsError || leaderboardError;
+  if (hasErrors) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gradient-to-br from-[#95A5A6]/5 via-white to-[#95A5A6]/10 flex items-center justify-center">
+          <div className="text-center p-6 max-w-md">
+            <div className="text-red-600 mb-4">
+              <svg className="h-12 w-12 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Unable to Load Community Hub</h3>
+            <p className="text-gray-600 mb-4">There was an error loading the community features. Please try again later.</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   // Show loading state
-  if (challengesLoading || contestsLoading) {
+  const isLoading = challengesLoading || contestsLoading || leaderboardLoading;
+  if (isLoading) {
     return (
       <Layout>
         <div className="min-h-screen bg-gradient-to-br from-[#95A5A6]/5 via-white to-[#95A5A6]/10 flex items-center justify-center">
@@ -224,40 +253,46 @@ const CommunityHub = () => {
     );
   }
 
-  // Format challenges for the component
-  const formattedChallenges = challenges.map(challenge => ({
-    id: challenge.id,
-    title: challenge.title,
-    description: challenge.description,
-    type: challenge.type as 'daily' | 'weekly' | 'monthly',
-    target: challenge.target,
-    current: 0,
-    reward: challenge.reward,
-    expiresAt: new Date(challenge.expires_at),
-    participants: 0
-  }));
+  // Memoized formatted challenges to prevent recreation
+  const formattedChallenges = useMemo(() => 
+    challenges.map(challenge => ({
+      id: challenge.id,
+      title: challenge.title,
+      description: challenge.description,
+      type: challenge.type as 'daily' | 'weekly' | 'monthly',
+      target: challenge.target,
+      current: 0,
+      reward: challenge.reward,
+      expiresAt: new Date(challenge.expires_at),
+      participants: 0
+    })), [challenges]
+  );
 
-  // Format photo contests for the component
-  const currentContest = photoContests[0] ? {
-    id: photoContests[0].id,
-    title: photoContests[0].title,
-    description: photoContests[0].description || '',
-    theme: photoContests[0].theme || '',
-    prize: photoContests[0].prize || '',
-    endsAt: new Date(photoContests[0].ends_at),
-    maxSubmissions: photoContests[0].max_submissions || 100,
-    submissions: (photoContests[0].photo_contest_submissions || []).map((sub: any) => ({
-      id: sub.id,
-      imageUrl: sub.image_url,
-      title: sub.title,
-      description: sub.description || '',
-      author: sub.profiles ? 
-        `${sub.profiles.first_name || ''} ${sub.profiles.last_name || ''}`.trim() : 
-        'Anonymous',
-      votes: sub.votes,
-      submittedAt: new Date(sub.created_at)
-    }))
-  } : null;
+  // Memoized current contest to prevent recreation
+  const currentContest = useMemo(() => {
+    if (!photoContests[0]) return null;
+    
+    return {
+      id: photoContests[0].id,
+      title: photoContests[0].title,
+      description: photoContests[0].description || '',
+      theme: photoContests[0].theme || '',
+      prize: photoContests[0].prize || '',
+      endsAt: new Date(photoContests[0].ends_at),
+      maxSubmissions: photoContests[0].max_submissions || 100,
+      submissions: (photoContests[0].photo_contest_submissions || []).map((sub: any) => ({
+        id: sub.id,
+        imageUrl: sub.image_url,
+        title: sub.title,
+        description: sub.description || '',
+        author: sub.profiles ? 
+          `${sub.profiles.first_name || ''} ${sub.profiles.last_name || ''}`.trim() : 
+          'Anonymous',
+        votes: sub.votes,
+        submittedAt: new Date(sub.created_at)
+      }))
+    };
+  }, [photoContests]);
 
   return (
     <Layout>
@@ -278,28 +313,28 @@ const CommunityHub = () => {
             <TabsList className="grid w-full grid-cols-4 mb-8 bg-[#95A5A6]/10 p-1 rounded-xl">
               <TabsTrigger 
                 value="challenges" 
-                className="flex items-center gap-2 data-[state=active]:bg-black data-[state=active]:text-white"
+                className="flex items-center gap-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all"
               >
                 <Trophy className="h-4 w-4" />
                 <span className="hidden sm:inline">Challenges</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="photos" 
-                className="flex items-center gap-2 data-[state=active]:bg-black data-[state=active]:text-white"
+                className="flex items-center gap-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all"
               >
                 <Camera className="h-4 w-4" />
                 <span className="hidden sm:inline">Photo Contest</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="social" 
-                className="flex items-center gap-2 data-[state=active]:bg-black data-[state=active]:text-white"
+                className="flex items-center gap-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all"
               >
                 <Share2 className="h-4 w-4" />
                 <span className="hidden sm:inline">Social & Referrals</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="goals" 
-                className="flex items-center gap-2 data-[state=active]:bg-black data-[state=active]:text-white"
+                className="flex items-center gap-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all"
               >
                 <Target className="h-4 w-4" />
                 <span className="hidden sm:inline">Community Goals</span>

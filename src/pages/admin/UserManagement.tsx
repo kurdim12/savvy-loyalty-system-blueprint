@@ -58,10 +58,10 @@ const UserManagement = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-8 max-w-7xl mx-auto p-6">
+      <div className="space-y-8 max-w-7xl mx-auto p-4 sm:p-6">
         <div className="space-y-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900">Customer Management</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Customer Management</h2>
             <p className="text-muted-foreground mt-2">
               View and manage all customers, their profiles, points, and membership tiers.
             </p>
@@ -69,16 +69,17 @@ const UserManagement = () => {
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-gray-100 p-1 rounded-lg">
+          {/* FIXED: Better responsive tab layout */}
+          <TabsList className="bg-gray-100 p-1 rounded-lg w-full sm:w-auto">
             <TabsTrigger 
               value="customers" 
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all px-4 py-2"
+              className="data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all px-4 py-2 w-full sm:w-auto"
             >
               All Customers
             </TabsTrigger>
             <TabsTrigger 
               value="analytics" 
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all px-4 py-2"
+              className="data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all px-4 py-2 w-full sm:w-auto"
             >
               Analytics
             </TabsTrigger>
@@ -87,10 +88,12 @@ const UserManagement = () => {
           <TabsContent value="customers" className="space-y-6 m-0">
             <Card className="shadow-sm">
               <CardContent className="p-0">
-                <CustomersList 
-                  onManagePoints={handleManagePoints} 
-                  onRankChange={handleRankChange}
-                />
+                <div className="overflow-x-auto">
+                  <CustomersList 
+                    onManagePoints={handleManagePoints} 
+                    onRankChange={handleRankChange}
+                  />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -11,18 +11,33 @@ interface LoadingSpinnerProps {
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
   size = 'md', 
   text, 
-  className = '' 
+  className 
 }) => {
   const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8'
+    sm: 'h-4 w-4',
+    md: 'h-8 w-8',
+    lg: 'h-12 w-12'
+  };
+
+  const textSizeClasses = {
+    sm: 'text-sm',
+    md: 'text-base',
+    lg: 'text-lg'
   };
 
   return (
-    <div className={`flex items-center justify-center gap-2 ${className}`}>
-      <Loader2 className={`animate-spin ${sizeClasses[size]}`} />
-      {text && <span className="text-sm text-gray-600">{text}</span>}
+    <div className={cn("flex flex-col items-center justify-center space-y-2", className)}>
+      <div 
+        className={cn(
+          "animate-spin rounded-full border-4 border-gray-200 border-t-amber-600",
+          sizeClasses[size]
+        )}
+      />
+      {text && (
+        <p className={cn("text-gray-600 font-medium", textSizeClasses[size])}>
+          {text}
+        </p>
+      )}
     </div>
   );
 };

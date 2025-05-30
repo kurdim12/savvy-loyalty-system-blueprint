@@ -1,8 +1,8 @@
 
-import React, { Component, ReactNode } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Props {
   children: ReactNode;
@@ -12,6 +12,7 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
+  errorInfo?: ErrorInfo;
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -24,12 +25,17 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error Boundary caught an error:', error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    this.setState({ error, errorInfo });
   }
 
-  handleRetry = () => {
-    this.setState({ hasError: false, error: undefined });
+  handleReset = () => {
+    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+  };
+
+  handleReload = () => {
+    window.location.reload();
   };
 
   render() {
@@ -39,31 +45,49 @@ class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
-              <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <AlertCircle className="w-6 h-6 text-red-600" />
+              <div className="flex justify-center mb-4">
+                <AlertTriangle className="h-12 w-12 text-red-500" />
               </div>
-              <CardTitle className="text-xl">Something went wrong</CardTitle>
+              <CardTitle className="text-red-600">Something went wrong</CardTitle>
+              <CardDescription>
+                An unexpected error occurred. This has been logged for our team to review.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="text-center space-y-4">
-              <p className="text-gray-600">
-                We encountered an unexpected error. Please try refreshing the page.
-              </p>
-              {this.state.error && (
-                <details className="text-left text-sm text-gray-500 bg-gray-50 p-2 rounded">
-                  <summary className="cursor-pointer">Error details</summary>
-                  <pre className="mt-2 whitespace-pre-wrap">{this.state.error.message}</pre>
+            <CardContent className="space-y-4">
+              {process.env.NODE_ENV === 'development' && this.state.error && (
+                <details className="bg-gray-100 p-4 rounded-lg text-sm">
+                  <summary className="cursor-pointer font-medium text-gray-700 mb-2">
+                    Error Details (Development Only)
+                  </summary>
+                  <pre className="whitespace-pre-wrap text-xs text-gray-600 overflow-auto max-h-40">
+                    {this.state.error.message}
+                    {this.state.errorInfo && (
+                      <>
+                        {'\n\nComponent Stack:'}
+                        {this.state.errorInfo.componentStack}
+                      </>
+                    )}
+                  </pre>
                 </details>
               )}
-              <div className="flex gap-2 justify-center">
-                <Button onClick={this.handleRetry} variant="outline">
-                  <RefreshCw className="w-4 h-4 mr-2" />
+              
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button 
+                  onClick={this.handleReset}
+                  variant="outline"
+                  className="flex-1"
+                >
                   Try Again
                 </Button>
-                <Button onClick={() => window.location.reload()}>
-                  Refresh Page
+                <Button 
+                  onClick={this.handleReload}
+                  className="flex-1 bg-amber-600 hover:bg-amber-700"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Reload Page
                 </Button>
               </div>
             </CardContent>

@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Search, Plus, BarChart3, Filter, Trophy, Settings, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import RewardsList from '@/components/admin/RewardsList';
@@ -41,13 +40,13 @@ const RewardsManagement = () => {
             <p className="text-gray-500 mt-2">Create and manage loyalty program rewards</p>
           </div>
           
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3">
+          {/* Action Buttons - FIXED: Better responsive layout */}
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3">
             <Collapsible open={showCommunityHub} onOpenChange={setShowCommunityHub}>
               <CollapsibleTrigger asChild>
                 <Button 
                   variant="outline"
-                  className="bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 transition-colors"
+                  className="bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 transition-colors w-full sm:w-auto"
                 >
                   <Trophy className="mr-2 h-4 w-4" />
                   Community Hub Control
@@ -58,7 +57,7 @@ const RewardsManagement = () => {
             
             <Collapsible open={showUpdateSystem} onOpenChange={setShowUpdateSystem}>
               <CollapsibleTrigger asChild>
-                <Button variant="outline" className="transition-colors">
+                <Button variant="outline" className="transition-colors w-full sm:w-auto">
                   <Settings className="mr-2 h-4 w-4" />
                   Update Rewards System
                   {showUpdateSystem ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
@@ -66,19 +65,19 @@ const RewardsManagement = () => {
               </CollapsibleTrigger>
             </Collapsible>
             
-            <Button variant="outline" className="transition-colors">
+            <Button variant="outline" className="transition-colors w-full sm:w-auto">
               <BarChart3 className="mr-2 h-4 w-4" />
               Redemption Analytics
             </Button>
             
-            <Button onClick={handleCreateReward} className="bg-primary hover:bg-primary/90 transition-colors">
+            <Button onClick={handleCreateReward} className="bg-primary hover:bg-primary/90 transition-colors w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Create New Reward
             </Button>
           </div>
         </div>
 
-        {/* Collapsible Sections */}
+        {/* Collapsible Sections - FIXED: Better spacing and mobile handling */}
         <div className="space-y-6">
           {/* Community Hub Control Section */}
           <Collapsible open={showCommunityHub} onOpenChange={setShowCommunityHub}>
@@ -125,15 +124,15 @@ const RewardsManagement = () => {
           </Collapsible>
         </div>
 
-        {/* Filters */}
+        {/* Filters - FIXED: Better mobile responsiveness */}
         <Card className="shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle>Filter Rewards</CardTitle>
             <CardDescription>Find and manage specific rewards</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="grid gap-4 md:grid-cols-4">
-              <div className="relative md:col-span-2">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="relative sm:col-span-2">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search rewards..."

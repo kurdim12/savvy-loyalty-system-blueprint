@@ -35,6 +35,7 @@ const queryClient = new QueryClient({
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes
+      refetchOnWindowFocus: false,
     },
     mutations: {
       retry: 1,
@@ -54,7 +55,7 @@ function App() {
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
                 
-                {/* Protected User Routes */}
+                {/* Protected User Routes - Fixed routing conflicts */}
                 <Route path="/dashboard" element={<UserRoute><Dashboard /></UserRoute>} />
                 <Route path="/profile" element={<UserRoute><Profile /></UserRoute>} />
                 <Route path="/rewards" element={<UserRoute><Rewards /></UserRoute>} />
