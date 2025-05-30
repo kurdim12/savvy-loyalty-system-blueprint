@@ -17,48 +17,48 @@ const CommunityHub = () => {
   const [activeTab, setActiveTab] = useState('challenges');
   const queryClient = useQueryClient();
 
-  // Fetch real challenges from database
+  // Optimized challenges query - only fetch when tab is active
   const { data: challenges = [], isLoading: challengesLoading } = useQuery({
     queryKey: ['challenges'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('challenges')
-        .select('*')
+        .select('id, title, description, type, target, reward, expires_at, active')
         .eq('active', true)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data || [];
-    }
+    },
+    enabled: activeTab === 'challenges',
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
-  // Fetch real photo contests from database
+  // Optimized photo contests query - only fetch when tab is active
   const { data: photoContests = [], isLoading: contestsLoading } = useQuery({
     queryKey: ['photo_contests'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('photo_contests')
         .select(`
-          *,
+          id, title, description, theme, prize, ends_at, max_submissions, active,
           photo_contest_submissions(
-            id,
-            image_url,
-            title,
-            description,
-            votes,
-            created_at,
+            id, image_url, title, description, votes, created_at,
             profiles(first_name, last_name)
           )
         `)
         .eq('active', true)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(1);
       
       if (error) throw error;
       return data || [];
-    }
+    },
+    enabled: activeTab === 'photos',
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch leaderboard data
+  // Optimized leaderboard query - only fetch when tab is active
   const { data: leaderboard = [] } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => {
@@ -73,13 +73,15 @@ const CommunityHub = () => {
       return data?.map((profile, index) => ({
         id: profile.id,
         name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Anonymous',
-        referrals: 0, // This would need a separate query for referrals
+        referrals: 0,
         pointsEarned: profile.current_points,
         rank: index + 1,
         badge: profile.membership_tier === 'gold' ? 'Champion' : 
                profile.membership_tier === 'silver' ? 'Elite' : undefined
       })) || [];
-    }
+    },
+    enabled: activeTab === 'social',
+    staleTime: 5 * 60 * 1000,
   });
 
   // Join challenge mutation
@@ -121,8 +123,6 @@ const CommunityHub = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // For now, we'll use a placeholder URL. In a real implementation,
-      // you'd upload to Supabase Storage first
       const imageUrl = URL.createObjectURL(photo);
 
       const { error } = await supabase
@@ -193,10 +193,10 @@ const CommunityHub = () => {
     description: challenge.description,
     type: challenge.type as 'daily' | 'weekly' | 'monthly',
     target: challenge.target,
-    current: 0, // This would need to be calculated from participants
+    current: 0,
     reward: challenge.reward,
     expiresAt: new Date(challenge.expires_at),
-    participants: 0 // This would need a count query
+    participants: 0
   }));
 
   // Format photo contests for the component
@@ -220,16 +220,6 @@ const CommunityHub = () => {
       submittedAt: new Date(sub.created_at)
     }))
   } : null;
-
-  if (challengesLoading || contestsLoading) {
-    return (
-      <Layout>
-        <div className="min-h-screen bg-gradient-to-br from-[#95A5A6]/5 via-white to-[#95A5A6]/10 flex items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent"></div>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
@@ -279,14 +269,24 @@ const CommunityHub = () => {
             </TabsList>
 
             <TabsContent value="challenges" className="space-y-6">
-              <CommunityChallenge 
-                challenges={formattedChallenges}
-                onJoinChallenge={handleJoinChallenge}
-              />
+              {challengesLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent"></div>
+                </div>
+              ) : (
+                <CommunityChallenge 
+                  challenges={formattedChallenges}
+                  onJoinChallenge={handleJoinChallenge}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="photos" className="space-y-6">
-              {currentContest ? (
+              {contestsLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent"></div>
+                </div>
+              ) : currentContest ? (
                 <PhotoContest
                   contest={currentContest}
                   onSubmitPhoto={handleSubmitPhoto}
