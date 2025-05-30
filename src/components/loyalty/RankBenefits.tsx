@@ -38,10 +38,9 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
         .from('settings')
         .select('setting_value')
         .eq('setting_name', 'rank_thresholds')
-        .single();
+        .maybeSingle();
       
-      if (error) {
-        // Return defaults if not found or error
+      if (error || !data) {
         console.error('Error fetching rank thresholds:', error);
         return { silver: 200, gold: 550 };
       }
@@ -65,20 +64,18 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
   if (membershipTier === 'bronze') {
     nextTier = 'silver';
     pointsToNextTier = Math.max(0, rankThresholds.silver - currentPoints);
-    // Fix the progress calculation to properly show percentage
     progress = currentPoints > 0 ? Math.min((currentPoints / rankThresholds.silver) * 100, 100) : 0;
   } else if (membershipTier === 'silver') {
     nextTier = 'gold';
     pointsToNextTier = Math.max(0, rankThresholds.gold - currentPoints);
     progress = Math.min(((currentPoints - rankThresholds.silver) / (rankThresholds.gold - rankThresholds.silver)) * 100, 100);
   } else {
-    // For gold members
     nextTier = 'gold';
     pointsToNextTier = 0;
     progress = 100;
   }
   
-  // Get benefit information
+  // Get benefit information with updated cupping scores
   const tierBenefits = {
     bronze: {
       icon: <Badge className="h-8 w-8 rounded-full p-1 bg-amber-100 text-amber-700 border-amber-300">B</Badge>,
@@ -86,7 +83,11 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
       discount: '10%',
       color: 'bg-amber-100',
       textColor: 'text-amber-700',
-      list: ['10% discount on all drinks', 'Member-only promotions']
+      list: [
+        '10% discount on all drinks', 
+        'Access to 87+ cupping score coffee rewards',
+        'Member-only promotions'
+      ]
     },
     silver: {
       icon: <Badge className="h-8 w-8 rounded-full p-1 bg-gray-200 text-gray-700 border-gray-400">S</Badge>,
@@ -94,7 +95,12 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
       discount: '15%',
       color: 'bg-gray-100',
       textColor: 'text-gray-700',
-      list: ['15% discount on all drinks', 'Early access to new coffees', 'Exclusive tasting events']
+      list: [
+        '15% discount on all drinks', 
+        'Access to 87+ cupping score premium beans',
+        'Early access to new coffees', 
+        'Exclusive tasting events'
+      ]
     },
     gold: {
       icon: <CrownIcon className="h-6 w-6 text-yellow-500" />,
@@ -102,7 +108,14 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
       discount: '25%',
       color: 'bg-yellow-50',
       textColor: 'text-yellow-700',
-      list: ['25% discount on all drinks', 'Free monthly coffee sample', 'Priority barista service', 'Exclusive gold member events', 'Personalized coffee recommendations']
+      list: [
+        '25% discount on all drinks', 
+        'Access to 90+ cupping score exclusive beans',
+        'Free monthly coffee sample', 
+        'Priority barista service', 
+        'Exclusive gold member events', 
+        'Personalized coffee recommendations'
+      ]
     }
   };
   
@@ -110,7 +123,7 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
   const currentTierInfo = tierBenefits[membershipTier];
   
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <Award className="h-5 w-5 text-amber-700" />
@@ -172,17 +185,23 @@ const RankBenefits: React.FC<RankBenefitsProps> = ({
         
         {/* Tier comparison */}
         <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t">
-          <div className={`text-center p-2 rounded-md ${membershipTier === 'bronze' ? 'bg-amber-100 ring-1 ring-amber-300' : 'bg-gray-50'}`}>
-            <p className="font-medium">Bronze</p>
-            <p className="text-sm">10% off</p>
+          <div className={`text-center p-2 rounded-md transition-colors ${
+            membershipTier === 'bronze' ? 'bg-amber-100 ring-1 ring-amber-300' : 'bg-gray-50 hover:bg-gray-100'
+          }`}>
+            <p className="font-medium text-sm">Bronze</p>
+            <p className="text-xs">10% off</p>
           </div>
-          <div className={`text-center p-2 rounded-md ${membershipTier === 'silver' ? 'bg-gray-200 ring-1 ring-gray-300' : 'bg-gray-50'}`}>
-            <p className="font-medium">Silver</p>
-            <p className="text-sm">15% off</p>
+          <div className={`text-center p-2 rounded-md transition-colors ${
+            membershipTier === 'silver' ? 'bg-gray-200 ring-1 ring-gray-300' : 'bg-gray-50 hover:bg-gray-100'
+          }`}>
+            <p className="font-medium text-sm">Silver</p>
+            <p className="text-xs">15% off</p>
           </div>
-          <div className={`text-center p-2 rounded-md ${membershipTier === 'gold' ? 'bg-yellow-100 ring-1 ring-yellow-300' : 'bg-gray-50'}`}>
-            <p className="font-medium">Gold</p>
-            <p className="text-sm">25% off</p>
+          <div className={`text-center p-2 rounded-md transition-colors ${
+            membershipTier === 'gold' ? 'bg-yellow-100 ring-1 ring-yellow-300' : 'bg-gray-50 hover:bg-gray-100'
+          }`}>
+            <p className="font-medium text-sm">Gold</p>
+            <p className="text-xs">25% off</p>
           </div>
         </div>
       </CardContent>

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -50,7 +51,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div 
@@ -62,8 +63,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+      } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col`}>
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 flex-shrink-0">
           <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
           <Button
             variant="ghost"
@@ -75,7 +76,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           </Button>
         </div>
         
-        <nav className="mt-6 px-3">
+        <nav className="flex-1 mt-6 px-3 overflow-y-auto">
           <div className="space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon;
@@ -92,31 +93,31 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                   }`}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <Icon className={`mr-3 h-5 w-5 ${
+                  <Icon className={`mr-3 h-5 w-5 flex-shrink-0 ${
                     current ? 'text-amber-500' : 'text-gray-400 group-hover:text-gray-500'
                   }`} />
-                  {item.name}
+                  <span className="truncate">{item.name}</span>
                 </Link>
               );
             })}
           </div>
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <div className="flex-shrink-0 p-4 border-t border-gray-200">
           <Button
             variant="outline"
             className="w-full justify-start"
             onClick={handleSignOut}
           >
-            <LogOut className="mr-3 h-4 w-4" />
-            Sign Out
+            <LogOut className="mr-3 h-4 w-4 flex-shrink-0" />
+            <span className="truncate">Sign Out</span>
           </Button>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
-        {/* Top bar */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top bar for mobile */}
         <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-200 lg:hidden">
           <div className="flex items-center justify-between h-16 px-4">
             <Button
@@ -126,14 +127,16 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold text-gray-900">Admin Panel</h1>
+            <h1 className="text-lg font-semibold text-gray-900 truncate">Admin Panel</h1>
             <div className="w-8" /> {/* Spacer for centering */}
           </div>
         </div>
 
         {/* Page content */}
-        <main className="p-6">
-          {children}
+        <main className="flex-1 p-4 md:p-6 overflow-auto">
+          <div className="max-w-full">
+            {children}
+          </div>
         </main>
       </div>
     </div>
