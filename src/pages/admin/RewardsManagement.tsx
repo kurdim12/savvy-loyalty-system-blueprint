@@ -11,19 +11,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Plus, BarChart3, Filter, Trophy, Settings, ChevronDown, ChevronUp } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Search, Plus, BarChart3, Filter, Trophy, Camera, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import RewardsList from '@/components/admin/RewardsList';
 import UpdateRewardsSystem from '@/components/admin/UpdateRewardsSystem';
 import CommunityHubControl from '@/components/admin/CommunityHubControl';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const RewardsManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showCommunityHub, setShowCommunityHub] = useState(false);
-  const [showUpdateSystem, setShowUpdateSystem] = useState(false);
   
   const handleCreateReward = () => {
     setShowCreateForm(true);
@@ -32,111 +31,66 @@ const RewardsManagement = () => {
   
   return (
     <AdminLayout>
-      <div className="space-y-8 max-w-7xl mx-auto p-6">
-        {/* Header */}
-        <div className="space-y-4">
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Rewards Management</h1>
-            <p className="text-gray-500 mt-2">Create and manage loyalty program rewards</p>
+            <p className="text-gray-500">Create and manage loyalty program rewards</p>
           </div>
-          
-          {/* Action Buttons - FIXED: Better responsive layout */}
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-            <Collapsible open={showCommunityHub} onOpenChange={setShowCommunityHub}>
-              <CollapsibleTrigger asChild>
-                <Button 
-                  variant="outline"
-                  className="bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 transition-colors w-full sm:w-auto"
-                >
-                  <Trophy className="mr-2 h-4 w-4" />
-                  Community Hub Control
-                  {showCommunityHub ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
-                </Button>
-              </CollapsibleTrigger>
-            </Collapsible>
-            
-            <Collapsible open={showUpdateSystem} onOpenChange={setShowUpdateSystem}>
-              <CollapsibleTrigger asChild>
-                <Button variant="outline" className="transition-colors w-full sm:w-auto">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Update Rewards System
-                  {showUpdateSystem ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
-                </Button>
-              </CollapsibleTrigger>
-            </Collapsible>
-            
-            <Button variant="outline" className="transition-colors w-full sm:w-auto">
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline"
+              onClick={() => setShowCommunityHub(!showCommunityHub)}
+              className="bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100"
+            >
+              <Trophy className="mr-2 h-4 w-4" />
+              Community Hub Control
+            </Button>
+            <Button variant="outline">
               <BarChart3 className="mr-2 h-4 w-4" />
               Redemption Analytics
             </Button>
-            
-            <Button onClick={handleCreateReward} className="bg-primary hover:bg-primary/90 transition-colors w-full sm:w-auto">
+            <Button onClick={handleCreateReward}>
               <Plus className="mr-2 h-4 w-4" />
               Create New Reward
             </Button>
           </div>
         </div>
 
-        {/* Collapsible Sections - FIXED: Better spacing and mobile handling */}
-        <div className="space-y-6">
-          {/* Community Hub Control Section */}
-          <Collapsible open={showCommunityHub} onOpenChange={setShowCommunityHub}>
-            <CollapsibleContent className="space-y-2">
-              <Card className="bg-amber-50 border-amber-200 shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-amber-900">
-                    <Settings className="h-5 w-5" />
-                    Community Hub Management
-                  </CardTitle>
-                  <CardDescription className="text-amber-700">
-                    Control challenges, photo contests, and community activities
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="max-h-[500px] overflow-y-auto pr-2">
-                    <CommunityHubControl />
-                  </div>
-                </CardContent>
-              </Card>
-            </CollapsibleContent>
-          </Collapsible>
+        {/* Community Hub Control Section */}
+        {showCommunityHub && (
+          <Card className="bg-amber-50 border-amber-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-amber-900">
+                <Settings className="h-5 w-5" />
+                Community Hub Management
+              </CardTitle>
+              <CardDescription className="text-amber-700">
+                Control challenges, photo contests, and community activities
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CommunityHubControl />
+            </CardContent>
+          </Card>
+        )}
 
-          {/* Update Rewards System Section */}
-          <Collapsible open={showUpdateSystem} onOpenChange={setShowUpdateSystem}>
-            <CollapsibleContent className="space-y-2">
-              <Card className="bg-blue-50 border-blue-200 shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-blue-900">
-                    <Settings className="h-5 w-5" />
-                    Rewards System Configuration
-                  </CardTitle>
-                  <CardDescription className="text-blue-700">
-                    Update rewards database and system settings
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="max-h-[400px] overflow-y-auto pr-2">
-                    <UpdateRewardsSystem />
-                  </div>
-                </CardContent>
-              </Card>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
+        {/* Update Rewards System */}
+        <UpdateRewardsSystem />
 
-        {/* Filters - FIXED: Better mobile responsiveness */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-4">
+        {/* Filters */}
+        <Card>
+          <CardHeader>
             <CardTitle>Filter Rewards</CardTitle>
             <CardDescription>Find and manage specific rewards</CardDescription>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="relative sm:col-span-2">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search rewards..."
-                  className="pl-10"
+                  className="pl-8"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -153,7 +107,7 @@ const RewardsManagement = () => {
                 </SelectContent>
               </Select>
               
-              <Button className="flex items-center justify-center gap-2 transition-colors">
+              <Button className="flex items-center justify-center gap-2">
                 <Filter className="h-4 w-4" />
                 Apply Filters
               </Button>
@@ -162,13 +116,7 @@ const RewardsManagement = () => {
         </Card>
 
         {/* Rewards List */}
-        <Card className="shadow-sm">
-          <CardContent className="p-0">
-            <div className="min-h-[400px]">
-              <RewardsList />
-            </div>
-          </CardContent>
-        </Card>
+        <RewardsList />
       </div>
     </AdminLayout>
   );

@@ -58,53 +58,34 @@ const UserManagement = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-8 max-w-7xl mx-auto p-4 sm:p-6">
-        <div className="space-y-4">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Customer Management</h2>
-            <p className="text-muted-foreground mt-2">
-              View and manage all customers, their profiles, points, and membership tiers.
-            </p>
-          </div>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Customer Management</h2>
+          <p className="text-muted-foreground">
+            View and manage all customers, their profiles, points, and membership tiers.
+          </p>
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          {/* FIXED: Better responsive tab layout */}
-          <TabsList className="bg-gray-100 p-1 rounded-lg w-full sm:w-auto">
-            <TabsTrigger 
-              value="customers" 
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all px-4 py-2 w-full sm:w-auto"
-            >
-              All Customers
-            </TabsTrigger>
-            <TabsTrigger 
-              value="analytics" 
-              className="data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all px-4 py-2 w-full sm:w-auto"
-            >
-              Analytics
-            </TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="customers">All Customers</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="customers" className="space-y-6 m-0">
-            <Card className="shadow-sm">
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <CustomersList 
-                    onManagePoints={handleManagePoints} 
-                    onRankChange={handleRankChange}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="customers" className="space-y-4">
+            <CustomersList 
+              onManagePoints={handleManagePoints} 
+              onRankChange={handleRankChange}
+            />
           </TabsContent>
           
-          <TabsContent value="analytics" className="m-0">
-            <Card className="shadow-sm">
+          <TabsContent value="analytics">
+            <Card>
               <CardHeader>
                 <CardTitle>Customer Analytics</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Customer analytics will be implemented in a future update.</p>
+                <p>Customer analytics will be implemented in a future update.</p>
               </CardContent>
             </Card>
           </TabsContent>

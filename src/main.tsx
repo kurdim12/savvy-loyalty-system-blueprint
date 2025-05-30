@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from './components/ui/toaster.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import { Toaster as SonnerToaster } from 'sonner';
+import { BrowserRouter } from 'react-router-dom';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -62,13 +63,15 @@ const root = ReactDOM.createRoot(document.getElementById('root')!);
 root.render(
   <React.StrictMode>
     <ErrorBoundary>
-      <AuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <SonnerToaster position="top-right" expand={false} richColors />
-          <Toaster />
-          <App />
-        </QueryClientProvider>
-      </AuthProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <QueryClientProvider client={queryClient}>
+            <SonnerToaster position="top-right" expand={false} richColors />
+            <Toaster />
+            <App />
+          </QueryClientProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </ErrorBoundary>
   </React.StrictMode>,
 );
