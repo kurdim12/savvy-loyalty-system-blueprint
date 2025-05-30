@@ -16,12 +16,12 @@ export interface RewardDefinition {
 export const rewardsData: RewardDefinition[] = [
   // Bronze Rewards
   {
-    name: "Dose of Premium Coffee (78+ Score)",
-    description: "A measured dose of our premium coffee with a cupping score of 78+",
+    name: "Dose of Premium Coffee (87+ Score)",
+    description: "A measured dose of our premium coffee with a cupping score of 87+",
     points: 75,
     category: "coffee",
     membership_required: "bronze",
-    cuppingScore: 78
+    cuppingScore: 87
   },
   {
     name: "Free Coffee Drink (88+ Score)",

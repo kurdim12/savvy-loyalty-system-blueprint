@@ -1,372 +1,565 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Download, Image, Check, X, Trophy } from 'lucide-react';
+import { Camera, Plus, Edit, Trash2, Eye, Trophy, Clock, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
+interface PhotoContest {
+  id: string;
+  title: string;
+  description: string;
+  theme: string;
+  prize: string;
+  starts_at: string;
+  ends_at: string;
+  max_submissions: number;
+  active: boolean;
+  header_image_url?: string;
+  created_at: string;
+}
+
+interface Submission {
+  id: string;
+  title: string;
+  description: string;
+  image_url: string;
+  votes: number;
+  user_id: string;
+  contest_id: string;
+  status: string;
+  created_at: string;
+}
+
+interface UserProfile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+}
+
 const PhotoContestsSection = () => {
-  const queryClient = useQueryClient();
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [selectedContest, setSelectedContest] = useState<any>(null);
-  const [showSubmissions, setShowSubmissions] = useState(false);
-  
-  const [formData, setFormData] = useState({
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedContest, setSelectedContest] = useState<PhotoContest | null>(null);
+  const [submissions, setSubmissions] = useState<(Submission & { user?: UserProfile })[]>([]);
+  const [contestForm, setContestForm] = useState({
     title: '',
     description: '',
     theme: '',
     prize: '',
+    starts_at: '',
     ends_at: '',
     max_submissions: 100
   });
 
+  const queryClient = useQueryClient();
+
+  // Fetch all photo contests
   const { data: contests = [], isLoading } = useQuery({
-    queryKey: ['admin-photo-contests-detailed'],
+    queryKey: ['photo-contests'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('photo_contests')
-        .select(`
-          *,
-          photo_contest_submissions (
-            id,
-            status,
-            votes,
-            user_id,
-            title,
-            image_url
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
-      
-      return data?.map(contest => ({
-        ...contest,
-        submission_count: contest.photo_contest_submissions?.length || 0,
-        approved_submissions: contest.photo_contest_submissions?.filter((s: any) => s.status === 'approved').length || 0,
-        total_votes: contest.photo_contest_submissions?.reduce((sum: number, s: any) => sum + (s.votes || 0), 0) || 0
-      })) || [];
+      return data as PhotoContest[];
     }
   });
 
-  const { data: submissions = [] } = useQuery({
-    queryKey: ['contest-submissions', selectedContest?.id],
-    queryFn: async () => {
-      if (!selectedContest?.id) return [];
-      
+  // Create contest mutation
+  const createContest = useMutation({
+    mutationFn: async (contestData: Omit<PhotoContest, 'id' | 'created_at' | 'active'>) => {
+      const { error } = await supabase
+        .from('photo_contests')
+        .insert([{ ...contestData, active: true }]);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['photo-contests'] });
+      toast.success('Photo contest created successfully');
+      setIsCreateModalOpen(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to create contest: ${error.message}`);
+    }
+  });
+
+  // Update contest mutation
+  const updateContest = useMutation({
+    mutationFn: async (contestData: Partial<PhotoContest> & { id: string }) => {
+      const { id, ...updateData } = contestData;
+      const { error } = await supabase
+        .from('photo_contests')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['photo-contests'] });
+      toast.success('Photo contest updated successfully');
+      setIsEditModalOpen(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to update contest: ${error.message}`);
+    }
+  });
+
+  // Delete contest mutation
+  const deleteContest = useMutation({
+    mutationFn: async (contestId: string) => {
+      const { error } = await supabase
+        .from('photo_contests')
+        .delete()
+        .eq('id', contestId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['photo-contests'] });
+      toast.success('Photo contest deleted successfully');
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to delete contest: ${error.message}`);
+    }
+  });
+
+  // Fetch submissions for a contest
+  const fetchSubmissions = async (contestId: string) => {
+    try {
+      // First get submissions
       const { data: submissionsData, error: submissionsError } = await supabase
         .from('photo_contest_submissions')
         .select('*')
-        .eq('contest_id', selectedContest.id)
+        .eq('contest_id', contestId)
         .order('votes', { ascending: false });
-      
+
       if (submissionsError) throw submissionsError;
-      
-      // Get user details separately
+
+      // Then get user profiles for each submission
       const userIds = submissionsData?.map(s => s.user_id) || [];
-      const { data: usersData, error: usersError } = await supabase
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, first_name, last_name, email')
         .in('id', userIds);
-      
-      if (usersError) throw usersError;
-      
-      // Combine submissions with user data
-      return submissionsData?.map(submission => ({
+
+      if (profilesError) throw profilesError;
+
+      // Combine data
+      const submissionsWithUsers = submissionsData?.map(submission => ({
         ...submission,
-        user: usersData?.find(user => user.id === submission.user_id)
+        user: profilesData?.find(profile => profile.id === submission.user_id)
       })) || [];
-    },
-    enabled: !!selectedContest?.id
-  });
 
-  const createMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
-        .from('photo_contests')
-        .insert({
-          title: data.title,
-          description: data.description,
-          theme: data.theme,
-          prize: data.prize,
-          ends_at: data.ends_at,
-          max_submissions: data.max_submissions,
-          active: true
-        });
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-photo-contests-detailed'] });
-      toast.success('Photo contest created successfully!');
-      setIsCreateOpen(false);
-      resetForm();
-    },
-    onError: () => {
-      toast.error('Failed to create photo contest');
+      setSubmissions(submissionsWithUsers);
+    } catch (error: any) {
+      toast.error(`Failed to fetch submissions: ${error.message}`);
+      setSubmissions([]);
     }
-  });
-
-  const updateSubmissionMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase
-        .from('photo_contest_submissions')
-        .update({ status })
-        .eq('id', id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contest-submissions'] });
-      toast.success('Submission updated successfully!');
-    }
-  });
+  };
 
   const resetForm = () => {
-    setFormData({
+    setContestForm({
       title: '',
       description: '',
       theme: '',
       prize: '',
+      starts_at: '',
       ends_at: '',
       max_submissions: 100
     });
+    setSelectedContest(null);
   };
 
-  const handleSubmit = () => {
-    if (!formData.title.trim() || !formData.ends_at) {
-      toast.error('Please fill in all required fields');
-      return;
+  const handleCreate = () => {
+    createContest.mutate(contestForm);
+  };
+
+  const handleEdit = (contest: PhotoContest) => {
+    setSelectedContest(contest);
+    setContestForm({
+      title: contest.title,
+      description: contest.description || '',
+      theme: contest.theme || '',
+      prize: contest.prize || '',
+      starts_at: contest.starts_at.split('T')[0],
+      ends_at: contest.ends_at.split('T')[0],
+      max_submissions: contest.max_submissions
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdate = () => {
+    if (selectedContest) {
+      updateContest.mutate({
+        id: selectedContest.id,
+        ...contestForm
+      });
     }
-    createMutation.mutate(formData);
   };
 
-  const exportWinners = (contest: any) => {
-    const winners = submissions
-      .filter(s => s.status === 'approved')
-      .slice(0, 3)
-      .map((submission, index) => ({
-        Rank: index + 1,
-        Title: submission.title,
-        'User Name': submission.user ? `${submission.user.first_name || ''} ${submission.user.last_name || ''}`.trim() : 'Unknown',
-        Email: submission.user?.email || 'Unknown',
-        Votes: submission.votes,
-        'Image URL': submission.image_url
-      }));
-    
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + Object.keys(winners[0] || {}).join(",") + "\n"
-      + winners.map(row => Object.values(row).join(",")).join("\n");
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${contest.title}_winners.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('Winners exported to CSV!');
+  const handleView = async (contest: PhotoContest) => {
+    setSelectedContest(contest);
+    await fetchSubmissions(contest.id);
+    setIsViewModalOpen(true);
   };
 
-  if (isLoading) {
-    return <div className="text-center py-8">Loading photo contests...</div>;
-  }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const getContestStatus = (contest: PhotoContest) => {
+    const now = new Date();
+    const start = new Date(contest.starts_at);
+    const end = new Date(contest.ends_at);
+
+    if (now < start) return 'upcoming';
+    if (now > end) return 'ended';
+    return 'active';
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Photo Contests</h2>
-          <p className="text-gray-500">Manage photo contests and submissions</p>
-        </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Contest
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Create New Photo Contest</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Input
-                placeholder="Contest title*"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              />
-              <Textarea
-                placeholder="Contest description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-              <Input
-                placeholder="Contest theme"
-                value={formData.theme}
-                onChange={(e) => setFormData({ ...formData, theme: e.target.value })}
-              />
-              <Input
-                placeholder="Prize description"
-                value={formData.prize}
-                onChange={(e) => setFormData({ ...formData, prize: e.target.value })}
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  type="number"
-                  placeholder="Max submissions"
-                  min="1"
-                  value={formData.max_submissions}
-                  onChange={(e) => setFormData({ ...formData, max_submissions: parseInt(e.target.value) || 100 })}
-                />
-                <Input
-                  type="datetime-local"
-                  value={formData.ends_at}
-                  onChange={(e) => setFormData({ ...formData, ends_at: e.target.value })}
-                />
-              </div>
-              <Button 
-                onClick={handleSubmit} 
-                disabled={createMutation.isPending}
-                className="w-full"
-              >
-                {createMutation.isPending ? 'Creating...' : 'Create Contest'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
       <Card>
-        <CardHeader>
-          <CardTitle>All Photo Contests</CardTitle>
-          <CardDescription>Manage contests and review submissions</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              Photo Contests
+            </CardTitle>
+            <CardDescription>
+              Manage photo contests to engage your community
+            </CardDescription>
+          </div>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Contest
+          </Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Contest</TableHead>
-                <TableHead>Theme</TableHead>
-                <TableHead>Submissions</TableHead>
-                <TableHead>Total Votes</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {contests.map((contest) => (
-                <TableRow key={contest.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{contest.title}</div>
-                      <div className="text-sm text-gray-500">
-                        Ends: {new Date(contest.ends_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{contest.theme || 'No theme'}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Image className="h-3 w-3" />
-                      {contest.approved_submissions}/{contest.submission_count}
-                    </div>
-                  </TableCell>
-                  <TableCell>{contest.total_votes}</TableCell>
-                  <TableCell>
-                    <Badge variant={contest.active ? "default" : "secondary"}>
-                      {contest.active ? "Active" : "Ended"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedContest(contest);
-                          setShowSubmissions(true);
-                        }}
-                      >
-                        View Submissions
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => exportWinners(contest)}
-                      >
-                        <Download className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {isLoading ? (
+            <div>Loading contests...</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Theme</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Start Date</TableHead>
+                  <TableHead>End Date</TableHead>
+                  <TableHead>Max Submissions</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {contests.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-4">
+                      No photo contests found. Create your first contest to get started.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  contests.map((contest) => {
+                    const status = getContestStatus(contest);
+                    return (
+                      <TableRow key={contest.id}>
+                        <TableCell className="font-medium">{contest.title}</TableCell>
+                        <TableCell>{contest.theme || 'No theme'}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={status === 'active' ? 'default' : status === 'upcoming' ? 'secondary' : 'outline'}
+                          >
+                            {status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{formatDate(contest.starts_at)}</TableCell>
+                        <TableCell>{formatDate(contest.ends_at)}</TableCell>
+                        <TableCell>{contest.max_submissions}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleView(contest)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(contest)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteContest.mutate(contest.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
-      {/* Submissions Dialog */}
-      <Dialog open={showSubmissions} onOpenChange={setShowSubmissions}>
+      {/* Create Contest Dialog */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Photo Contest</DialogTitle>
+            <DialogDescription>
+              Set up a new photo contest for your community
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={contestForm.title}
+                onChange={(e) => setContestForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter contest title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="theme">Theme</Label>
+              <Input
+                id="theme"
+                value={contestForm.theme}
+                onChange={(e) => setContestForm(prev => ({ ...prev, theme: e.target.value }))}
+                placeholder="Contest theme"
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={contestForm.description}
+                onChange={(e) => setContestForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Contest description"
+              />
+            </div>
+            <div>
+              <Label htmlFor="prize">Prize</Label>
+              <Input
+                id="prize"
+                value={contestForm.prize}
+                onChange={(e) => setContestForm(prev => ({ ...prev, prize: e.target.value }))}
+                placeholder="Contest prize"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="start">Start Date</Label>
+                <Input
+                  id="start"
+                  type="date"
+                  value={contestForm.starts_at}
+                  onChange={(e) => setContestForm(prev => ({ ...prev, starts_at: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="end">End Date</Label>
+                <Input
+                  id="end"
+                  type="date"
+                  value={contestForm.ends_at}
+                  onChange={(e) => setContestForm(prev => ({ ...prev, ends_at: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="maxSub">Max Submissions</Label>
+              <Input
+                id="maxSub"
+                type="number"
+                value={contestForm.max_submissions}
+                onChange={(e) => setContestForm(prev => ({ ...prev, max_submissions: parseInt(e.target.value) || 100 }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreate} disabled={createContest.isPending}>
+              {createContest.isPending ? 'Creating...' : 'Create Contest'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Contest Dialog */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Photo Contest</DialogTitle>
+            <DialogDescription>
+              Update contest details
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-title">Title</Label>
+              <Input
+                id="edit-title"
+                value={contestForm.title}
+                onChange={(e) => setContestForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter contest title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-theme">Theme</Label>
+              <Input
+                id="edit-theme"
+                value={contestForm.theme}
+                onChange={(e) => setContestForm(prev => ({ ...prev, theme: e.target.value }))}
+                placeholder="Contest theme"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={contestForm.description}
+                onChange={(e) => setContestForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Contest description"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-prize">Prize</Label>
+              <Input
+                id="edit-prize"
+                value={contestForm.prize}
+                onChange={(e) => setContestForm(prev => ({ ...prev, prize: e.target.value }))}
+                placeholder="Contest prize"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-start">Start Date</Label>
+                <Input
+                  id="edit-start"
+                  type="date"
+                  value={contestForm.starts_at}
+                  onChange={(e) => setContestForm(prev => ({ ...prev, starts_at: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-end">End Date</Label>
+                <Input
+                  id="edit-end"
+                  type="date"
+                  value={contestForm.ends_at}
+                  onChange={(e) => setContestForm(prev => ({ ...prev, ends_at: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="edit-maxSub">Max Submissions</Label>
+              <Input
+                id="edit-maxSub"
+                type="number"
+                value={contestForm.max_submissions}
+                onChange={(e) => setContestForm(prev => ({ ...prev, max_submissions: parseInt(e.target.value) || 100 }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdate} disabled={updateContest.isPending}>
+              {updateContest.isPending ? 'Updating...' : 'Update Contest'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Contest Submissions Dialog */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Contest Submissions: {selectedContest?.title}</DialogTitle>
+            <DialogTitle>{selectedContest?.title} - Submissions</DialogTitle>
+            <DialogDescription>
+              View and manage contest submissions
+            </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 max-h-96 overflow-y-auto">
-            {submissions.map((submission) => (
-              <div key={submission.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                <img 
-                  src={submission.image_url} 
-                  alt={submission.title}
-                  className="w-16 h-16 object-cover rounded"
-                />
-                <div className="flex-1">
-                  <h4 className="font-medium">{submission.title}</h4>
-                  <p className="text-sm text-gray-500">
-                    {submission.user ? `${submission.user.first_name || ''} ${submission.user.last_name || ''}`.trim() : 'Unknown User'}
-                  </p>
-                  <p className="text-sm">Votes: {submission.votes}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Badge variant={
-                    submission.status === 'approved' ? 'default' :
-                    submission.status === 'rejected' ? 'destructive' : 'secondary'
-                  }>
-                    {submission.status}
-                  </Badge>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => updateSubmissionMutation.mutate({ 
-                      id: submission.id, 
-                      status: 'approved' 
-                    })}
-                    disabled={submission.status === 'approved'}
-                  >
-                    <Check className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => updateSubmissionMutation.mutate({ 
-                      id: submission.id, 
-                      status: 'rejected' 
-                    })}
-                    disabled={submission.status === 'rejected'}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
+          <div className="max-h-96 overflow-y-auto">
+            {submissions.length === 0 ? (
+              <div className="text-center py-8">
+                <Camera className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500">No submissions yet</p>
               </div>
-            ))}
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Participant</TableHead>
+                    <TableHead>Votes</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Submitted</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {submissions.map((submission) => (
+                    <TableRow key={submission.id}>
+                      <TableCell className="font-medium">{submission.title}</TableCell>
+                      <TableCell>
+                        {submission.user ? 
+                          `${submission.user.first_name || ''} ${submission.user.last_name || ''}`.trim() || 
+                          submission.user.email :
+                          'Unknown User'
+                        }
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          <Trophy className="h-3 w-3 mr-1" />
+                          {submission.votes}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={submission.status === 'approved' ? 'default' : 'secondary'}>
+                          {submission.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{formatDate(submission.created_at)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsViewModalOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

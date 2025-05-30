@@ -6,48 +6,32 @@ export const useToast = useToastOriginal;
 
 export const toast = {
   success: (message: string) => {
-    try {
-      const { toast: showToast } = useToastOriginal();
-      showToast({
-        title: "Success",
-        description: message,
-      });
-    } catch (error) {
-      console.error('Toast error:', error);
-    }
+    const { toast: showToast } = useToastOriginal();
+    showToast({
+      title: "Success",
+      description: message,
+    });
   },
   error: (message: string) => {
-    try {
-      const { toast: showToast } = useToastOriginal();
-      showToast({
-        title: "Error", 
-        description: message,
-        variant: "destructive"
-      });
-    } catch (error) {
-      console.error('Toast error:', error);
-    }
+    const { toast: showToast } = useToastOriginal();
+    showToast({
+      title: "Error", 
+      description: message,
+      variant: "destructive"
+    });
   },
   info: (message: string) => {
-    try {
-      const { toast: showToast } = useToastOriginal();
-      showToast({
-        title: "Info",
-        description: message,
-      });
-    } catch (error) {
-      console.error('Toast error:', error);
-    }
+    const { toast: showToast } = useToastOriginal();
+    showToast({
+      title: "Info",
+      description: message,
+    });
   },
   warning: (message: string) => {
-    try {
-      const { toast: showToast } = useToastOriginal();
-      showToast({
-        title: "Warning",
-        description: message,
-      });
-    } catch (error) {
-      console.error('Toast error:', error);
-    }
+    const { toast: showToast } = useToastOriginal();
+    showToast({
+      title: "Warning",
+      description: message,
+    });
   },
 };

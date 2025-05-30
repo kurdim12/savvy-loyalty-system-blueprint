@@ -1,5 +1,5 @@
 
-import React from "react"
+import * as React from "react"
 import {
   type ToastActionElement,
   type ToastProps,
@@ -90,6 +90,8 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action
 
+      // ! Side effects ! - This could be extracted into a dismissToast() action,
+      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
@@ -167,16 +169,6 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
-  // Ensure React is available before using hooks
-  if (!React || typeof React.useState !== 'function') {
-    console.error('React is not available or useState is not a function')
-    return {
-      toasts: [],
-      toast: () => ({ id: '', dismiss: () => {}, update: () => {} }),
-      dismiss: () => {},
-    }
-  }
-
   const [state, setState] = React.useState<State>(memoryState)
 
   React.useEffect(() => {
