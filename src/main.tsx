@@ -64,13 +64,13 @@ root.render(
   <React.StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
-        <AuthProvider>
-          <QueryClientProvider client={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
             <SonnerToaster position="top-right" expand={false} richColors />
             <Toaster />
             <App />
-          </QueryClientProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </QueryClientProvider>
       </BrowserRouter>
     </ErrorBoundary>
   </React.StrictMode>,
