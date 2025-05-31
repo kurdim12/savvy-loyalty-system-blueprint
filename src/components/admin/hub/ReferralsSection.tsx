@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -41,11 +40,7 @@ const ReferralsSection = () => {
   const { data: leaderboard = [], isLoading: leaderboardLoading } = useQuery({
     queryKey: ['referral-leaderboard'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('referral_stats')
-        .select('*')
-        .order('total_bonus_points', { ascending: false })
-        .limit(10);
+      const { data, error } = await supabase.rpc('get_referral_stats');
       
       if (error) throw error;
       return data || [];
