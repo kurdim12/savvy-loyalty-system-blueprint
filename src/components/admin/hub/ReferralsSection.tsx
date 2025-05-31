@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Plus, Copy, Trophy, Users, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+
+// Define the type for referral stats
+interface ReferralStats {
+  referrer_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  total_referrals: number;
+  completed_referrals: number;
+  total_bonus_points: number;
+}
 
 const ReferralsSection = () => {
   const queryClient = useQueryClient();
@@ -43,7 +55,7 @@ const ReferralsSection = () => {
       const { data, error } = await supabase.rpc('get_referral_stats');
       
       if (error) throw error;
-      return data || [];
+      return (data || []) as ReferralStats[];
     }
   });
 
