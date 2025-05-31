@@ -777,26 +777,7 @@ export type Database = {
       }
     }
     Views: {
-      referral_stats: {
-        Row: {
-          completed_referrals: number | null
-          email: string | null
-          first_name: string | null
-          last_name: string | null
-          referrer_id: string | null
-          total_bonus_points: number | null
-          total_referrals: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "referrals_referrer_id_fkey"
-            columns: ["referrer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       admin_create_reward: {
@@ -832,6 +813,18 @@ export type Database = {
       get_community_goal_points: {
         Args: { p_goal_id: string }
         Returns: number
+      }
+      get_referral_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          referrer_id: string
+          first_name: string
+          last_name: string
+          email: string
+          total_referrals: number
+          completed_referrals: number
+          total_bonus_points: number
+        }[]
       }
       get_user_points: {
         Args: { user_id: string }

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -58,26 +57,21 @@ const CommunityHub = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Optimized leaderboard query - only fetch when tab is active
+  // Updated leaderboard query to use the new secure function
   const { data: leaderboard = [] } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, current_points, membership_tier')
-        .eq('role', 'customer')
-        .order('current_points', { ascending: false })
-        .limit(10);
+      const { data, error } = await supabase.rpc('get_referral_stats');
       
       if (error) throw error;
-      return data?.map((profile, index) => ({
-        id: profile.id,
+      return data?.map((profile: any, index: number) => ({
+        id: profile.referrer_id,
         name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Anonymous',
-        referrals: 0,
-        pointsEarned: profile.current_points,
+        referrals: profile.total_referrals,
+        pointsEarned: profile.total_bonus_points,
         rank: index + 1,
-        badge: profile.membership_tier === 'gold' ? 'Champion' : 
-               profile.membership_tier === 'silver' ? 'Elite' : undefined
+        badge: profile.total_bonus_points >= 500 ? 'Champion' : 
+               profile.total_bonus_points >= 200 ? 'Elite' : undefined
       })) || [];
     },
     enabled: activeTab === 'social',
