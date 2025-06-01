@@ -5,41 +5,39 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Download, Users, Target } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Trophy, Plus, Edit, Trash2, Users, Calendar, Target, Template } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import ChallengeTemplates from './challenges/ChallengeTemplates';
 
 const ChallengesSection = () => {
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingChallenge, setEditingChallenge] = useState<any>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
   
-  const [formData, setFormData] = useState({
+  // Challenge form state
+  const [challengeForm, setChallengeForm] = useState({
     title: '',
     description: '',
-    type: 'weekly',
+    type: 'weekly' as 'daily' | 'weekly' | 'monthly',
     target: 1,
     reward: '',
-    difficulty_level: 'medium',
-    expires_at: ''
+    expires_at: '',
+    difficulty_level: 'medium' as 'easy' | 'medium' | 'hard'
   });
 
-  const { data: challenges = [], isLoading } = useQuery({
-    queryKey: ['admin-challenges-detailed'],
+  // Fetch challenges
+  const { data: challenges = [], isLoading: challengesLoading } = useQuery({
+    queryKey: ['admin_challenges'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('challenges')
         .select(`
           *,
-          challenge_participants (
-            id,
-            completed,
-            user_id
-          )
+          challenge_participants (id)
         `)
         .order('created_at', { ascending: false });
       
@@ -47,61 +45,58 @@ const ChallengesSection = () => {
       
       return data?.map(challenge => ({
         ...challenge,
-        participant_count: challenge.challenge_participants?.length || 0,
-        completion_rate: challenge.challenge_participants?.length > 0 
-          ? Math.round((challenge.challenge_participants.filter((p: any) => p.completed).length / challenge.challenge_participants.length) * 100)
-          : 0
+        participant_count: challenge.challenge_participants?.length || 0
       })) || [];
     }
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase
+  // Create challenge mutation
+  const createChallengeMutation = useMutation({
+    mutationFn: async (challenge: typeof challengeForm) => {
+      if (!challenge.title.trim() || !challenge.description.trim() || !challenge.expires_at) {
+        throw new Error('Please fill in all required fields');
+      }
+
+      const { data, error } = await supabase
         .from('challenges')
         .insert({
-          title: data.title,
-          description: data.description,
-          type: data.type,
-          target: data.target,
-          reward: data.reward,
-          difficulty_level: data.difficulty_level,
-          expires_at: data.expires_at,
+          title: challenge.title.trim(),
+          description: challenge.description.trim(),
+          type: challenge.type,
+          target: challenge.target,
+          reward: challenge.reward.trim(),
+          expires_at: new Date(challenge.expires_at).toISOString(),
+          difficulty_level: challenge.difficulty_level,
           active: true
-        });
+        })
+        .select()
+        .single();
       
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-challenges-detailed'] });
-      toast.success('Challenge created successfully!');
+      toast.success('🎯 Challenge created successfully!');
+      queryClient.invalidateQueries({ queryKey: ['admin_challenges'] });
       setIsCreateOpen(false);
-      resetForm();
+      setShowTemplates(false);
+      setChallengeForm({
+        title: '',
+        description: '',
+        type: 'weekly',
+        target: 1,
+        reward: '',
+        expires_at: '',
+        difficulty_level: 'medium'
+      });
     },
-    onError: () => {
-      toast.error('Failed to create challenge');
+    onError: (error: any) => {
+      toast.error(`Failed to create challenge: ${error.message}`);
     }
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('challenges')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-challenges-detailed'] });
-      toast.success('Challenge deleted successfully!');
-    },
-    onError: () => {
-      toast.error('Failed to delete challenge');
-    }
-  });
-
-  const toggleActiveMutation = useMutation({
+  // Toggle challenge active status
+  const toggleChallengeMutation = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
       const { error } = await supabase
         .from('challenges')
@@ -111,241 +106,274 @@ const ChallengesSection = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-challenges-detailed'] });
-      toast.success('Challenge updated successfully!');
+      queryClient.invalidateQueries({ queryKey: ['admin_challenges'] });
+      toast.success('✅ Challenge updated successfully!');
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to update challenge: ${error.message}`);
     }
   });
 
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      type: 'weekly',
-      target: 1,
-      reward: '',
-      difficulty_level: 'medium',
-      expires_at: ''
-    });
-    setEditingChallenge(null);
-  };
-
-  const handleSubmit = () => {
-    if (!formData.title.trim() || !formData.description.trim()) {
-      toast.error('Please fill in all required fields');
-      return;
+  // Delete challenge mutation
+  const deleteChallengeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('challenges')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin_challenges'] });
+      toast.success('🗑️ Challenge deleted successfully!');
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to delete challenge: ${error.message}`);
     }
-    createMutation.mutate(formData);
+  });
+
+  const handleSelectTemplate = (template: any) => {
+    setChallengeForm({
+      title: template.title,
+      description: template.description,
+      type: template.type,
+      target: template.suggestedTarget,
+      reward: template.suggestedReward,
+      expires_at: '',
+      difficulty_level: template.difficulty === 'beginner' ? 'easy' : template.difficulty === 'advanced' ? 'hard' : 'medium'
+    });
+    setShowTemplates(false);
   };
 
-  const exportToCSV = () => {
-    const csvData = challenges.map(challenge => ({
-      Title: challenge.title,
-      Type: challenge.type,
-      Participants: challenge.participant_count,
-      'Completion Rate': `${challenge.completion_rate}%`,
-      Active: challenge.active ? 'Yes' : 'No',
-      'Created At': new Date(challenge.created_at).toLocaleDateString()
-    }));
-    
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + Object.keys(csvData[0] || {}).join(",") + "\n"
-      + csvData.map(row => Object.values(row).join(",")).join("\n");
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "challenges_export.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('Challenges exported to CSV!');
+  const getDefaultDateTime = () => {
+    const now = new Date();
+    now.setDate(now.getDate() + 7);
+    return now.toISOString().slice(0, 16);
   };
 
-  if (isLoading) {
-    return <div className="text-center py-8">Loading challenges...</div>;
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'easy': return 'bg-green-100 text-green-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'hard': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  if (challengesLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-600"></div>
+        <span className="ml-3 text-amber-800">Loading challenges...</span>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Challenges Management</h2>
-          <p className="text-gray-500">Create and manage community challenges</p>
+          <h2 className="text-2xl font-bold text-amber-900">Community Challenges</h2>
+          <p className="text-amber-700">Create engaging challenges to boost customer participation</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={exportToCSV}>
-            <Download className="mr-2 h-4 w-4" />
-            Export CSV
-          </Button>
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Challenge
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Create New Challenge</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Input
-                  placeholder="Challenge title*"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                />
-                <Textarea
-                  placeholder="Challenge description*"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-amber-700 hover:bg-amber-800 text-white">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Challenge
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create New Challenge</DialogTitle>
+            </DialogHeader>
+            
+            <Tabs value={showTemplates ? "templates" : "manual"} onValueChange={(value) => setShowTemplates(value === "templates")}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="templates" className="flex items-center gap-2">
+                  <Template className="h-4 w-4" />
+                  Templates
+                </TabsTrigger>
+                <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="templates" className="mt-4">
+                <ChallengeTemplates onSelectTemplate={handleSelectTemplate} />
+              </TabsContent>
+              
+              <TabsContent value="manual" className="mt-4 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <Select 
-                    value={formData.type} 
-                    onValueChange={(value) => setFormData({ ...formData, type: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select 
-                    value={formData.difficulty_level} 
-                    onValueChange={(value) => setFormData({ ...formData, difficulty_level: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="easy">Easy</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="hard">Hard</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div>
+                    <label className="text-sm font-medium">Challenge Title*</label>
+                    <Input
+                      placeholder="Enter challenge title"
+                      value={challengeForm.title}
+                      onChange={(e) => setChallengeForm({ ...challengeForm, title: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Type*</label>
+                    <Select 
+                      value={challengeForm.type} 
+                      onValueChange={(value: 'daily' | 'weekly' | 'monthly') => 
+                        setChallengeForm({ ...challengeForm, type: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily Challenge</SelectItem>
+                        <SelectItem value="weekly">Weekly Challenge</SelectItem>
+                        <SelectItem value="monthly">Monthly Challenge</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    type="number"
-                    placeholder="Target*"
-                    min="1"
-                    value={formData.target}
-                    onChange={(e) => setFormData({ ...formData, target: parseInt(e.target.value) || 1 })}
-                  />
-                  <Input
-                    placeholder="Reward points"
-                    value={formData.reward}
-                    onChange={(e) => setFormData({ ...formData, reward: e.target.value })}
+                
+                <div>
+                  <label className="text-sm font-medium">Description*</label>
+                  <Textarea
+                    placeholder="Describe the challenge"
+                    value={challengeForm.description}
+                    onChange={(e) => setChallengeForm({ ...challengeForm, description: e.target.value })}
                   />
                 </div>
-                <Input
-                  type="datetime-local"
-                  value={formData.expires_at}
-                  onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
-                />
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Target*</label>
+                    <Input
+                      type="number"
+                      placeholder="e.g., 7"
+                      min="1"
+                      value={challengeForm.target}
+                      onChange={(e) => setChallengeForm({ ...challengeForm, target: parseInt(e.target.value) || 1 })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Difficulty</label>
+                    <Select 
+                      value={challengeForm.difficulty_level} 
+                      onValueChange={(value: 'easy' | 'medium' | 'hard') => 
+                        setChallengeForm({ ...challengeForm, difficulty_level: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="easy">Easy</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="hard">Hard</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Expires At*</label>
+                    <Input
+                      type="datetime-local"
+                      value={challengeForm.expires_at || getDefaultDateTime()}
+                      onChange={(e) => setChallengeForm({ ...challengeForm, expires_at: e.target.value })}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Reward Description</label>
+                  <Input
+                    placeholder="Describe the reward (points will be set separately)"
+                    value={challengeForm.reward}
+                    onChange={(e) => setChallengeForm({ ...challengeForm, reward: e.target.value })}
+                  />
+                </div>
+                
                 <Button 
-                  onClick={handleSubmit} 
-                  disabled={createMutation.isPending}
-                  className="w-full"
+                  onClick={() => createChallengeMutation.mutate(challengeForm)} 
+                  disabled={createChallengeMutation.isPending}
+                  className="w-full bg-amber-700 hover:bg-amber-800 text-white"
                 >
-                  {createMutation.isPending ? 'Creating...' : 'Create Challenge'}
+                  {createChallengeMutation.isPending ? 'Creating...' : 'Create Challenge'}
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+              </TabsContent>
+            </Tabs>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Challenges</CardTitle>
-          <CardDescription>Manage challenge lifecycle and track performance</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Challenge</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Difficulty</TableHead>
-                <TableHead>Participants</TableHead>
-                <TableHead>Completion Rate</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {challenges.map((challenge) => (
-                <TableRow key={challenge.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{challenge.title}</div>
-                      <div className="text-sm text-gray-500">Target: {challenge.target}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="capitalize">{challenge.type}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={challenge.difficulty_level === 'easy' ? 'secondary' : 
-                               challenge.difficulty_level === 'hard' ? 'destructive' : 'default'}
-                      className="capitalize"
-                    >
-                      {challenge.difficulty_level}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      {challenge.participant_count}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Target className="h-3 w-3" />
-                      {challenge.completion_rate}%
-                    </div>
-                  </TableCell>
-                  <TableCell>
+      <div className="space-y-4">
+        {challenges.length === 0 ? (
+          <div className="text-center py-8 bg-white rounded-lg border border-amber-200">
+            <Trophy className="h-12 w-12 text-amber-400 mx-auto mb-4" />
+            <h4 className="text-lg font-semibold text-amber-900 mb-2">No challenges yet</h4>
+            <p className="text-amber-700">Create your first community challenge to engage users!</p>
+          </div>
+        ) : (
+          challenges.map((challenge) => (
+            <div key={challenge.id} className="bg-white rounded-lg border border-amber-200 p-6">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-3">
+                    <h4 className="font-semibold text-amber-900 text-lg">{challenge.title}</h4>
                     <Badge variant={challenge.active ? "default" : "secondary"}>
                       {challenge.active ? "Active" : "Inactive"}
                     </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleActiveMutation.mutate({ 
-                          id: challenge.id, 
-                          active: !challenge.active 
-                        })}
-                      >
-                        {challenge.active ? 'Deactivate' : 'Activate'}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => {
-                          if (window.confirm('Are you sure you want to delete this challenge?')) {
-                            deleteMutation.mutate(challenge.id);
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                    <Badge variant="outline" className="capitalize">{challenge.type}</Badge>
+                    <Badge className={getDifficultyColor(challenge.difficulty_level)}>
+                      {challenge.difficulty_level}
+                    </Badge>
+                  </div>
+                  <p className="text-amber-700 mb-3">{challenge.description}</p>
+                  <div className="grid grid-cols-4 gap-4 text-sm text-amber-800">
+                    <div className="flex items-center gap-1">
+                      <Target className="h-4 w-4" />
+                      <span><span className="font-medium">Target:</span> {challenge.target}</span>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                    <div className="flex items-center gap-1">
+                      <Trophy className="h-4 w-4" />
+                      <span><span className="font-medium">Reward:</span> {challenge.reward || 'None'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Users className="h-4 w-4" />
+                      <span><span className="font-medium">Participants:</span> {challenge.participant_count}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      <span><span className="font-medium">Expires:</span> {new Date(challenge.expires_at).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleChallengeMutation.mutate({ 
+                      id: challenge.id, 
+                      active: !challenge.active 
+                    })}
+                    disabled={toggleChallengeMutation.isPending}
+                  >
+                    {challenge.active ? 'Deactivate' : 'Activate'}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to delete this challenge?')) {
+                        deleteChallengeMutation.mutate(challenge.id);
+                      }
+                    }}
+                    disabled={deleteChallengeMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };
