@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trophy, Plus, Edit, Trash2, Users, Calendar, Target, Template } from 'lucide-react';
+import { Trophy, Plus, Edit, Trash2, Users, Calendar, Target, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import ChallengeTemplates from './challenges/ChallengeTemplates';
@@ -192,7 +191,7 @@ const ChallengesSection = () => {
             <Tabs value={showTemplates ? "templates" : "manual"} onValueChange={(value) => setShowTemplates(value === "templates")}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="templates" className="flex items-center gap-2">
-                  <Template className="h-4 w-4" />
+                  <FileText className="h-4 w-4" />
                   Templates
                 </TabsTrigger>
                 <TabsTrigger value="manual">Manual Entry</TabsTrigger>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Camera, Plus, Trash2, Users, Calendar, Image, Template } from 'lucide-react';
+import { Camera, Plus, Trash2, Users, Calendar, Image, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import ContestTemplates from './contests/ContestTemplates';
@@ -192,7 +191,7 @@ const PhotoContestsSection = () => {
             <Tabs value={showTemplates ? "templates" : "manual"} onValueChange={(value) => setShowTemplates(value === "templates")}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="templates" className="flex items-center gap-2">
-                  <Template className="h-4 w-4" />
+                  <FileText className="h-4 w-4" />
                   Templates
                 </TabsTrigger>
                 <TabsTrigger value="manual">Manual Entry</TabsTrigger>
