@@ -20,13 +20,20 @@ const CommunityHub = () => {
   const { data: challenges = [], isLoading: challengesLoading } = useQuery({
     queryKey: ['challenges'],
     queryFn: async () => {
+      console.log('🔍 Fetching challenges...');
       const { data, error } = await supabase
         .from('challenges')
         .select('id, title, description, type, target, reward, expires_at, active')
         .eq('active', true)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      console.log('📊 Challenges query result:', { data, error });
+      console.log('📈 Number of challenges found:', data?.length || 0);
+      
+      if (error) {
+        console.error('❌ Error fetching challenges:', error);
+        throw error;
+      }
       return data || [];
     },
     enabled: activeTab === 'challenges',
@@ -181,17 +188,22 @@ const CommunityHub = () => {
   };
 
   // Format challenges for the component
-  const formattedChallenges = challenges.map(challenge => ({
-    id: challenge.id,
-    title: challenge.title,
-    description: challenge.description,
-    type: challenge.type as 'daily' | 'weekly' | 'monthly',
-    target: challenge.target,
-    current: 0,
-    reward: challenge.reward,
-    expiresAt: new Date(challenge.expires_at),
-    participants: 0
-  }));
+  const formattedChallenges = challenges.map(challenge => {
+    console.log('🔧 Formatting challenge:', challenge);
+    return {
+      id: challenge.id,
+      title: challenge.title,
+      description: challenge.description,
+      type: challenge.type as 'daily' | 'weekly' | 'monthly',
+      target: challenge.target,
+      current: 0,
+      reward: challenge.reward,
+      expiresAt: new Date(challenge.expires_at),
+      participants: 0
+    };
+  });
+
+  console.log('✅ Final formatted challenges:', formattedChallenges);
 
   // Format photo contests for the component
   const currentContest = photoContests[0] ? {
@@ -268,10 +280,13 @@ const CommunityHub = () => {
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent"></div>
                 </div>
               ) : (
-                <CommunityChallenge 
-                  challenges={formattedChallenges}
-                  onJoinChallenge={handleJoinChallenge}
-                />
+                <>
+                  {console.log('🎯 Rendering challenges tab with:', { challengesLoading, challengesCount: formattedChallenges.length })}
+                  <CommunityChallenge 
+                    challenges={formattedChallenges}
+                    onJoinChallenge={handleJoinChallenge}
+                  />
+                </>
               )}
             </TabsContent>
 

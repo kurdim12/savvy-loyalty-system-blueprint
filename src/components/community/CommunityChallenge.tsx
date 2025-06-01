@@ -24,7 +24,11 @@ interface CommunityChallengeProps {
 }
 
 export const CommunityChallenge = ({ challenges, onJoinChallenge }: CommunityChallengeProps) => {
+  console.log('🎮 CommunityChallenge received challenges:', challenges);
+  console.log('📊 Number of challenges:', challenges.length);
+
   if (challenges.length === 0) {
+    console.log('❌ No challenges to display');
     return (
       <div className="text-center py-12">
         <Trophy className="h-12 w-12 text-[#95A5A6] mx-auto mb-4" />
@@ -33,6 +37,8 @@ export const CommunityChallenge = ({ challenges, onJoinChallenge }: CommunityCha
       </div>
     );
   }
+
+  console.log('✅ Rendering challenges grid');
 
   return (
     <div className="space-y-6">
@@ -43,6 +49,7 @@ export const CommunityChallenge = ({ challenges, onJoinChallenge }: CommunityCha
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {challenges.map((challenge) => {
+          console.log('🎯 Rendering individual challenge:', challenge);
           const progress = (challenge.current / challenge.target) * 100;
           const timeLeft = Math.ceil((challenge.expiresAt.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
           
