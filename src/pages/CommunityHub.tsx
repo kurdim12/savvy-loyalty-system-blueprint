@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,78 +17,144 @@ const CommunityHub = () => {
   const [activeTab, setActiveTab] = useState('challenges');
   const queryClient = useQueryClient();
 
-  // Optimized challenges query - only fetch when tab is active
-  const { data: challenges = [], isLoading: challengesLoading } = useQuery({
+  // Fetch challenges with participant counts
+  const { data: challenges = [], isLoading: challengesLoading, error: challengesError } = useQuery({
     queryKey: ['challenges'],
     queryFn: async () => {
       console.log('🔍 Fetching challenges...');
-      const { data, error } = await supabase
-        .from('challenges')
-        .select('id, title, description, type, target, reward, expires_at, active')
-        .eq('active', true)
-        .order('created_at', { ascending: false });
       
-      console.log('📊 Challenges query result:', { data, error });
-      console.log('📈 Number of challenges found:', data?.length || 0);
-      
-      if (error) {
-        console.error('❌ Error fetching challenges:', error);
-        throw error;
+      try {
+        const { data, error } = await supabase
+          .from('challenges')
+          .select(`
+            id, 
+            title, 
+            description, 
+            type, 
+            target, 
+            reward, 
+            expires_at, 
+            active,
+            challenge_participants (id)
+          `)
+          .eq('active', true)
+          .order('created_at', { ascending: false });
+        
+        console.log('📊 Challenges query result:', { data, error });
+        console.log('📈 Number of challenges found:', data?.length || 0);
+        
+        if (error) {
+          console.error('❌ Error fetching challenges:', error);
+          throw error;
+        }
+        
+        return data || [];
+      } catch (err) {
+        console.error('🚨 Challenge fetch failed:', err);
+        throw err;
       }
-      return data || [];
     },
     enabled: activeTab === 'challenges',
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000,
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
-  // Optimized photo contests query - only fetch when tab is active
-  const { data: photoContests = [], isLoading: contestsLoading } = useQuery({
+  // Fetch photo contests with better error handling
+  const { data: photoContests = [], isLoading: contestsLoading, error: contestsError } = useQuery({
     queryKey: ['photo_contests'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('photo_contests')
-        .select(`
-          id, title, description, theme, prize, ends_at, max_submissions, active,
-          photo_contest_submissions(
-            id, image_url, title, description, votes, created_at,
-            profiles(first_name, last_name)
-          )
-        `)
-        .eq('active', true)
-        .order('created_at', { ascending: false })
-        .limit(1);
+      console.log('📸 Fetching photo contests...');
       
-      if (error) throw error;
-      return data || [];
+      try {
+        const { data, error } = await supabase
+          .from('photo_contests')
+          .select(`
+            id, title, description, theme, prize, ends_at, max_submissions, active,
+            photo_contest_submissions(
+              id, image_url, title, description, votes, created_at,
+              profiles(first_name, last_name)
+            )
+          `)
+          .eq('active', true)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        
+        console.log('📊 Photo contests query result:', { data, error });
+        
+        if (error) {
+          console.error('❌ Error fetching photo contests:', error);
+          throw error;
+        }
+        return data || [];
+      } catch (err) {
+        console.error('🚨 Photo contest fetch failed:', err);
+        throw err;
+      }
     },
     enabled: activeTab === 'photos',
     staleTime: 5 * 60 * 1000,
+    retry: 3,
   });
 
-  // Updated leaderboard query to use the new secure function
-  const { data: leaderboard = [] } = useQuery({
+  // Safer leaderboard query with better error handling
+  const { data: leaderboard = [], error: leaderboardError } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_referral_stats');
+      console.log('🏆 Fetching leaderboard...');
       
-      if (error) throw error;
-      return data?.map((profile: any, index: number) => ({
-        id: profile.referrer_id,
-        name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Anonymous',
-        referrals: profile.total_referrals,
-        pointsEarned: profile.total_bonus_points,
-        rank: index + 1,
-        badge: profile.total_bonus_points >= 500 ? 'Champion' : 
-               profile.total_bonus_points >= 200 ? 'Elite' : undefined
-      })) || [];
+      try {
+        // Try the secure function first
+        const { data, error } = await supabase.rpc('get_referral_stats');
+        
+        if (error) {
+          console.warn('⚠️ Secure leaderboard failed, trying basic query:', error);
+          
+          // Fallback to basic query for non-admin users
+          const { data: basicData, error: basicError } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, current_points, membership_tier, visits')
+            .eq('role', 'customer')
+            .order('current_points', { ascending: false })
+            .limit(10);
+          
+          if (basicError) throw basicError;
+          
+          return basicData?.map((profile: any, index: number) => ({
+            id: profile.id,
+            name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Anonymous',
+            referrals: 0,
+            pointsEarned: profile.current_points,
+            rank: index + 1,
+            badge: profile.current_points >= 500 ? 'Champion' : 
+                   profile.current_points >= 200 ? 'Elite' : undefined
+          })) || [];
+        }
+        
+        return data?.map((profile: any, index: number) => ({
+          id: profile.referrer_id,
+          name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Anonymous',
+          referrals: profile.total_referrals,
+          pointsEarned: profile.total_bonus_points,
+          rank: index + 1,
+          badge: profile.total_bonus_points >= 500 ? 'Champion' : 
+                 profile.total_bonus_points >= 200 ? 'Elite' : undefined
+        })) || [];
+      } catch (err) {
+        console.error('🚨 Leaderboard fetch failed:', err);
+        return [];
+      }
     },
     enabled: activeTab === 'social',
     staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 
-  // Join challenge mutation
+  // Join challenge mutation with better error handling
   const joinChallengeMutation = useMutation({
     mutationFn: async (challengeId: string) => {
+      console.log('🎯 Joining challenge:', challengeId);
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -98,22 +165,24 @@ const CommunityHub = () => {
           user_id: user.id
         });
       
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          throw new Error('You have already joined this challenge!');
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success('🎯 Challenge joined! Start earning points now!');
       queryClient.invalidateQueries({ queryKey: ['challenges'] });
     },
     onError: (error: any) => {
-      if (error.message?.includes('duplicate')) {
-        toast.error('You have already joined this challenge!');
-      } else {
-        toast.error('Failed to join challenge. Please try again.');
-      }
+      console.error('❌ Challenge join failed:', error);
+      toast.error(error.message || 'Failed to join challenge. Please try again.');
     }
   });
 
-  // Submit photo mutation
+  // Submit photo mutation with validation
   const submitPhotoMutation = useMutation({
     mutationFn: async ({ contestId, photo, title, description }: {
       contestId: string;
@@ -121,8 +190,19 @@ const CommunityHub = () => {
       title: string;
       description: string;
     }) => {
+      console.log('📸 Submitting photo to contest:', contestId);
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
+
+      // Validate file type and size
+      if (!photo.type.startsWith('image/')) {
+        throw new Error('Please upload a valid image file');
+      }
+      
+      if (photo.size > 5 * 1024 * 1024) { // 5MB limit
+        throw new Error('Image file must be less than 5MB');
+      }
 
       const imageUrl = URL.createObjectURL(photo);
 
@@ -132,8 +212,8 @@ const CommunityHub = () => {
           contest_id: contestId,
           user_id: user.id,
           image_url: imageUrl,
-          title,
-          description
+          title: title.trim(),
+          description: description.trim()
         });
       
       if (error) throw error;
@@ -142,14 +222,17 @@ const CommunityHub = () => {
       toast.success('📸 Photo submitted successfully! Good luck in the contest!');
       queryClient.invalidateQueries({ queryKey: ['photo_contests'] });
     },
-    onError: () => {
-      toast.error('Failed to submit photo. Please try again.');
+    onError: (error: any) => {
+      console.error('❌ Photo submission failed:', error);
+      toast.error(error.message || 'Failed to submit photo. Please try again.');
     }
   });
 
-  // Vote photo mutation
+  // Vote photo mutation with validation
   const votePhotoMutation = useMutation({
     mutationFn: async (submissionId: string) => {
+      console.log('❤️ Voting for submission:', submissionId);
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -160,18 +243,20 @@ const CommunityHub = () => {
           user_id: user.id
         });
       
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          throw new Error('You have already voted for this submission!');
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success('❤️ Vote cast! Thanks for supporting fellow coffee lovers!');
       queryClient.invalidateQueries({ queryKey: ['photo_contests'] });
     },
     onError: (error: any) => {
-      if (error.message?.includes('duplicate')) {
-        toast.error('You have already voted for this submission!');
-      } else {
-        toast.error('Failed to vote. Please try again.');
-      }
+      console.error('❌ Vote failed:', error);
+      toast.error(error.message || 'Failed to vote. Please try again.');
     }
   });
 
@@ -187,28 +272,41 @@ const CommunityHub = () => {
     votePhotoMutation.mutate(submissionId);
   };
 
-  // Format challenges for the component
+  // Format challenges with safer date handling
   const formattedChallenges = challenges.map(challenge => {
     console.log('🔧 Formatting challenge:', challenge);
+    
+    let expiresAt: Date;
+    try {
+      expiresAt = new Date(challenge.expires_at);
+      if (isNaN(expiresAt.getTime())) {
+        console.warn('⚠️ Invalid expires_at date for challenge:', challenge.id);
+        expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // Default to 1 week from now
+      }
+    } catch (err) {
+      console.warn('⚠️ Date parsing error for challenge:', challenge.id, err);
+      expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    }
+    
     return {
       id: challenge.id,
-      title: challenge.title,
-      description: challenge.description,
-      type: challenge.type as 'daily' | 'weekly' | 'monthly',
-      target: challenge.target,
+      title: challenge.title || 'Untitled Challenge',
+      description: challenge.description || 'No description available',
+      type: (challenge.type as 'daily' | 'weekly' | 'monthly') || 'weekly',
+      target: challenge.target || 1,
       current: 0,
-      reward: challenge.reward,
-      expiresAt: new Date(challenge.expires_at),
-      participants: 0
+      reward: challenge.reward || 'No reward specified',
+      expiresAt,
+      participants: challenge.challenge_participants?.length || 0
     };
   });
 
   console.log('✅ Final formatted challenges:', formattedChallenges);
 
-  // Format photo contests for the component
+  // Format photo contests with safer handling
   const currentContest = photoContests[0] ? {
     id: photoContests[0].id,
-    title: photoContests[0].title,
+    title: photoContests[0].title || 'Untitled Contest',
     description: photoContests[0].description || '',
     theme: photoContests[0].theme || '',
     prize: photoContests[0].prize || '',
@@ -217,15 +315,20 @@ const CommunityHub = () => {
     submissions: (photoContests[0].photo_contest_submissions || []).map((sub: any) => ({
       id: sub.id,
       imageUrl: sub.image_url,
-      title: sub.title,
+      title: sub.title || 'Untitled',
       description: sub.description || '',
       author: sub.profiles ? 
         `${sub.profiles.first_name || ''} ${sub.profiles.last_name || ''}`.trim() : 
         'Anonymous',
-      votes: sub.votes,
+      votes: sub.votes || 0,
       submittedAt: new Date(sub.created_at)
     }))
   } : null;
+
+  // Show error states
+  if (challengesError || contestsError) {
+    console.error('🚨 Page errors:', { challengesError, contestsError });
+  }
 
   return (
     <Layout>
@@ -279,6 +382,18 @@ const CommunityHub = () => {
                 <div className="flex justify-center py-12">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent"></div>
                 </div>
+              ) : challengesError ? (
+                <div className="text-center py-12">
+                  <Trophy className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-black mb-2">Failed to Load Challenges</h3>
+                  <p className="text-[#95A5A6] mb-4">{challengesError.message}</p>
+                  <button 
+                    onClick={() => queryClient.invalidateQueries({ queryKey: ['challenges'] })}
+                    className="px-4 py-2 bg-black text-white rounded-lg hover:bg-[#95A5A6] transition-colors"
+                  >
+                    Try Again
+                  </button>
+                </div>
               ) : (
                 <>
                   {console.log('🎯 Rendering challenges tab with:', { challengesLoading, challengesCount: formattedChallenges.length })}
@@ -294,6 +409,18 @@ const CommunityHub = () => {
               {contestsLoading ? (
                 <div className="flex justify-center py-12">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent"></div>
+                </div>
+              ) : contestsError ? (
+                <div className="text-center py-12">
+                  <Camera className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-black mb-2">Failed to Load Photo Contest</h3>
+                  <p className="text-[#95A5A6] mb-4">{contestsError.message}</p>
+                  <button 
+                    onClick={() => queryClient.invalidateQueries({ queryKey: ['photo_contests'] })}
+                    className="px-4 py-2 bg-black text-white rounded-lg hover:bg-[#95A5A6] transition-colors"
+                  >
+                    Try Again
+                  </button>
                 </div>
               ) : currentContest ? (
                 <PhotoContest
@@ -311,13 +438,27 @@ const CommunityHub = () => {
             </TabsContent>
 
             <TabsContent value="social" className="space-y-6">
-              <SocialShare
-                referralCode="COFFEE2024"
-                totalReferrals={5}
-                pointsFromReferrals={250}
-                leaderboard={leaderboard}
-                userRank={12}
-              />
+              {leaderboardError ? (
+                <div className="text-center py-12">
+                  <Share2 className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-black mb-2">Failed to Load Social Features</h3>
+                  <p className="text-[#95A5A6] mb-4">{leaderboardError.message}</p>
+                  <button 
+                    onClick={() => queryClient.invalidateQueries({ queryKey: ['leaderboard'] })}
+                    className="px-4 py-2 bg-black text-white rounded-lg hover:bg-[#95A5A6] transition-colors"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : (
+                <SocialShare
+                  referralCode="COFFEE2024"
+                  totalReferrals={5}
+                  pointsFromReferrals={250}
+                  leaderboard={leaderboard}
+                  userRank={12}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="goals" className="space-y-6">
