@@ -7,6 +7,9 @@ import { CommunityChallenge } from '@/components/community/CommunityChallenge';
 import { PhotoContest } from '@/components/community/PhotoContest';
 import { SocialShare } from '@/components/community/SocialShare';
 import CommunityGoalsList from '@/components/community/CommunityGoalsList';
+import { LoadingState } from '@/components/community/LoadingState';
+import { ErrorState } from '@/components/community/ErrorState';
+import { EmptyState } from '@/components/community/EmptyState';
 import { Trophy, Camera, Share2, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -325,11 +328,6 @@ const CommunityHub = () => {
     }))
   } : null;
 
-  // Show error states
-  if (challengesError || contestsError) {
-    console.error('🚨 Page errors:', { challengesError, contestsError });
-  }
-
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-[#95A5A6]/5 via-white to-[#95A5A6]/10">
@@ -379,21 +377,13 @@ const CommunityHub = () => {
 
             <TabsContent value="challenges" className="space-y-6">
               {challengesLoading ? (
-                <div className="flex justify-center py-12">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent"></div>
-                </div>
+                <LoadingState message="Loading challenges..." />
               ) : challengesError ? (
-                <div className="text-center py-12">
-                  <Trophy className="h-12 w-12 text-red-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-black mb-2">Failed to Load Challenges</h3>
-                  <p className="text-[#95A5A6] mb-4">{challengesError.message}</p>
-                  <button 
-                    onClick={() => queryClient.invalidateQueries({ queryKey: ['challenges'] })}
-                    className="px-4 py-2 bg-black text-white rounded-lg hover:bg-[#95A5A6] transition-colors"
-                  >
-                    Try Again
-                  </button>
-                </div>
+                <ErrorState
+                  title="Failed to Load Challenges"
+                  message={challengesError.message}
+                  onRetry={() => queryClient.invalidateQueries({ queryKey: ['challenges'] })}
+                />
               ) : (
                 <>
                   {console.log('🎯 Rendering challenges tab with:', { challengesLoading, challengesCount: formattedChallenges.length })}
@@ -407,21 +397,13 @@ const CommunityHub = () => {
 
             <TabsContent value="photos" className="space-y-6">
               {contestsLoading ? (
-                <div className="flex justify-center py-12">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent"></div>
-                </div>
+                <LoadingState message="Loading photo contests..." />
               ) : contestsError ? (
-                <div className="text-center py-12">
-                  <Camera className="h-12 w-12 text-red-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-black mb-2">Failed to Load Photo Contest</h3>
-                  <p className="text-[#95A5A6] mb-4">{contestsError.message}</p>
-                  <button 
-                    onClick={() => queryClient.invalidateQueries({ queryKey: ['photo_contests'] })}
-                    className="px-4 py-2 bg-black text-white rounded-lg hover:bg-[#95A5A6] transition-colors"
-                  >
-                    Try Again
-                  </button>
-                </div>
+                <ErrorState
+                  title="Failed to Load Photo Contest"
+                  message={contestsError.message}
+                  onRetry={() => queryClient.invalidateQueries({ queryKey: ['photo_contests'] })}
+                />
               ) : currentContest ? (
                 <PhotoContest
                   contest={currentContest}
@@ -429,27 +411,21 @@ const CommunityHub = () => {
                   onVotePhoto={handleVotePhoto}
                 />
               ) : (
-                <div className="text-center py-12">
-                  <Camera className="h-12 w-12 text-[#95A5A6] mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-black mb-2">No Active Photo Contest</h3>
-                  <p className="text-[#95A5A6]">Check back soon for new photo contests!</p>
-                </div>
+                <EmptyState
+                  icon={Camera}
+                  title="No Active Photo Contest"
+                  description="Check back soon for exciting photo contests where you can showcase your coffee moments!"
+                />
               )}
             </TabsContent>
 
             <TabsContent value="social" className="space-y-6">
               {leaderboardError ? (
-                <div className="text-center py-12">
-                  <Share2 className="h-12 w-12 text-red-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-black mb-2">Failed to Load Social Features</h3>
-                  <p className="text-[#95A5A6] mb-4">{leaderboardError.message}</p>
-                  <button 
-                    onClick={() => queryClient.invalidateQueries({ queryKey: ['leaderboard'] })}
-                    className="px-4 py-2 bg-black text-white rounded-lg hover:bg-[#95A5A6] transition-colors"
-                  >
-                    Try Again
-                  </button>
-                </div>
+                <ErrorState
+                  title="Failed to Load Social Features"
+                  message={leaderboardError.message}
+                  onRetry={() => queryClient.invalidateQueries({ queryKey: ['leaderboard'] })}
+                />
               ) : (
                 <SocialShare
                   referralCode="COFFEE2024"

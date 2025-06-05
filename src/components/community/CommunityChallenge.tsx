@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, Users, Clock, AlertCircle } from 'lucide-react';
+import { Trophy, Users, Clock, AlertCircle, Coffee } from 'lucide-react';
+import { EmptyState } from './EmptyState';
 
 interface Challenge {
   id: string;
@@ -32,14 +33,22 @@ export const CommunityChallenge = ({ challenges, onJoinChallenge }: CommunityCha
   if (challenges.length === 0) {
     console.log('❌ No challenges to display');
     return (
-      <div className="text-center py-12">
-        <Trophy className="h-12 w-12 text-[#95A5A6] mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-black mb-2">No Active Challenges</h3>
-        <p className="text-[#95A5A6] mb-4">Check back soon for new challenges!</p>
-        <div className="text-sm text-[#95A5A6]">
-          Administrators can create challenges from the admin panel.
+      <EmptyState
+        icon={Trophy}
+        title="No Active Challenges"
+        description="Check back soon for new challenges to test your coffee knowledge and earn rewards!"
+      >
+        <div className="mt-6 p-4 bg-[#95A5A6]/10 rounded-lg text-sm text-[#95A5A6] max-w-md mx-auto">
+          <Coffee className="h-5 w-5 mx-auto mb-2" />
+          <p className="font-medium mb-1">Coming Soon:</p>
+          <ul className="text-left space-y-1">
+            <li>• Daily coffee tasting challenges</li>
+            <li>• Weekly exploration missions</li>
+            <li>• Monthly community goals</li>
+            <li>• Seasonal special events</li>
+          </ul>
         </div>
-      </div>
+      </EmptyState>
     );
   }
 
