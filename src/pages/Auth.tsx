@@ -15,7 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, refreshProfile } = useAuth();
+  const { user, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +26,8 @@ const Auth = () => {
   
   console.log('Auth page rendering', { 
     user: user ? 'exists' : 'null', 
-    pathname: location.pathname 
+    pathname: location.pathname,
+    loading 
   });
 
   // Set a maximum wait time for initial auth check
@@ -40,74 +41,61 @@ const Auth = () => {
     return () => clearTimeout(timeout);
   }, []);
   
-  // Check if user is already logged in
+  // Mark auth as checked when loading completes
   useEffect(() => {
-    const checkAuth = async () => {
-      console.log("Auth: Checking if already authenticated");
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        // If we have a session and a user, we're already logged in
-        if (session?.user) {
-          console.log("Auth: User already authenticated, will redirect to dashboard");
-          navigate('/dashboard', { replace: true });
-        }
-      } catch (error) {
-        console.error("Auth: Error checking session:", error);
-      } finally {
-        setAuthChecked(true);
-      }
-    };
-    
-    checkAuth();
-  }, [navigate]);
-
-  // Redirect if user is already authenticated
+    if (!loading) {
+      console.log('Auth: Loading complete, marking auth as checked');
+      setAuthChecked(true);
+    }
+  }, [loading]);
+  
+  // Redirect if user is already logged in
   useEffect(() => {
-    if (user) {
-      console.log("Auth: User state detected, redirecting to dashboard");
+    if (user && !loading) {
+      console.log("Auth: User already authenticated, redirecting to dashboard");
       navigate('/dashboard', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isLoading) return;
+    
     setIsLoading(true);
     setError(null);
     
     try {
       console.log("Auth: Attempting to sign in");
+      
       // Clean up existing auth state first
       cleanupAuthState();
       
       // Sign in
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password
       });
       
-      if (error) throw error;
-      
-      if (!data.user) throw new Error("No user returned from sign in");
-      
-      toast.success("Signed in successfully");
-      console.log("Auth: Sign in successful, will refresh profile and redirect");
-      
-      // Refresh profile to ensure we have the latest data
-      if (refreshProfile) {
-        try {
-          await refreshProfile();
-        } catch (err) {
-          console.error("Auth: Error refreshing profile:", err);
-        }
+      if (error) {
+        console.error('Auth: Sign in error:', error);
+        throw error;
       }
       
-      // Redirect to dashboard
-      navigate('/dashboard', { replace: true });
+      if (!data.user) {
+        throw new Error("No user returned from sign in");
+      }
+      
+      console.log("Auth: Sign in successful");
+      toast.success("Signed in successfully");
+      
+      // Don't manually navigate - let the auth state change handle it
+      
     } catch (error: any) {
       console.error('Auth: Error signing in:', error);
-      setError(error.message || "Failed to sign in. Please check your credentials.");
-      toast.error(error.message || "Failed to sign in. Please check your credentials.");
+      const errorMessage = error.message || "Failed to sign in. Please check your credentials.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -115,66 +103,74 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isLoading) return;
+    
     setIsLoading(true);
     setError(null);
     
-    if (!firstName || !lastName) {
-      toast.error("Please provide your first and last name");
-      setError("First name and last name are required");
+    if (!firstName.trim() || !lastName.trim()) {
+      const errorMessage = "Please provide your first and last name";
+      toast.error(errorMessage);
+      setError(errorMessage);
       setIsLoading(false);
       return;
     }
     
     try {
       console.log("Auth: Attempting to sign up");
+      
       // Clean up existing auth state first
       cleanupAuthState();
       
       // Sign up
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           data: {
-            first_name: firstName,
-            last_name: lastName,
-          }
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`
         }
       });
       
-      if (error) throw error;
-      if (!data.user) throw new Error("No user returned from sign up");
+      if (error) {
+        console.error('Auth: Sign up error:', error);
+        throw error;
+      }
       
-      toast.success("Account created successfully! You can now sign in.");
+      if (!data.user) {
+        throw new Error("No user returned from sign up");
+      }
+      
       console.log("Auth: Sign up successful");
+      toast.success("Account created successfully! Please check your email to verify your account.");
       
       // Clear form
       setEmail('');
       setPassword('');
       setFirstName('');
       setLastName('');
+      
     } catch (error: any) {
       console.error('Auth: Error signing up:', error);
-      setError(error.message || "Failed to create account. Please try again.");
-      toast.error(error.message || "Failed to create account. Please try again.");
+      const errorMessage = error.message || "Failed to create account. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Emergency debugging mode - show info while page is loading
-  if (!authChecked) {
+  // Show loading state while checking auth
+  if (!authChecked || (loading && !user)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAF6F0]">
         <div className="text-center p-6 max-w-md">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent mx-auto mb-4"></div>
           <p className="text-[#8B4513] mb-4">Verifying authentication status...</p>
-          <div className="mt-6 p-4 bg-[#f0f0f0] rounded text-left text-sm">
-            <p className="font-semibold mb-2">Debug Info:</p>
-            <p>Current URL: {window.location.pathname}</p>
-            <p>Time: {new Date().toLocaleTimeString()}</p>
-            <p>Auth Checked: {authChecked ? 'Yes' : 'No'}</p>
-          </div>
         </div>
       </div>
     );
@@ -217,6 +213,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -234,6 +231,7 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -271,6 +269,7 @@ const Auth = () => {
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         required
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
@@ -282,6 +281,7 @@ const Auth = () => {
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       required
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -297,6 +297,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      disabled={isLoading}
                     />
                   </div>
                 </div>
@@ -313,6 +314,7 @@ const Auth = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={6}
+                      disabled={isLoading}
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">

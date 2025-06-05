@@ -20,7 +20,7 @@ interface AuthContextType {
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
 
-const AUTH_CHECK_TIMEOUT_MS = 2000; // Reduced to 2 seconds for faster loading
+const AUTH_CHECK_TIMEOUT_MS = 3000; // Increased timeout for better reliability
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -35,53 +35,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = profile?.role === 'admin';
   const isUser = profile?.role === 'customer';
 
-  // Initialize authentication with faster timeout
+  // Initialize authentication with better error handling
   useEffect(() => {
     console.log('AuthContext: Initializing authentication...');
     
-    // Reduced timeout for faster response
-    const timeoutId = setTimeout(() => {
-      console.log('AuthContext: Force completing auth check after timeout');
-      setLoading(false);
-      setAuthInitialized(true);
-    }, AUTH_CHECK_TIMEOUT_MS);
-    
     let mounted = true;
+    let authTimeout: NodeJS.Timeout;
 
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        console.log('AuthContext: Auth event received:', event);
-        
-        if (!mounted) return;
-        
-        // Update session and user state immediately
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-
-        // Handle different auth events
-        if (event === 'SIGNED_IN' && newSession?.user) {
-          console.log('AuthContext: User signed in, fetching profile');
-          // Use immediate timeout to prevent blocking
-          setTimeout(() => {
-            if (mounted) {
-              fetchUserProfile(newSession.user.id);
-            }
-          }, 0);
-        } else if (event === 'SIGNED_OUT') {
-          console.log('AuthContext: User signed out, clearing profile');
-          setProfile(null);
-          setLoading(false);
-          setAuthInitialized(true);
-        }
-      }
-    );
-
-    // THEN check for existing session
-    const getInitialSession = async () => {
+    const initializeAuth = async () => {
       try {
+        // Set up auth state listener FIRST
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, newSession) => {
+            console.log('AuthContext: Auth event received:', event);
+            
+            if (!mounted) return;
+            
+            // Update session and user state immediately
+            setSession(newSession);
+            setUser(newSession?.user ?? null);
+
+            // Handle different auth events
+            if (event === 'SIGNED_IN' && newSession?.user) {
+              console.log('AuthContext: User signed in, fetching profile');
+              // Use setTimeout to prevent blocking the auth state change
+              setTimeout(() => {
+                if (mounted) {
+                  fetchUserProfile(newSession.user.id);
+                }
+              }, 100);
+            } else if (event === 'SIGNED_OUT') {
+              console.log('AuthContext: User signed out, clearing profile');
+              setProfile(null);
+              setLoading(false);
+              setAuthInitialized(true);
+            } else if (event === 'TOKEN_REFRESHED') {
+              console.log('AuthContext: Token refreshed');
+              if (newSession?.user && !profile) {
+                setTimeout(() => {
+                  if (mounted) {
+                    fetchUserProfile(newSession.user.id);
+                  }
+                }, 100);
+              }
+            }
+          }
+        );
+
+        // THEN check for existing session
         console.log('AuthContext: Getting initial session');
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('AuthContext: Error getting initial session:', error);
+          throw error;
+        }
+        
         console.log('AuthContext: Initial session found:', currentSession ? 'Yes' : 'No');
         
         if (!mounted) return;
@@ -95,22 +104,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setLoading(false);
           setAuthInitialized(true);
         }
+
+        // Clear timeout since we completed successfully
+        if (authTimeout) {
+          clearTimeout(authTimeout);
+        }
+
+        // Clean up function
+        return () => {
+          mounted = false;
+          subscription?.unsubscribe();
+        };
       } catch (error) {
-        console.error('AuthContext: Error getting initial session:', error);
-        
-        if (!mounted) return;
-        
-        setLoading(false);
-        setAuthInitialized(true);
+        console.error('AuthContext: Error initializing auth:', error);
+        if (mounted) {
+          setLoading(false);
+          setAuthInitialized(true);
+          // Don't show error toast here as it might be expected during logout
+        }
       }
     };
 
-    getInitialSession();
+    // Set timeout as fallback
+    authTimeout = setTimeout(() => {
+      console.log('AuthContext: Force completing auth check after timeout');
+      if (mounted) {
+        setLoading(false);
+        setAuthInitialized(true);
+      }
+    }, AUTH_CHECK_TIMEOUT_MS);
+
+    // Initialize auth
+    initializeAuth();
 
     return () => {
       mounted = false;
-      subscription?.unsubscribe();
-      clearTimeout(timeoutId);
+      if (authTimeout) {
+        clearTimeout(authTimeout);
+      }
     };
   }, []);
 
@@ -131,7 +162,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error.code === 'PGRST116') {
           console.log('AuthContext: Profile not found, attempting to create it');
           await createUserProfile(userId);
+          return;
         }
+        
+        // For other errors, still mark as initialized
         setLoading(false);
         setAuthInitialized(true);
         return;
@@ -153,10 +187,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const createUserProfile = async (userId: string) => {
     try {
       // Get user data from auth
-      const { data: userData } = await supabase.auth.getUser(userId);
+      const { data: userData, error: userError } = await supabase.auth.getUser();
       
-      if (!userData?.user) {
-        console.error('AuthContext: Could not get user data for profile creation');
+      if (userError || !userData?.user) {
+        console.error('AuthContext: Could not get user data for profile creation:', userError);
         return;
       }
       
@@ -225,9 +259,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cleanupAuthState();
       
       // Attempt global sign out
-      await supabase.auth.signOut({ scope: 'global' });
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
       
-      // Clear state immediately
+      if (error) {
+        console.error('AuthContext: Error during sign out:', error);
+      }
+      
+      // Clear state immediately regardless of sign out result
       setProfile(null);
       setUser(null);
       setSession(null);

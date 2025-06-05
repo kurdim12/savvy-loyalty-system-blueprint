@@ -17,12 +17,12 @@ export function UserRoute({ children }: { children: ReactNode }) {
     isAdmin 
   });
 
-  // Reduced timeout to prevent white screens
+  // Set timeout to prevent infinite loading
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       console.log('UserRoute: Timeout reached, forcing display');
       setIsPageReady(true);
-    }, 1000); // Reduced from 2000ms to 1000ms
+    }, 3000);
 
     return () => clearTimeout(timeoutId);
   }, []);
@@ -82,12 +82,12 @@ export function AdminRoute({ children }: { children: ReactNode }) {
     isAdmin 
   });
 
-  // Reduced timeout to prevent white screens
+  // Set timeout to prevent infinite loading
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       console.log('AdminRoute: Timeout reached, forcing display');
       setIsPageReady(true);
-    }, 1000); // Reduced from 1500ms to 1000ms
+    }, 3000);
 
     return () => clearTimeout(timeoutId);
   }, []);
@@ -141,12 +141,12 @@ export function PublicRoute({ children }: { children: ReactNode }) {
     isUser 
   });
   
-  // Reduced timeout to prevent white screens
+  // Set timeout to prevent infinite loading
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       console.log('PublicRoute: Timeout reached, forcing display');
       setIsPageReady(true);
-    }, 1000); // Reduced from 1500ms to 1000ms
+    }, 3000);
 
     return () => clearTimeout(timeoutId);
   }, []);
@@ -196,12 +196,12 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     loading
   });
 
-  // Reduced timeout to prevent white screens
+  // Set timeout to prevent infinite loading
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       console.log('ProtectedRoute: Timeout reached, forcing display');
       setIsPageReady(true);
-    }, 1000);
+    }, 3000);
 
     return () => clearTimeout(timeoutId);
   }, []);

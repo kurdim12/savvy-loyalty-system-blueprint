@@ -17,6 +17,7 @@ export const supabase = createClient<Database>(
       autoRefreshToken: true,
       detectSessionInUrl: true,
       flowType: 'pkce',
+      debug: false, // Disable debug logs to reduce noise
     },
     global: {
       headers: {
@@ -76,7 +77,11 @@ export const secureSignOut = async () => {
     cleanupAuthState();
     
     // Attempt global sign out for complete logout
-    await supabase.auth.signOut({ scope: 'global' });
+    const { error } = await supabase.auth.signOut({ scope: 'global' });
+    
+    if (error) {
+      console.error('Error during sign out:', error);
+    }
     
     // Additional cleanup after sign out
     setTimeout(() => {
