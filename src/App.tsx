@@ -6,6 +6,10 @@ import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UserRoute, AdminRoute } from "@/components/auth/ProtectedRoutes";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
+import { useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
+import { StatusBar, Style } from "@capacitor/status-bar";
+import { SplashScreen } from "@capacitor/splash-screen";
 
 // Import pages
 import Index from "./pages/Index";
@@ -44,6 +48,29 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  useEffect(() => {
+    const initMobileApp = async () => {
+      if (Capacitor.isNativePlatform()) {
+        console.log('Running in native mobile app');
+        
+        try {
+          // Hide splash screen after app loads
+          await SplashScreen.hide();
+          
+          // Configure status bar
+          await StatusBar.setStyle({ style: Style.Dark });
+          await StatusBar.setBackgroundColor({ color: '#FAF6F0' });
+          
+          console.log('Mobile app initialization complete');
+        } catch (error) {
+          console.error('Error initializing mobile app:', error);
+        }
+      }
+    };
+
+    initMobileApp();
+  }, []);
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
