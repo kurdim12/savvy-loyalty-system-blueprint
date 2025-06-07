@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
-import { Coin, Crown, Award, Medal } from 'lucide-react';
+import { Coins, Crown, Award, Medal } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 
@@ -92,7 +92,7 @@ export const LivePointsDisplay = () => {
     <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-[#8B4513]/10">
       {/* Points Display */}
       <div className="flex items-center gap-2">
-        <Coin className="h-4 w-4 text-[#8B4513]" />
+        <Coins className="h-4 w-4 text-[#8B4513]" />
         <span className="font-bold text-[#8B4513] text-sm">
           {points.toLocaleString()}
         </span>
