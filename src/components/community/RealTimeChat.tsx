@@ -14,7 +14,6 @@ interface ChatMessage {
   body: string;
   created_at: string;
   user_id: string;
-  seat_area: string;
   profiles: {
     first_name: string;
     last_name: string;
@@ -33,7 +32,7 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
   const queryClient = useQueryClient();
 
   const { data: messages = [], isLoading } = useQuery({
-    queryKey: ['seat-area-messages', seatArea],
+    queryKey: ['area-messages', seatArea],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('messages')
@@ -42,13 +41,12 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
           body,
           created_at,
           user_id,
-          seat_area,
           profiles:user_id (
             first_name,
             last_name
           )
         `)
-        .eq('seat_area', seatArea)
+        .eq('thread_id', `area-${seatArea}`)
         .order('created_at', { ascending: true })
         .limit(50);
       
@@ -60,17 +58,17 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
 
   useEffect(() => {
     const channel = supabase
-      .channel(`seat-area-${seatArea}`)
+      .channel(`area-${seatArea}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `seat_area=eq.${seatArea}`
+          filter: `thread_id=eq.area-${seatArea}`
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['seat-area-messages', seatArea] });
+          queryClient.invalidateQueries({ queryKey: ['area-messages', seatArea] });
         }
       )
       .subscribe();
@@ -93,14 +91,14 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
         .insert({
           body: messageText,
           user_id: user.id,
-          seat_area: seatArea
+          thread_id: `area-${seatArea}`
         });
       
       if (error) throw error;
     },
     onSuccess: () => {
       setNewMessage('');
-      queryClient.invalidateQueries({ queryKey: ['seat-area-messages', seatArea] });
+      queryClient.invalidateQueries({ queryKey: ['area-messages', seatArea] });
     }
   });
 

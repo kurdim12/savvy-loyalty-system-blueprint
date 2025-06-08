@@ -6,7 +6,7 @@ import { Slider } from '@/components/ui/slider';
 import { Volume2, VolumeX, Coffee, Music, CloudRain, Users } from 'lucide-react';
 
 interface AmbientSoundsProps {
-  weather: 'sunny' | 'cloudy' | 'rainy' | 'evening';
+  weather: 'sunny' | 'cloudy' | 'rainy' | 'evening' | 'snowy';
   occupancy: number;
 }
 
@@ -75,6 +75,7 @@ export const AmbientSounds = ({ weather, occupancy }: AmbientSoundsProps) => {
       case 'rainy': return 'Cozy rain sounds';
       case 'evening': return 'Evening atmosphere';
       case 'cloudy': return 'Soft cloudy day';
+      case 'snowy': return 'Peaceful snowy day';
       default: return 'Bright sunny day';
     }
   };
