@@ -1,217 +1,82 @@
 
-import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Volume2, VolumeX, Cloud, Sun, Moon, CloudRain } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { gsap } from 'gsap';
 
 interface AtmosphericBackgroundProps {
-  currentSeat?: string;
-  weather?: 'sunny' | 'cloudy' | 'rainy' | 'evening';
+  currentSeat: string;
+  weather: 'sunny' | 'cloudy' | 'rainy' | 'evening' | 'snowy';
 }
 
-export const AtmosphericBackground = ({ currentSeat, weather: propWeather }: AtmosphericBackgroundProps) => {
-  const [audioEnabled, setAudioEnabled] = useState(false);
-  const [currentAudio, setCurrentAudio] = useState<string>('cafe');
-  const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening' | 'night'>('morning');
-  const [weather, setWeather] = useState<'sunny' | 'cloudy' | 'rainy' | 'evening'>(propWeather || 'sunny');
+export const AtmosphericBackground = ({ currentSeat, weather }: AtmosphericBackgroundProps) => {
+  const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number }>>([]);
 
-  const audioOptions = [
-    { id: 'cafe', name: 'Café Ambience', icon: '☕' },
-    { id: 'jazz', name: 'Soft Jazz', icon: '🎷' },
-    { id: 'rain', name: 'Rain Sounds', icon: '🌧️' },
-    { id: 'nature', name: 'Nature Sounds', icon: '🌿' },
-    { id: 'silence', name: 'Peaceful Silence', icon: '🤫' }
-  ];
-
-  // Determine time of day based on current time
   useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour >= 6 && hour < 12) setTimeOfDay('morning');
-    else if (hour >= 12 && hour < 17) setTimeOfDay('afternoon');
-    else if (hour >= 17 && hour < 21) setTimeOfDay('evening');
-    else setTimeOfDay('night');
-  }, []);
-
-  // Update weather periodically for realism
-  useEffect(() => {
-    const weatherOptions: Array<'sunny' | 'cloudy' | 'rainy' | 'evening'> = ['sunny', 'cloudy', 'rainy'];
-    const interval = setInterval(() => {
-      if (!propWeather) {
-        const randomWeather = weatherOptions[Math.floor(Math.random() * weatherOptions.length)];
-        setWeather(randomWeather);
-      }
-    }, 300000); // Change every 5 minutes
-
-    return () => clearInterval(interval);
-  }, [propWeather]);
+    // Generate weather particles based on weather type
+    if (weather === 'rainy' || weather === 'snowy') {
+      const newParticles = Array.from({ length: 50 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 3 + 1
+      }));
+      setParticles(newParticles);
+    } else {
+      setParticles([]);
+    }
+  }, [weather]);
 
   const getBackgroundGradient = () => {
-    const base = timeOfDay === 'morning' 
-      ? 'from-orange-100 via-yellow-50 to-blue-100'
-      : timeOfDay === 'afternoon'
-      ? 'from-blue-100 via-white to-yellow-100'
-      : timeOfDay === 'evening'
-      ? 'from-orange-200 via-pink-100 to-purple-200'
-      : 'from-indigo-900 via-purple-900 to-blue-900';
-
-    const weatherOverlay = weather === 'rainy' 
-      ? ' overlay-gray-300/30'
-      : weather === 'cloudy'
-      ? ' overlay-gray-200/20'
-      : '';
-
-    return `bg-gradient-to-br ${base}${weatherOverlay}`;
-  };
-
-  const getSeatSpecificView = () => {
-    if (!currentSeat) return null;
-
-    const seatViews = {
-      'counter-1': {
-        view: 'Coffee Bar View',
-        description: 'Watch our skilled baristas craft each cup with precision',
-        elements: ['Steam rising from espresso machine', 'Barista latte art', 'Fresh pastries display']
-      },
-      'table-1': {
-        view: 'Street Window View',
-        description: 'People watching through large café windows',
-        elements: ['Pedestrians walking by', 'Cars passing', 'Street trees swaying']
-      },
-      'lounge-1': {
-        view: 'Cozy Fireplace',
-        description: 'Warm fireplace crackling nearby',
-        elements: ['Flickering flames', 'Comfortable armchairs', 'Soft reading light']
-      },
-      'workspace-1': {
-        view: 'Quiet Study Corner',
-        description: 'Peaceful workspace with natural light',
-        elements: ['Focused workers', 'Natural lighting', 'Soft keyboard sounds']
-      }
+    const seatBackgrounds = {
+      'seat-1': 'linear-gradient(135deg, #F5DEB3 0%, #DEB887 50%, #D2B48C 100%)',
+      'seat-2': 'linear-gradient(135deg, #E6D7C7 0%, #D2B48C 50%, #C1A882 100%)',
+      'seat-3': 'linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #CD853F 100%)',
+      'seat-4': 'linear-gradient(135deg, #DEB887 0%, #D2B48C 50%, #BC9A6A 100%)'
     };
 
-    return seatViews[currentSeat as keyof typeof seatViews];
-  };
+    let baseGradient = seatBackgrounds[currentSeat as keyof typeof seatBackgrounds] || seatBackgrounds['seat-1'];
 
-  const getWeatherIcon = () => {
+    // Apply weather overlay
     switch (weather) {
-      case 'sunny': return <Sun className="h-5 w-5 text-yellow-500" />;
-      case 'cloudy': return <Cloud className="h-5 w-5 text-gray-500" />;
-      case 'rainy': return <CloudRain className="h-5 w-5 text-blue-500" />;
-      default: return <Moon className="h-5 w-5 text-purple-500" />;
+      case 'rainy':
+        return `${baseGradient}, linear-gradient(rgba(100, 150, 200, 0.3), rgba(100, 150, 200, 0.3))`;
+      case 'cloudy':
+        return `${baseGradient}, linear-gradient(rgba(150, 150, 150, 0.2), rgba(150, 150, 150, 0.2))`;
+      case 'evening':
+        return `${baseGradient}, linear-gradient(rgba(75, 50, 100, 0.4), rgba(75, 50, 100, 0.4))`;
+      case 'snowy':
+        return `${baseGradient}, linear-gradient(rgba(240, 248, 255, 0.3), rgba(240, 248, 255, 0.3))`;
+      default:
+        return baseGradient;
     }
   };
 
-  const seatView = getSeatSpecificView();
-
   return (
-    <div className={`absolute inset-0 ${getBackgroundGradient()} transition-all duration-1000`}>
-      {/* Weather overlay effects */}
-      {weather === 'rainy' && (
-        <div className="absolute inset-0 opacity-30">
-          {/* Animated rain lines */}
-          <div className="rain-container">
-            {[...Array(50)].map((_, i) => (
-              <div
-                key={i}
-                className="rain-drop"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 2}s`,
-                  animationDuration: `${0.5 + Math.random() * 1}s`
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Steam effects for coffee areas */}
-      {currentSeat?.includes('counter') && (
-        <div className="absolute bottom-20 left-1/4 opacity-60">
-          {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className="steam-particle animate-pulse"
-              style={{
-                left: `${i * 20}px`,
-                animationDelay: `${i * 0.5}s`
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Atmospheric Controls */}
-      <Card className="absolute top-4 left-4 bg-white/80 backdrop-blur-sm border-[#8B4513]/20">
-        <div className="p-3">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex items-center gap-2">
-              {getWeatherIcon()}
-              <span className="text-sm font-medium capitalize">{weather}</span>
-            </div>
-            <div className="text-sm text-[#95A5A6] capitalize">{timeOfDay}</div>
-          </div>
-
-          {/* Audio Controls */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setAudioEnabled(!audioEnabled)}
-                className="p-1"
-              >
-                {audioEnabled ? 
-                  <Volume2 className="h-4 w-4 text-[#8B4513]" /> : 
-                  <VolumeX className="h-4 w-4 text-[#95A5A6]" />
-                }
-              </Button>
-              <span className="text-xs text-[#95A5A6]">
-                {audioEnabled ? 'Audio On' : 'Audio Off'}
-              </span>
-            </div>
-
-            {audioEnabled && (
-              <div className="grid grid-cols-2 gap-1">
-                {audioOptions.map((option) => (
-                  <Button
-                    key={option.id}
-                    variant={currentAudio === option.id ? "default" : "ghost"}
-                    size="sm"
-                    className={`text-xs h-8 ${
-                      currentAudio === option.id 
-                        ? 'bg-[#8B4513] text-white' 
-                        : 'text-[#8B4513] hover:bg-[#8B4513]/10'
-                    }`}
-                    onClick={() => setCurrentAudio(option.id)}
-                  >
-                    <span className="mr-1">{option.icon}</span>
-                    {option.name}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      {/* Seat-specific view information */}
-      {seatView && (
-        <Card className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm border-[#8B4513]/20 max-w-xs">
-          <div className="p-3">
-            <h4 className="font-medium text-[#8B4513] mb-1">{seatView.view}</h4>
-            <p className="text-xs text-[#95A5A6] mb-2">{seatView.description}</p>
-            <div className="space-y-1">
-              {seatView.elements.map((element, index) => (
-                <div key={index} className="text-xs text-[#8B4513] flex items-center gap-1">
-                  <div className="w-1 h-1 bg-[#8B4513] rounded-full" />
-                  {element}
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-      )}
+    <div 
+      className="absolute inset-0 transition-all duration-1000"
+      style={{
+        background: getBackgroundGradient(),
+        opacity: 0.95
+      }}
+    >
+      {/* Weather particles */}
+      {particles.map((particle) => (
+        <div
+          key={particle.id}
+          className={`absolute rounded-full ${
+            weather === 'rainy' ? 'bg-blue-300' : 'bg-white'
+          } opacity-70 animate-pulse`}
+          style={{
+            left: `${particle.x}%`,
+            top: `${particle.y}%`,
+            width: `${particle.size}px`,
+            height: `${particle.size}px`,
+            animationDelay: `${particle.id * 100}ms`
+          }}
+        />
+      ))}
+      
+      {/* Atmospheric overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
     </div>
   );
 };
