@@ -1,36 +1,35 @@
-
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Coffee, Users, Music, MapPin, Sparkles } from 'lucide-react';
 import { CoffeeShopExperience } from './CoffeeShopExperience';
-import { toast } from 'sonner';
+import { CinematicLanding } from './CinematicLanding';
 
 export const InteractiveCommunityHub = () => {
-  const [currentExperience, setCurrentExperience] = useState<'hub' | 'coffee-shop'>('hub');
-  const [userPoints, setUserPoints] = useState(150);
-
-  const handleEarnPoints = (points: number) => {
-    setUserPoints(prev => prev + points);
-    toast.success(`+${points} points earned! 🎉`);
-  };
+  const [currentExperience, setCurrentExperience] = useState<'hub' | 'cinematic' | 'coffee-shop'>('hub');
 
   const handleEnterCoffeeShop = () => {
+    setCurrentExperience('cinematic');
+  };
+
+  const handleCinematicComplete = () => {
     setCurrentExperience('coffee-shop');
-    handleEarnPoints(1);
   };
 
   const handleBackToHub = () => {
     setCurrentExperience('hub');
   };
 
+  if (currentExperience === 'cinematic') {
+    return (
+      <CinematicLanding onEnterCoffeeShop={handleCinematicComplete} />
+    );
+  }
+
   if (currentExperience === 'coffee-shop') {
     return (
-      <CoffeeShopExperience
-        onEarnPoints={handleEarnPoints}
-        onBack={handleBackToHub}
-      />
+      <CoffeeShopExperience onBack={handleBackToHub} />
     );
   }
 
@@ -41,9 +40,6 @@ export const InteractiveCommunityHub = () => {
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#8B4513]/10 to-[#D2B48C]/10 rounded-full border border-[#8B4513]/20">
           <Sparkles className="h-5 w-5 text-[#8B4513]" />
           <span className="text-[#8B4513] font-medium">Welcome to Raw Smith Virtual Café</span>
-          <Badge className="bg-[#8B4513] text-white">
-            {userPoints} Points
-          </Badge>
         </div>
         <h2 className="text-3xl font-bold text-black">
           Your Digital Coffee Experience Awaits

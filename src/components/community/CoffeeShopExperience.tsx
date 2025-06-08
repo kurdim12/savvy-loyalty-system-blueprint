@@ -7,11 +7,10 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 interface CoffeeShopExperienceProps {
-  onEarnPoints: (points: number) => void;
   onBack?: () => void;
 }
 
-export const CoffeeShopExperience = ({ onEarnPoints, onBack }: CoffeeShopExperienceProps) => {
+export const CoffeeShopExperience = ({ onBack }: CoffeeShopExperienceProps) => {
   const [currentView, setCurrentView] = useState<'floor-plan' | 'seated'>('floor-plan');
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
   const [showPrivateChat, setShowPrivateChat] = useState(false);
@@ -19,7 +18,6 @@ export const CoffeeShopExperience = ({ onEarnPoints, onBack }: CoffeeShopExperie
   const handleSeatSelect = (seatId: string) => {
     setSelectedSeat(seatId);
     setCurrentView('seated');
-    onEarnPoints(2); // Award points for selecting a seat
   };
 
   const handleStandUp = () => {
@@ -59,7 +57,6 @@ export const CoffeeShopExperience = ({ onEarnPoints, onBack }: CoffeeShopExperie
         <CoffeeShopSeated 
           seatId={selectedSeat!}
           onLeave={handleStandUp}
-          onEarnPoints={onEarnPoints}
         />
       )}
 

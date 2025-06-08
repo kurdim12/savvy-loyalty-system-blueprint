@@ -3,21 +3,16 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Coffee, MessageCircle, Users, Star, Gamepad2, Sparkles } from 'lucide-react';
-import { EnhancedCommunityChat } from './EnhancedCommunityChat';
-import { SitChillTimer } from './SitChillTimer';
-import { AIBarista } from './AIBarista';
-import { CoffeeActivities } from './CoffeeActivities';
+import { Coffee, MessageCircle, Users, Star, Music, Sparkles } from 'lucide-react';
 import { AtmosphericBackground } from './AtmosphericBackground';
 
 interface CoffeeShopSeatedProps {
   seatId: string;
-  onEarnPoints?: (points: number) => void;
   onLeave: () => void;
 }
 
-export const CoffeeShopSeated = ({ seatId, onEarnPoints, onLeave }: CoffeeShopSeatedProps) => {
-  const [activeTab, setActiveTab] = useState<'chill' | 'chat' | 'barista' | 'activities'>('chill');
+export const CoffeeShopSeated = ({ seatId, onLeave }: CoffeeShopSeatedProps) => {
+  const [activeTab, setActiveTab] = useState<'chill' | 'music' | 'chat' | 'order'>('chill');
 
   const seatViews = {
     'seat-1': {
@@ -52,27 +47,8 @@ export const CoffeeShopSeated = ({ seatId, onEarnPoints, onLeave }: CoffeeShopSe
 
   const currentSeat = seatViews[seatId as keyof typeof seatViews] || seatViews['seat-1'];
 
-  const dailySpecial = {
-    name: 'Ethiopian Yirgacheffe',
-    origin: 'Yirgacheffe, Ethiopia',
-    notes: 'Bright citrus, floral, honey sweetness',
-    rating: 4.8,
-    price: '$4.50'
-  };
-
   const handleOrderCoffee = () => {
     console.log('Coffee ordered!');
-    onEarnPoints?.(3);
-  };
-
-  const handleLearnMore = (topic: string) => {
-    console.log('Learning more about:', topic);
-    onEarnPoints?.(2);
-  };
-
-  const handleActivityComplete = (activityId: string, score: number) => {
-    console.log('Activity completed:', activityId, 'Score:', score);
-    onEarnPoints?.(5);
   };
 
   return (
@@ -113,10 +89,10 @@ export const CoffeeShopSeated = ({ seatId, onEarnPoints, onLeave }: CoffeeShopSe
         {/* Enhanced Tab Navigation */}
         <div className="flex gap-2 mb-6">
           {[
-            { key: 'chill', label: 'Chill & Earn', icon: Coffee },
-            { key: 'chat', label: 'Community Chat', icon: MessageCircle },
-            { key: 'barista', label: 'AI Barista', icon: Star },
-            { key: 'activities', label: 'Activities', icon: Gamepad2 }
+            { key: 'chill', label: 'Chill', icon: Coffee },
+            { key: 'music', label: 'Music Requests', icon: Music },
+            { key: 'chat', label: 'Chat', icon: MessageCircle },
+            { key: 'order', label: 'Order', icon: Star }
           ].map(({ key, label, icon: Icon }) => (
             <Button
               key={key}
@@ -134,13 +110,13 @@ export const CoffeeShopSeated = ({ seatId, onEarnPoints, onLeave }: CoffeeShopSe
           ))}
         </div>
 
-        {/* Enhanced Tab Content */}
+        {/* Tab Content */}
         <div className="flex-1 overflow-hidden">
           {activeTab === 'chill' && (
             <div className="h-full flex items-center justify-center">
               <Card className="bg-white/95 backdrop-blur-sm border-white/50 max-w-lg w-full">
                 <CardContent className="p-6">
-                  <div className="text-center mb-6">
+                  <div className="text-center">
                     <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-[#8B4513] to-[#D2B48C] rounded-full flex items-center justify-center">
                       <Sparkles className="h-12 w-12 text-white" />
                     </div>
@@ -149,7 +125,29 @@ export const CoffeeShopSeated = ({ seatId, onEarnPoints, onLeave }: CoffeeShopSe
                       Relax and soak in the café atmosphere. Let time slow down as you enjoy this moment.
                     </p>
                   </div>
-                  <SitChillTimer onPointsEarned={onEarnPoints} />
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'music' && (
+            <div className="h-full max-w-4xl mx-auto">
+              <Card className="bg-white/95 backdrop-blur-sm border-white/50 h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-[#8B4513]">
+                    <Music className="h-5 w-5" />
+                    Music Request Station
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-[#95A5A6]">Request your favorite songs and vote for tracks. Most voted songs will play automatically!</p>
+                  
+                  {/* Song Request Interface would go here */}
+                  <div className="bg-gray-50 p-4 rounded-lg text-center">
+                    <Music className="h-8 w-8 mx-auto mb-2 text-[#8B4513]" />
+                    <p className="text-[#8B4513] font-medium">Song Request Feature</p>
+                    <p className="text-sm text-[#95A5A6]">Coming Soon - Spotify Integration</p>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -157,64 +155,55 @@ export const CoffeeShopSeated = ({ seatId, onEarnPoints, onLeave }: CoffeeShopSe
 
           {activeTab === 'chat' && (
             <div className="h-full max-w-4xl mx-auto">
-              <EnhancedCommunityChat 
-                tableId={seatId}
-                title={`${currentSeat.name} Chat`}
-              />
+              <Card className="bg-white/95 backdrop-blur-sm border-white/50 h-full">
+                <CardContent className="p-6 h-full flex items-center justify-center">
+                  <div className="text-center">
+                    <MessageCircle className="h-12 w-12 mx-auto mb-4 text-[#8B4513]" />
+                    <h3 className="text-lg font-medium text-[#8B4513] mb-2">Private Chat Available</h3>
+                    <p className="text-[#95A5A6]">Chat with people in your seating area through the floor plan</p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
-          {activeTab === 'barista' && (
+          {activeTab === 'order' && (
             <div className="h-full overflow-y-auto max-w-4xl mx-auto">
-              <div className="space-y-4">
-                <AIBarista 
-                  onOrderCoffee={handleOrderCoffee}
-                  onLearnMore={handleLearnMore}
-                />
-                
-                {/* Daily Special Card */}
-                <Card className="bg-white/95 backdrop-blur-sm border-white/50">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-[#8B4513]">
-                      <Star className="h-5 w-5" />
-                      Today's Special
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center">
-                      <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-[#8B4513] to-[#D2B48C] rounded-full flex items-center justify-center">
-                        <Coffee className="h-10 w-10 text-white" />
-                      </div>
-                      
-                      <h3 className="text-lg font-bold text-[#8B4513] mb-2">{dailySpecial.name}</h3>
-                      <p className="text-[#95A5A6] mb-3">{dailySpecial.origin}</p>
-                      <p className="text-sm text-[#8B4513] mb-4">{dailySpecial.notes}</p>
-                      
-                      <div className="flex items-center justify-center gap-4 mb-4">
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                          <span className="font-medium">{dailySpecial.rating}</span>
-                        </div>
-                        <div className="text-lg font-bold text-[#8B4513]">{dailySpecial.price}</div>
-                      </div>
-                      
-                      <Button 
-                        onClick={handleOrderCoffee}
-                        className="w-full bg-[#8B4513] hover:bg-[#8B4513]/90 text-white"
-                      >
-                        <Coffee className="h-4 w-4 mr-2" />
-                        Order Now
-                      </Button>
+              <Card className="bg-white/95 backdrop-blur-sm border-white/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-[#8B4513]">
+                    <Star className="h-5 w-5" />
+                    Today's Special
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-[#8B4513] to-[#D2B48C] rounded-full flex items-center justify-center">
+                      <Coffee className="h-10 w-10 text-white" />
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'activities' && (
-            <div className="h-full overflow-y-auto max-w-4xl mx-auto">
-              <CoffeeActivities onActivityComplete={handleActivityComplete} />
+                    
+                    <h3 className="text-lg font-bold text-[#8B4513] mb-2">Ethiopian Yirgacheffe</h3>
+                    <p className="text-[#95A5A6] mb-3">Yirgacheffe, Ethiopia</p>
+                    <p className="text-sm text-[#8B4513] mb-4">Bright citrus, floral, honey sweetness</p>
+                    
+                    <div className="flex items-center justify-center gap-4 mb-4">
+                      <div className="flex items-center gap-1">
+                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                        <span className="font-medium">4.8</span>
+                      </div>
+                      <div className="text-lg font-bold text-[#8B4513]">$4.50</div>
+                    </div>
+                    
+                    <Button 
+                      onClick={handleOrderCoffee}
+                      className="w-full bg-[#8B4513] hover:bg-[#8B4513]/90 text-white"
+                    >
+                      <Coffee className="h-4 w-4 mr-2" />
+                      Order Now
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
         </div>
