@@ -37,7 +37,7 @@ export const CoffeeShopExperience = ({ onBack }: CoffeeShopExperienceProps) => {
   };
 
   return (
-    <div className="relative w-full h-screen bg-gradient-to-br from-[#8B4513]/10 to-[#D2B48C]/20">
+    <div className="relative w-full h-screen bg-gradient-to-br from-[#8B4513]/10 to-[#D2B48C]/20 overflow-hidden">
       {/* Back Button */}
       {onBack && (
         <Button
@@ -50,18 +50,20 @@ export const CoffeeShopExperience = ({ onBack }: CoffeeShopExperienceProps) => {
         </Button>
       )}
 
-      {/* Main View - Always show Enhanced Floor Plan by default */}
-      {currentView === 'floor-plan' ? (
-        <EnhancedFloorPlan 
-          onSeatSelect={handleSeatSelect}
-          onStartPrivateChat={handleStartPrivateChat}
-        />
-      ) : (
-        <CoffeeShopSeated 
-          seatId={selectedSeat!}
-          onLeave={handleStandUp}
-        />
-      )}
+      {/* Main Coffee Shop Experience - Always show Enhanced Floor Plan */}
+      <div className="w-full h-full">
+        {currentView === 'floor-plan' ? (
+          <EnhancedFloorPlan 
+            onSeatSelect={handleSeatSelect}
+            onStartPrivateChat={handleStartPrivateChat}
+          />
+        ) : (
+          <CoffeeShopSeated 
+            seatId={selectedSeat!}
+            onLeave={handleStandUp}
+          />
+        )}
+      </div>
 
       {/* Private Chat System Overlay */}
       {showPrivateChat && selectedSeat && (

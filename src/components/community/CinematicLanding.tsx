@@ -22,6 +22,15 @@ export const CinematicLanding = ({ onEnterCoffeeShop }: CinematicLandingProps) =
       duration: 2,
       ease: "power2.out"
     });
+
+    // Auto-transition after 3 seconds or user can click to enter immediately
+    const autoTransitionTimer = setTimeout(() => {
+      if (!isEntering) {
+        handleEnterCoffeeShop();
+      }
+    }, 4000);
+
+    return () => clearTimeout(autoTransitionTimer);
   }, []);
 
   const handleEnterCoffeeShop = async () => {
@@ -91,6 +100,11 @@ export const CinematicLanding = ({ onEnterCoffeeShop }: CinematicLandingProps) =
           </span>
           <div className="button-glow" />
         </button>
+
+        {/* Auto-enter hint */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/70 text-sm animate-pulse">
+          Entering automatically in a few seconds...
+        </div>
 
         {/* Coffee Steam Effects */}
         <div className="steam-effects">
