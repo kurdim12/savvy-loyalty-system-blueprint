@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Send, MessageCircle, Users, Smile } from 'lucide-react';
+import { Send, MessageCircle, Users, Smile, Hash } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -31,6 +31,7 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
   const { user } = useAuth();
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
@@ -73,6 +74,8 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
 
   // Real-time subscription for new messages
   useEffect(() => {
+    setConnectionStatus('connecting');
+    
     const channel = supabase
       .channel(`area-chat-${seatArea}`)
       .on(
@@ -86,6 +89,13 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
         (payload) => {
           console.log('New message received:', payload);
           queryClient.invalidateQueries({ queryKey: ['area-messages', seatArea] });
+          
+          // Show notification for new messages from other users
+          if (payload.new.user_id !== user?.id) {
+            toast.success('📨 New message in area chat!', {
+              duration: 2000,
+            });
+          }
         }
       )
       .on(
@@ -100,12 +110,15 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
           queryClient.invalidateQueries({ queryKey: ['area-messages', seatArea] });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Chat subscription status:', status);
+        setConnectionStatus(status === 'SUBSCRIBED' ? 'connected' : 'disconnected');
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [seatArea, queryClient]);
+  }, [seatArea, queryClient, user?.id]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -134,10 +147,15 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
       setNewMessage('');
       setIsTyping(false);
       queryClient.invalidateQueries({ queryKey: ['area-messages', seatArea] });
+      toast.success('Message sent!', { duration: 1000 });
     },
     onError: (error: any) => {
       console.error('Failed to send message:', error);
-      toast.error('Failed to send message. Please try again.');
+      if (error.message?.includes('not authenticated')) {
+        toast.error('Please sign in to send messages');
+      } else {
+        toast.error('Failed to send message. Please try again.');
+      }
     }
   });
 
@@ -181,36 +199,63 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
     return `${message.profiles.first_name || ''} ${message.profiles.last_name || ''}`.trim() || 'Anonymous';
   };
 
+  const getConnectionStatusColor = () => {
+    switch (connectionStatus) {
+      case 'connected': return 'text-green-500';
+      case 'connecting': return 'text-yellow-500';
+      case 'disconnected': return 'text-red-500';
+      default: return 'text-gray-500';
+    }
+  };
+
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-[#8B4513]">
-          <MessageCircle className="h-5 w-5" />
-          Area Chat
-          <Badge className="bg-[#8B4513]/10 text-[#8B4513]">
-            <Users className="h-3 w-3 mr-1" />
-            {onlineUsers.length}
-          </Badge>
+    <Card className="h-full flex flex-col bg-white/95 backdrop-blur-sm border-[#8B4513]/20">
+      <CardHeader className="pb-3 border-b border-[#8B4513]/10">
+        <CardTitle className="flex items-center justify-between text-[#8B4513]">
+          <div className="flex items-center gap-2">
+            <MessageCircle className="h-5 w-5" />
+            <span>Area Chat</span>
+            <Badge className="bg-[#8B4513]/10 text-[#8B4513]">
+              <Users className="h-3 w-3 mr-1" />
+              {onlineUsers.length}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${connectionStatus === 'connected' ? 'bg-green-500' : connectionStatus === 'connecting' ? 'bg-yellow-500' : 'bg-red-500'}`} />
+            <span className={`text-xs ${getConnectionStatusColor()}`}>
+              {connectionStatus}
+            </span>
+          </div>
         </CardTitle>
         {seatArea && (
-          <Badge variant="outline" className="text-xs w-fit">
-            {seatArea.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} Area
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Hash className="h-3 w-3 text-gray-500" />
+            <Badge variant="outline" className="text-xs border-[#8B4513]/20">
+              {seatArea.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} Area
+            </Badge>
+          </div>
         )}
       </CardHeader>
       
       <CardContent className="flex-1 flex flex-col gap-3 p-4">
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+        <div className="flex-1 overflow-y-auto space-y-3 pr-2 max-h-96">
           {isLoading ? (
-            <div className="text-center text-gray-500 py-4">Loading chat...</div>
+            <div className="text-center text-gray-500 py-4">
+              <MessageCircle className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+              Loading chat...
+            </div>
           ) : error ? (
             <div className="text-center text-red-500 py-4">
-              Failed to load messages. Please try refreshing.
+              <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="font-medium">Failed to load messages</p>
+              <p className="text-sm">Please try refreshing the page</p>
             </div>
           ) : messages.length === 0 ? (
-            <div className="text-center text-gray-500 py-4">
-              No messages yet. Start chatting with people in your area!
+            <div className="text-center text-gray-500 py-8">
+              <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-30" />
+              <p className="text-lg font-medium mb-2">No messages yet</p>
+              <p className="text-sm">Start chatting with people in your area!</p>
             </div>
           ) : (
             messages.map((message) => (
@@ -219,16 +264,16 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
                 className={`flex ${message.user_id === user?.id ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
+                  className={`max-w-[80%] rounded-lg p-3 shadow-sm ${
                     message.user_id === user?.id
                       ? 'bg-[#8B4513] text-white'
-                      : 'bg-gray-100 text-gray-900'
+                      : 'bg-gray-100 text-gray-900 border border-gray-200'
                   }`}
                 >
                   <div className="text-xs opacity-75 mb-1">
                     {getDisplayName(message)} • {formatTime(message.created_at)}
                   </div>
-                  <div className="text-sm">{message.body}</div>
+                  <div className="text-sm break-words">{message.body}</div>
                 </div>
               </div>
             ))
@@ -237,7 +282,7 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
           {/* Typing Indicator */}
           {isTyping && (
             <div className="flex justify-start">
-              <div className="bg-gray-100 text-gray-900 rounded-lg p-3 max-w-[80%]">
+              <div className="bg-blue-100 text-blue-900 rounded-lg p-3 max-w-[80%] border border-blue-200">
                 <div className="text-xs opacity-75 mb-1">You</div>
                 <div className="text-sm italic flex items-center gap-1">
                   <Smile className="h-3 w-3" />
@@ -251,29 +296,33 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
         </div>
         
         {/* Message Input */}
-        <form onSubmit={handleSubmit} className="flex gap-2">
+        <form onSubmit={handleSubmit} className="flex gap-2 border-t border-[#8B4513]/10 pt-3">
           <Input
             value={newMessage}
             onChange={(e) => {
               setNewMessage(e.target.value);
               handleTyping();
             }}
-            placeholder="Chat with your area..."
-            className="flex-1 border-[#8B4513]/20 focus:border-[#8B4513]"
+            placeholder={user ? "Chat with your area..." : "Sign in to chat..."}
+            className="flex-1 border-[#8B4513]/20 focus:border-[#8B4513] focus:ring-[#8B4513]/20"
             disabled={!user || sendMessageMutation.isPending}
             maxLength={500}
           />
           <Button
             type="submit"
             disabled={!newMessage.trim() || !user || sendMessageMutation.isPending}
-            className="bg-[#8B4513] hover:bg-[#8B4513]/90"
+            className="bg-[#8B4513] hover:bg-[#8B4513]/90 text-white px-4 shadow-lg"
           >
-            <Send className="h-4 w-4" />
+            {sendMessageMutation.isPending ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
           </Button>
         </form>
         
         {!user && (
-          <div className="text-center text-gray-500 text-sm">
+          <div className="text-center text-gray-500 text-sm bg-gray-50 p-3 rounded-lg">
             Please sign in to join the conversation
           </div>
         )}

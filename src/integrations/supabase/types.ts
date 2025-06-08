@@ -701,6 +701,65 @@ export type Database = {
         }
         Relationships: []
       }
+      song_requests: {
+        Row: {
+          area_id: string
+          artist_name: string
+          created_at: string
+          id: string
+          requested_by: string
+          song_name: string
+          votes: number
+        }
+        Insert: {
+          area_id: string
+          artist_name: string
+          created_at?: string
+          id?: string
+          requested_by: string
+          song_name: string
+          votes?: number
+        }
+        Update: {
+          area_id?: string
+          artist_name?: string
+          created_at?: string
+          id?: string
+          requested_by?: string
+          song_name?: string
+          votes?: number
+        }
+        Relationships: []
+      }
+      song_votes: {
+        Row: {
+          created_at: string
+          id: string
+          request_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          request_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          request_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "song_votes_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "song_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       threads: {
         Row: {
           created_at: string | null
@@ -836,6 +895,10 @@ export type Database = {
       }
       increment_points: {
         Args: { user_id: string; point_amount: number }
+        Returns: undefined
+      }
+      increment_song_votes: {
+        Args: { request_id: string }
         Returns: undefined
       }
       is_admin: {
