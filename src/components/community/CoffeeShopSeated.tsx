@@ -30,7 +30,7 @@ export const CoffeeShopSeated = ({ seatId, onLeave }: CoffeeShopSeatedProps) => 
       view: 'Street View',
       background: 'linear-gradient(135deg, #F5DEB3 0%, #DEB887 50%, #D2B48C 100%)',
       description: 'Watch the world go by while enjoying your coffee',
-      weather: 'sunny' as const,
+      weather: 'sunny' as 'sunny' | 'cloudy' | 'rainy' | 'evening' | 'snowy',
       occupancy: 12
     },
     'seat-2': {
@@ -38,7 +38,7 @@ export const CoffeeShopSeated = ({ seatId, onLeave }: CoffeeShopSeatedProps) => 
       view: 'Garden View',
       background: 'linear-gradient(135deg, #E6D7C7 0%, #D2B48C 50%, #C1A882 100%)',
       description: 'Peaceful garden views for quiet contemplation',
-      weather: 'cloudy' as const,
+      weather: 'cloudy' as 'sunny' | 'cloudy' | 'rainy' | 'evening' | 'snowy',
       occupancy: 8
     },
     'seat-3': {
@@ -46,7 +46,7 @@ export const CoffeeShopSeated = ({ seatId, onLeave }: CoffeeShopSeatedProps) => 
       view: 'Barista View', 
       background: 'linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #CD853F 100%)',
       description: 'Front row seat to the coffee-making magic',
-      weather: 'evening' as const,
+      weather: 'evening' as 'sunny' | 'cloudy' | 'rainy' | 'evening' | 'snowy',
       occupancy: 15
     },
     'seat-4': {
@@ -54,7 +54,7 @@ export const CoffeeShopSeated = ({ seatId, onLeave }: CoffeeShopSeatedProps) => 
       view: 'Fireplace View',
       background: 'linear-gradient(135deg, #DEB887 0%, #D2B48C 50%, #BC9A6A 100%)',
       description: 'Cozy warmth by the fireplace',
-      weather: 'rainy' as const,
+      weather: 'rainy' as 'sunny' | 'cloudy' | 'rainy' | 'evening' | 'snowy',
       occupancy: 6
     }
   };
