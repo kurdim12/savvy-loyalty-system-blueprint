@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
-import { CoffeeShopFloorPlan } from './CoffeeShopFloorPlan';
+import { EnhancedFloorPlan } from './EnhancedFloorPlan';
 import { CoffeeShopSeated } from './CoffeeShopSeated';
+import { PrivateChatSystem } from './PrivateChatSystem';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
@@ -13,6 +14,7 @@ interface CoffeeShopExperienceProps {
 export const CoffeeShopExperience = ({ onEarnPoints, onBack }: CoffeeShopExperienceProps) => {
   const [currentView, setCurrentView] = useState<'floor-plan' | 'seated'>('floor-plan');
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
+  const [showPrivateChat, setShowPrivateChat] = useState(false);
 
   const handleSeatSelect = (seatId: string) => {
     setSelectedSeat(seatId);
@@ -23,11 +25,15 @@ export const CoffeeShopExperience = ({ onEarnPoints, onBack }: CoffeeShopExperie
   const handleStandUp = () => {
     setCurrentView('floor-plan');
     setSelectedSeat(null);
+    setShowPrivateChat(false);
   };
 
-  const handleViewChange = (view: 'interior') => {
-    // Handle view change if needed
-    console.log('View change requested:', view);
+  const handleStartPrivateChat = (userId: string) => {
+    setShowPrivateChat(true);
+  };
+
+  const handleClosePrivateChat = () => {
+    setShowPrivateChat(false);
   };
 
   return (
@@ -45,15 +51,23 @@ export const CoffeeShopExperience = ({ onEarnPoints, onBack }: CoffeeShopExperie
       )}
 
       {currentView === 'floor-plan' ? (
-        <CoffeeShopFloorPlan 
+        <EnhancedFloorPlan 
           onSeatSelect={handleSeatSelect}
-          onViewChange={handleViewChange}
+          onStartPrivateChat={handleStartPrivateChat}
         />
       ) : (
         <CoffeeShopSeated 
           seatId={selectedSeat!}
           onLeave={handleStandUp}
           onEarnPoints={onEarnPoints}
+        />
+      )}
+
+      {/* Private Chat System */}
+      {showPrivateChat && selectedSeat && (
+        <PrivateChatSystem
+          currentSeatId={selectedSeat}
+          onClose={handleClosePrivateChat}
         />
       )}
     </div>

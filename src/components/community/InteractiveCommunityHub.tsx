@@ -1,230 +1,177 @@
 
-import { LivePointsDisplay } from './LivePointsDisplay';
-import { SitChillTimer } from './SitChillTimer';
-import { EnhancedCommunityChat } from './EnhancedCommunityChat';
-import { CoffeeShopExperience } from './CoffeeShopExperience';
-import { CinematicLanding } from './CinematicLanding';
-import { CoffeeActivities } from './CoffeeActivities';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Coffee, MessageSquare, Timer, Store, Gamepad2, Sparkles, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Coffee, Users, Music, MapPin, Sparkles } from 'lucide-react';
+import { CoffeeShopExperience } from './CoffeeShopExperience';
+import { toast } from 'sonner';
 
 export const InteractiveCommunityHub = () => {
-  const [currentView, setCurrentView] = useState<'landing' | 'hub' | 'coffee-shop'>('landing');
+  const [currentExperience, setCurrentExperience] = useState<'hub' | 'coffee-shop'>('hub');
+  const [userPoints, setUserPoints] = useState(150);
 
-  const handleEnterCoffeeShop = () => {
-    setCurrentView('hub');
+  const handleEarnPoints = (points: number) => {
+    setUserPoints(prev => prev + points);
+    toast.success(`+${points} points earned! 🎉`);
   };
 
-  const handleShowCoffeeShop = () => {
-    setCurrentView('coffee-shop');
+  const handleEnterCoffeeShop = () => {
+    setCurrentExperience('coffee-shop');
+    handleEarnPoints(1);
   };
 
   const handleBackToHub = () => {
-    setCurrentView('hub');
+    setCurrentExperience('hub');
   };
 
-  if (currentView === 'landing') {
-    return <CinematicLanding onEnterCoffeeShop={handleEnterCoffeeShop} />;
-  }
-
-  if (currentView === 'coffee-shop') {
+  if (currentExperience === 'coffee-shop') {
     return (
-      <CoffeeShopExperience 
-        onEarnPoints={(points) => {
-          console.log(`🎉 Earned ${points} points from coffee shop experience!`);
-        }}
+      <CoffeeShopExperience
+        onEarnPoints={handleEarnPoints}
         onBack={handleBackToHub}
       />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FAF6F0] via-white to-[#F5E6D3] p-4">
-      {/* Enhanced Header with Live Points */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-[#8B4513] flex items-center gap-2">
-            <Coffee className="h-8 w-8" />
-            Community Café
-            <Badge className="bg-gradient-to-r from-[#8B4513] to-[#D2B48C] text-white">
-              <Sparkles className="h-3 w-3 mr-1" />
-              Enhanced
-            </Badge>
-          </h1>
-          <p className="text-[#95A5A6] flex items-center gap-2 mt-1">
-            <Users className="h-4 w-4" />
-            Connect, chill, learn, and earn rewards
-          </p>
+    <div className="space-y-8">
+      {/* Welcome Header */}
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#8B4513]/10 to-[#D2B48C]/10 rounded-full border border-[#8B4513]/20">
+          <Sparkles className="h-5 w-5 text-[#8B4513]" />
+          <span className="text-[#8B4513] font-medium">Welcome to Raw Smith Virtual Café</span>
+          <Badge className="bg-[#8B4513] text-white">
+            {userPoints} Points
+          </Badge>
         </div>
-        <div className="flex gap-3">
-          <Button
-            onClick={() => setCurrentView('landing')}
-            variant="outline"
-            className="text-[#8B4513] border-[#8B4513] hover:bg-[#8B4513]/10"
-          >
-            Return to Entrance
-          </Button>
-          <LivePointsDisplay />
-        </div>
+        <h2 className="text-3xl font-bold text-black">
+          Your Digital Coffee Experience Awaits
+        </h2>
+        <p className="text-lg text-[#95A5A6] max-w-2xl mx-auto">
+          Step into our immersive virtual café space where you can enjoy premium coffee culture, 
+          connect with fellow enthusiasts, and discover new experiences.
+        </p>
       </div>
 
-      {/* Coffee Shop Experience Toggle */}
-      <div className="mb-6">
-        <Card className="bg-gradient-to-r from-[#8B4513]/10 to-[#D2B48C]/20 border-[#8B4513]/30">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-[#8B4513] mb-1">
-                  Immersive Virtual Café Experience
-                </h3>
-                <p className="text-[#95A5A6] text-sm">
-                  Step into our fully interactive café with atmospheric effects, AI barista, and activities
-                </p>
-              </div>
-              <Button
-                onClick={handleShowCoffeeShop}
-                className="bg-gradient-to-r from-[#8B4513] to-[#D2B48C] hover:from-[#8B4513]/90 hover:to-[#D2B48C]/90 text-white px-6 py-3 text-lg font-medium transition-all duration-300"
-              >
-                <Store className="h-5 w-5 mr-2" />
-                Enter Virtual Café
-              </Button>
+      {/* Enhanced Virtual Café Entry */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Main Café Experience */}
+        <Card className="group cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-105 bg-gradient-to-br from-[#8B4513]/5 to-[#D2B48C]/10 border-[#8B4513]/20">
+          <CardContent className="p-8 text-center">
+            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-[#8B4513] to-[#D2B48C] rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Coffee className="h-10 w-10 text-white" />
             </div>
+            
+            <h3 className="text-2xl font-bold text-[#8B4513] mb-4">Enter Virtual Café</h3>
+            <p className="text-[#95A5A6] mb-6 leading-relaxed">
+              Experience our premium coffee shop with enhanced seating areas, music voting, 
+              and private chat with nearby coffee lovers.
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-[#8B4513]" />
+                <span className="text-sm text-[#8B4513]">Premium Seating</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Music className="h-4 w-4 text-[#8B4513]" />
+                <span className="text-sm text-[#8B4513]">Music Voting</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-[#8B4513]" />
+                <span className="text-sm text-[#8B4513]">Private Chat</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-[#8B4513]" />
+                <span className="text-sm text-[#8B4513]">Atmosphere</span>
+              </div>
+            </div>
+            
+            <Button
+              onClick={handleEnterCoffeeShop}
+              className="w-full bg-[#8B4513] hover:bg-[#8B4513]/90 text-white font-medium py-3 text-lg group-hover:shadow-lg transition-shadow"
+            >
+              Enter Café Experience
+            </Button>
           </CardContent>
         </Card>
+
+        {/* Features Preview */}
+        <div className="space-y-4">
+          <Card className="bg-gradient-to-r from-blue-50 to-sky-50 border-sky-200">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <Music className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Spotify Integration</h4>
+                  <p className="text-sm text-gray-600">Vote for your favorite tracks - most voted songs play automatically</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-emerald-200">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Private Conversations</h4>
+                  <p className="text-sm text-gray-600">Chat privately with people in your seating area</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-amber-500 rounded-lg flex items-center justify-center">
+                  <MapPin className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Premium Seating Areas</h4>
+                  <p className="text-sm text-gray-600">Choose from VIP lounges, window seats, cozy nooks, and more</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-r from-purple-50 to-violet-50 border-purple-200">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Atmospheric Experience</h4>
+                  <p className="text-sm text-gray-600">Dynamic lighting, weather effects, and ambient sounds</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-        {/* Left Column: Chill Area */}
-        <div className="space-y-6">
-          <Card className="bg-gradient-to-br from-[#8B4513]/5 to-[#D2B48C]/10 border-[#8B4513]/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[#8B4513]">
-                <Coffee className="h-5 w-5" />
-                Chill Zone
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center mb-6">
-                <div className="w-32 h-32 mx-auto bg-gradient-to-br from-[#8B4513]/20 to-[#D2B48C]/30 rounded-full flex items-center justify-center mb-4">
-                  <Timer className="h-12 w-12 text-[#8B4513]" />
-                </div>
-                <h3 className="text-xl font-semibold text-[#8B4513] mb-2">Take a Coffee Break</h3>
-                <p className="text-[#95A5A6] text-sm mb-4">
-                  Sit back, relax, and enjoy the café atmosphere
-                </p>
-              </div>
-              
-              <SitChillTimer onPointsEarned={(points) => {
-                console.log(`🎉 Earned ${points} points from chilling!`);
-              }} />
-            </CardContent>
-          </Card>
-
-          {/* Enhanced Community Stats */}
-          <Card className="border-[#8B4513]/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[#8B4513]">
-                <TrendingUp className="h-5 w-5" />
-                Live Community Stats
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4 text-center">
-                <div className="p-4 bg-[#8B4513]/5 rounded-lg">
-                  <div className="text-2xl font-bold text-[#8B4513]">127</div>
-                  <div className="text-sm text-[#95A5A6]">Active Members</div>
-                  <div className="text-xs text-green-600 mt-1">+12 today</div>
-                </div>
-                <div className="p-4 bg-[#D2B48C]/10 rounded-lg">
-                  <div className="text-2xl font-bold text-[#8B4513]">1,234</div>
-                  <div className="text-sm text-[#95A5A6]">Points Earned Today</div>
-                  <div className="text-xs text-green-600 mt-1">+234 this hour</div>
-                </div>
-                <div className="p-4 bg-[#8B4513]/5 rounded-lg">
-                  <div className="text-2xl font-bold text-[#8B4513]">89</div>
-                  <div className="text-sm text-[#95A5A6]">Activities Completed</div>
-                  <div className="text-xs text-blue-600 mt-1">+15 today</div>
-                </div>
-                <div className="p-4 bg-[#D2B48C]/10 rounded-lg">
-                  <div className="text-2xl font-bold text-[#8B4513]">456</div>
-                  <div className="text-sm text-[#95A5A6]">Chat Messages</div>
-                  <div className="text-xs text-green-600 mt-1">Very active!</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Middle Column: Enhanced Chat Area */}
-        <div className="space-y-6">
-          <Card className="border-[#8B4513]/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[#8B4513]">
-                <MessageSquare className="h-5 w-5" />
-                Enhanced Live Chat
-                <Badge className="bg-green-100 text-green-800 text-xs">
-                  ✨ New Features
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <EnhancedCommunityChat />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column: Activities & Quick Actions */}
-        <div className="space-y-6">
-          <Card className="border-[#8B4513]/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[#8B4513]">
-                <Gamepad2 className="h-5 w-5" />
-                Coffee Activities
-                <Badge className="bg-blue-100 text-blue-800 text-xs">
-                  Interactive
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="max-h-96 overflow-y-auto">
-              <CoffeeActivities onActivityComplete={(activityId, score) => {
-                console.log(`Activity ${activityId} completed with score: ${score}`);
-              }} />
-            </CardContent>
-          </Card>
-
-          {/* Enhanced Quick Actions */}
-          <Card className="border-[#8B4513]/20">
-            <CardHeader>
-              <CardTitle className="text-[#8B4513]">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-3">
-                <div 
-                  className="p-4 bg-gradient-to-r from-[#8B4513]/10 to-[#D2B48C]/10 rounded-lg text-center cursor-pointer hover:from-[#8B4513]/20 hover:to-[#D2B48C]/20 transition-all duration-300 border border-[#8B4513]/20"
-                  onClick={handleShowCoffeeShop}
-                >
-                  <Store className="h-6 w-6 mx-auto mb-2 text-[#8B4513]" />
-                  <div className="text-sm font-medium text-[#8B4513]">Virtual Café</div>
-                  <div className="text-xs text-[#95A5A6]">Immersive Experience</div>
-                </div>
-                
-                <div className="p-4 bg-gradient-to-r from-[#D2B48C]/10 to-[#8B4513]/10 rounded-lg text-center cursor-pointer hover:from-[#D2B48C]/20 hover:to-[#8B4513]/20 transition-all duration-300 border border-[#8B4513]/20">
-                  <Coffee className="h-6 w-6 mx-auto mb-2 text-[#8B4513]" />
-                  <div className="text-sm font-medium text-[#8B4513]">Order Coffee</div>
-                  <div className="text-xs text-[#95A5A6]">+3 Points</div>
-                </div>
-                
-                <div className="p-4 bg-gradient-to-r from-[#8B4513]/10 to-[#D2B48C]/10 rounded-lg text-center cursor-pointer hover:from-[#8B4513]/20 hover:to-[#D2B48C]/20 transition-all duration-300 border border-[#8B4513]/20">
-                  <Gamepad2 className="h-6 w-6 mx-auto mb-2 text-[#8B4513]" />
-                  <div className="text-sm font-medium text-[#8B4513]">Daily Challenge</div>
-                  <div className="text-xs text-[#95A5A6]">+5 Points</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Current Stats */}
+      <div className="text-center">
+        <div className="inline-flex items-center gap-6 px-6 py-3 bg-white rounded-lg border border-[#8B4513]/20 shadow-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-sm text-[#95A5A6]">47 people online in café</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Music className="h-4 w-4 text-[#8B4513]" />
+            <span className="text-sm text-[#95A5A6]">Now playing: Lo-Fi Coffee Jazz</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Coffee className="h-4 w-4 text-[#8B4513]" />
+            <span className="text-sm text-[#95A5A6]">Daily special: Ethiopian Yirgacheffe</span>
+          </div>
         </div>
       </div>
     </div>
