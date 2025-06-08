@@ -23,7 +23,7 @@ export const WeatherSystem = ({ currentWeather, onWeatherChange }: WeatherSystem
     // Simulate dynamic weather changes every 2 minutes
     const weatherCycle = setInterval(() => {
       const weathers: ('sunny' | 'cloudy' | 'rainy' | 'evening' | 'snowy')[] = 
-        ['sunny', 'cloudy', 'rainy', 'evening'];
+        ['sunny', 'cloudy', 'rainy', 'evening', 'snowy'];
       const randomWeather = weathers[Math.floor(Math.random() * weathers.length)];
       onWeatherChange(randomWeather);
     }, 120000); // 2 minutes
