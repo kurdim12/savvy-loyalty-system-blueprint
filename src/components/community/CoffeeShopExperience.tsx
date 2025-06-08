@@ -48,6 +48,7 @@ export const CoffeeShopExperience = ({ onBack }: CoffeeShopExperienceProps) => {
         </Button>
       )}
 
+      {/* Always show the Enhanced Floor Plan first, then switch to seated view */}
       {currentView === 'floor-plan' ? (
         <EnhancedFloorPlan 
           onSeatSelect={handleSeatSelect}

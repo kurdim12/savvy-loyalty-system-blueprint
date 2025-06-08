@@ -15,6 +15,7 @@ export const InteractiveCommunityHub = () => {
   };
 
   const handleCinematicComplete = () => {
+    // This should transition directly to the coffee shop experience with enhanced floor plan
     setCurrentExperience('coffee-shop');
   };
 
