@@ -108,23 +108,23 @@ export const EnhancedFloorPlan = ({ onSeatSelect, onStartPrivateChat }: Enhanced
 
   const getAreaColor = (type: string) => {
     switch (type) {
-      case 'counter': return 'bg-amber-500/30 border-amber-500/60 hover:bg-amber-500/40';
-      case 'table': return 'bg-blue-500/30 border-blue-500/60 hover:bg-blue-500/40';
-      case 'lounge': return 'bg-purple-500/30 border-purple-500/60 hover:bg-purple-500/40';
-      case 'workspace': return 'bg-green-500/30 border-green-500/60 hover:bg-green-500/40';
-      default: return 'bg-gray-500/30 border-gray-500/60 hover:bg-gray-500/40';
+      case 'counter': return 'bg-amber-500/40 border-amber-500/80 hover:bg-amber-500/60';
+      case 'table': return 'bg-blue-500/40 border-blue-500/80 hover:bg-blue-500/60';
+      case 'lounge': return 'bg-purple-500/40 border-purple-500/80 hover:bg-purple-500/60';
+      case 'workspace': return 'bg-green-500/40 border-green-500/80 hover:bg-green-500/60';
+      default: return 'bg-gray-500/40 border-gray-500/80 hover:bg-gray-500/60';
     }
   };
 
   const getOccupancyColor = (occupied: number, capacity: number) => {
     const ratio = occupied / capacity;
-    if (ratio < 0.5) return 'text-green-300';
-    if (ratio < 0.8) return 'text-yellow-300';
-    return 'text-red-300';
+    if (ratio < 0.5) return 'text-green-200';
+    if (ratio < 0.8) return 'text-yellow-200';
+    return 'text-red-200';
   };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative w-full h-screen overflow-hidden bg-gradient-to-br from-amber-900/20 to-orange-900/30">
       {/* Background Café Interior */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -132,71 +132,71 @@ export const EnhancedFloorPlan = ({ onSeatSelect, onStartPrivateChat }: Enhanced
           backgroundImage: `url('/lovable-uploads/1cb7e4f9-a55e-4a48-aa05-f7e259a8657b.png')`
         }}
       >
-        {/* Dark overlay for better contrast */}
-        <div className="absolute inset-0 bg-black/40" />
+        {/* Overlay for better contrast */}
+        <div className="absolute inset-0 bg-black/30" />
       </div>
 
       {/* Top Controls */}
       <div className="absolute top-4 left-4 right-4 z-20">
         <div className="flex justify-between items-center">
-          <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-            <Coffee className="h-4 w-4 mr-2" />
+          <Badge className="bg-white/90 text-[#8B4513] border-white/50 backdrop-blur-sm text-lg px-4 py-2">
+            <Coffee className="h-5 w-5 mr-2" />
             Raw Smith Virtual Café
           </Badge>
           
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Button
               onClick={() => setShowMusicRequest(!showMusicRequest)}
-              className="bg-white/20 text-white border-white/30 hover:bg-white/30 backdrop-blur-sm"
+              className="bg-white/90 text-[#8B4513] border-white/50 hover:bg-white/80 backdrop-blur-sm px-4 py-2"
             >
-              <Music className="h-4 w-4 mr-2" />
+              <Music className="h-5 w-5 mr-2" />
               Music Requests
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Music Request Panel */}
+      {/* Enhanced Music Request Panel */}
       {showMusicRequest && (
         <div className="absolute top-20 right-4 z-30">
-          <Card className="w-80 bg-white/90 backdrop-blur-sm border-white/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Headphones className="h-5 w-5 text-[#8B4513]" />
-                <h3 className="font-semibold text-[#8B4513]">Now Playing</h3>
+          <Card className="w-80 bg-white/95 backdrop-blur-sm border-white/50 shadow-2xl">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Headphones className="h-6 w-6 text-[#8B4513]" />
+                <h3 className="font-bold text-[#8B4513] text-lg">Now Playing</h3>
               </div>
-              <div className="bg-gray-50 p-3 rounded-lg mb-3">
-                <p className="font-medium text-sm">Lo-Fi Coffee Jazz</p>
-                <p className="text-xs text-gray-600">Requested by Maya S.</p>
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-lg mb-4 border-l-4 border-[#8B4513]">
+                <p className="font-semibold text-[#8B4513]">Lo-Fi Coffee Jazz</p>
+                <p className="text-sm text-gray-600">Requested by Maya S.</p>
               </div>
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-[#8B4513]">Request Queue</h4>
-                <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                  • Smooth Jazz Café Mix
-                  • Acoustic Coffee Vibes
-                  • Ambient Study Music
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-[#8B4513]">Request Queue</h4>
+                <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded space-y-1">
+                  <div>• Smooth Jazz Café Mix</div>
+                  <div>• Acoustic Coffee Vibes</div>
+                  <div>• Ambient Study Music</div>
                 </div>
               </div>
               <Button 
                 size="sm" 
-                className="w-full mt-3 bg-[#8B4513] hover:bg-[#8B4513]/90 text-white"
+                className="w-full mt-4 bg-[#8B4513] hover:bg-[#8B4513]/90 text-white py-3"
               >
                 <Music className="h-4 w-4 mr-2" />
-                Add Request
+                Add Your Request
               </Button>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* Interactive Seating Areas */}
+      {/* Interactive Seating Areas with Enhanced Visibility */}
       {seatAreas.map((area) => (
         <div
           key={area.id}
-          className={`absolute cursor-pointer transition-all duration-300 rounded-xl border-2 backdrop-blur-sm ${getAreaColor(area.type)} ${
+          className={`absolute cursor-pointer transition-all duration-300 rounded-xl border-3 backdrop-blur-sm shadow-lg ${getAreaColor(area.type)} ${
             hoveredSeat === area.id 
-              ? 'scale-105 shadow-2xl ring-2 ring-white/50' 
-              : 'hover:scale-102 hover:shadow-lg'
+              ? 'scale-110 shadow-2xl ring-4 ring-white/50 z-30' 
+              : 'hover:scale-105 hover:shadow-xl z-20'
           }`}
           style={{
             left: `${area.position.x}%`,
@@ -208,32 +208,32 @@ export const EnhancedFloorPlan = ({ onSeatSelect, onStartPrivateChat }: Enhanced
           onMouseLeave={() => setHoveredSeat(null)}
           onClick={() => onSeatSelect(area.id)}
         >
-          <div className="p-3 h-full flex flex-col justify-between text-white">
+          <div className="p-4 h-full flex flex-col justify-between text-white">
             <div>
-              <h4 className="font-bold text-sm mb-1 drop-shadow-lg">{area.name}</h4>
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`flex items-center gap-1 text-xs ${getOccupancyColor(area.occupied, area.capacity)}`}>
-                  <Users className="h-3 w-3" />
+              <h4 className="font-bold text-lg mb-2 drop-shadow-lg text-white">{area.name}</h4>
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`flex items-center gap-2 text-sm font-semibold ${getOccupancyColor(area.occupied, area.capacity)}`}>
+                  <Users className="h-4 w-4" />
                   <span>{area.occupied}/{area.capacity}</span>
                 </div>
-                {area.type === 'workspace' && <Wifi className="h-3 w-3" />}
-                {area.type === 'lounge' && <Volume2 className="h-3 w-3" />}
-                {area.type === 'counter' && <Coffee className="h-3 w-3" />}
+                {area.type === 'workspace' && <Wifi className="h-4 w-4 text-white" />}
+                {area.type === 'lounge' && <Volume2 className="h-4 w-4 text-white" />}
+                {area.type === 'counter' && <Coffee className="h-4 w-4 text-white" />}
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-2">
               {area.users.slice(0, 4).map((user, index) => (
                 <div
                   key={index}
-                  className="w-6 h-6 bg-black/40 backdrop-blur-sm text-white rounded-full flex items-center justify-center text-xs border border-white/30"
+                  className="w-8 h-8 bg-black/50 backdrop-blur-sm text-white rounded-full flex items-center justify-center text-sm border-2 border-white/40 shadow-lg"
                   title={`${user.name} - ${user.activity}`}
                 >
                   {user.mood}
                 </div>
               ))}
               {area.users.length > 4 && (
-                <div className="w-6 h-6 bg-black/40 backdrop-blur-sm text-white rounded-full flex items-center justify-center text-xs border border-white/30">
+                <div className="w-8 h-8 bg-black/50 backdrop-blur-sm text-white rounded-full flex items-center justify-center text-xs border-2 border-white/40">
                   +{area.users.length - 4}
                 </div>
               )}
@@ -242,59 +242,64 @@ export const EnhancedFloorPlan = ({ onSeatSelect, onStartPrivateChat }: Enhanced
         </div>
       ))}
 
-      {/* Feature Icons */}
-      <div className="absolute bottom-4 left-4 right-4 z-20">
-        <div className="flex justify-center gap-4">
-          <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 border border-white/30">
-            <MapPin className="h-4 w-4 text-white" />
-            <span className="text-white text-sm font-medium">Premium Seating</span>
+      {/* Enhanced Feature Icons */}
+      <div className="absolute bottom-6 left-4 right-4 z-20">
+        <div className="flex justify-center gap-6">
+          <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 border border-white/50 shadow-lg">
+            <MapPin className="h-5 w-5 text-[#8B4513]" />
+            <span className="text-[#8B4513] font-semibold">Premium Seating</span>
           </div>
-          <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 border border-white/30">
-            <MessageCircle className="h-4 w-4 text-white" />
-            <span className="text-white text-sm font-medium">Private Chat</span>
+          <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 border border-white/50 shadow-lg">
+            <MessageCircle className="h-5 w-5 text-[#8B4513]" />
+            <span className="text-[#8B4513] font-semibold">Private Chat</span>
           </div>
-          <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 border border-white/30">
-            <Star className="h-4 w-4 text-white" />
-            <span className="text-white text-sm font-medium">Atmosphere</span>
+          <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 border border-white/50 shadow-lg">
+            <Star className="h-5 w-5 text-[#8B4513]" />
+            <span className="text-[#8B4513] font-semibold">Atmosphere</span>
           </div>
         </div>
       </div>
 
-      {/* Hovered Area Details */}
+      {/* Enhanced Hovered Area Details */}
       {hoveredSeat && (
-        <div className="absolute bottom-20 left-4 z-30">
-          <Card className="bg-white/95 backdrop-blur-sm border-white/50 max-w-xs">
-            <CardContent className="p-4">
+        <div className="absolute bottom-32 left-6 z-40">
+          <Card className="bg-white/95 backdrop-blur-sm border-white/50 max-w-sm shadow-2xl">
+            <CardContent className="p-6">
               {(() => {
                 const area = seatAreas.find(a => a.id === hoveredSeat);
                 if (!area) return null;
                 
                 return (
                   <>
-                    <h3 className="font-bold text-[#8B4513] mb-2">{area.name}</h3>
-                    <div className="space-y-1 mb-3">
+                    <h3 className="font-bold text-[#8B4513] mb-3 text-lg">{area.name}</h3>
+                    <div className="space-y-2 mb-4">
                       {area.users.map((user, index) => (
-                        <div key={index} className="flex items-center gap-2 text-sm text-[#95A5A6]">
-                          <span className="text-base">{user.mood}</span>
-                          <span className="font-medium">{user.name}</span>
-                          <span className="text-xs">- {user.activity}</span>
+                        <div key={index} className="flex items-center gap-3 text-sm">
+                          <span className="text-lg">{user.mood}</span>
+                          <span className="font-semibold text-[#8B4513]">{user.name}</span>
+                          <span className="text-xs text-gray-600">- {user.activity}</span>
                         </div>
                       ))}
                     </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" className="flex-1 bg-[#8B4513] hover:bg-[#8B4513]/90 text-white">
-                        <Coffee className="h-3 w-3 mr-1" />
-                        Join
+                    <div className="flex gap-3">
+                      <Button 
+                        size="sm" 
+                        className="flex-1 bg-[#8B4513] hover:bg-[#8B4513]/90 text-white py-2"
+                        onClick={() => onSeatSelect(area.id)}
+                      >
+                        <Coffee className="h-4 w-4 mr-2" />
+                        Join Area
                       </Button>
                       <Button 
                         size="sm" 
                         variant="outline"
+                        className="border-[#8B4513] text-[#8B4513] hover:bg-[#8B4513]/10"
                         onClick={(e) => {
                           e.stopPropagation();
                           onStartPrivateChat('nearby-users');
                         }}
                       >
-                        <MessageCircle className="h-3 w-3" />
+                        <MessageCircle className="h-4 w-4" />
                       </Button>
                     </div>
                   </>
@@ -305,12 +310,12 @@ export const EnhancedFloorPlan = ({ onSeatSelect, onStartPrivateChat }: Enhanced
         </div>
       )}
 
-      {/* Status Bar */}
+      {/* Enhanced Status Bar */}
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
-        <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 border border-white/30">
-          <div className="flex items-center gap-4 text-white text-sm">
+        <div className="bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 border border-white/50 shadow-lg">
+          <div className="flex items-center gap-6 text-[#8B4513] font-semibold">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
               <span>47 people online</span>
             </div>
             <div className="flex items-center gap-2">

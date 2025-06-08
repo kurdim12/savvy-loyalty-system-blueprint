@@ -16,6 +16,7 @@ export const CoffeeShopExperience = ({ onBack }: CoffeeShopExperienceProps) => {
   const [showPrivateChat, setShowPrivateChat] = useState(false);
 
   const handleSeatSelect = (seatId: string) => {
+    console.log('Seat selected:', seatId);
     setSelectedSeat(seatId);
     setCurrentView('seated');
   };
@@ -27,6 +28,7 @@ export const CoffeeShopExperience = ({ onBack }: CoffeeShopExperienceProps) => {
   };
 
   const handleStartPrivateChat = (userId: string) => {
+    console.log('Starting private chat with:', userId);
     setShowPrivateChat(true);
   };
 
@@ -41,14 +43,14 @@ export const CoffeeShopExperience = ({ onBack }: CoffeeShopExperienceProps) => {
         <Button
           onClick={onBack}
           variant="outline"
-          className="absolute top-4 left-4 z-50 bg-white/90 backdrop-blur-sm"
+          className="absolute top-4 left-4 z-50 bg-white/90 backdrop-blur-sm hover:bg-white border-white/50"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Hub
         </Button>
       )}
 
-      {/* Always show the Enhanced Floor Plan first, then switch to seated view */}
+      {/* Main View - Always show Enhanced Floor Plan by default */}
       {currentView === 'floor-plan' ? (
         <EnhancedFloorPlan 
           onSeatSelect={handleSeatSelect}
@@ -61,7 +63,7 @@ export const CoffeeShopExperience = ({ onBack }: CoffeeShopExperienceProps) => {
         />
       )}
 
-      {/* Private Chat System */}
+      {/* Private Chat System Overlay */}
       {showPrivateChat && selectedSeat && (
         <PrivateChatSystem
           currentSeatId={selectedSeat}
