@@ -7,17 +7,18 @@ import { CommunityChallenge } from '@/components/community/CommunityChallenge';
 import { PhotoContest } from '@/components/community/PhotoContest';
 import { SocialShare } from '@/components/community/SocialShare';
 import CommunityGoalsList from '@/components/community/CommunityGoalsList';
+import { InteractiveCommunityHub } from '@/components/community/InteractiveCommunityHub';
 import { LoadingState } from '@/components/community/LoadingState';
 import { ErrorState } from '@/components/community/ErrorState';
 import { EmptyState } from '@/components/community/EmptyState';
-import { Trophy, Camera, Share2, Target } from 'lucide-react';
+import { Trophy, Camera, Share2, Target, Coffee } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 const CommunityHub = () => {
   const { isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState('challenges');
+  const [activeTab, setActiveTab] = useState('cafe');
   const queryClient = useQueryClient();
 
   // Fetch challenges with participant counts
@@ -344,7 +345,14 @@ const CommunityHub = () => {
 
           {/* Navigation Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-8 bg-[#95A5A6]/10 p-1 rounded-xl">
+            <TabsList className="grid w-full grid-cols-5 mb-8 bg-[#95A5A6]/10 p-1 rounded-xl">
+              <TabsTrigger 
+                value="cafe" 
+                className="flex items-center gap-2 data-[state=active]:bg-black data-[state=active]:text-white"
+              >
+                <Coffee className="h-4 w-4" />
+                <span className="hidden sm:inline">Virtual Café</span>
+              </TabsTrigger>
               <TabsTrigger 
                 value="challenges" 
                 className="flex items-center gap-2 data-[state=active]:bg-black data-[state=active]:text-white"
@@ -374,6 +382,10 @@ const CommunityHub = () => {
                 <span className="hidden sm:inline">Community Goals</span>
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="cafe" className="space-y-6">
+              <InteractiveCommunityHub />
+            </TabsContent>
 
             <TabsContent value="challenges" className="space-y-6">
               {challengesLoading ? (
