@@ -15,7 +15,7 @@ interface Message {
   body: string;
   created_at: string;
   user_id: string;
-  table_id?: string;
+  thread_id?: string;
   reactions?: { [key: string]: string[] };
   profiles: {
     first_name: string;
@@ -57,8 +57,7 @@ export const EnhancedCommunityChat = ({ tableId, title = "Community Chat" }: Enh
           body,
           created_at,
           user_id,
-          table_id,
-          reactions,
+          thread_id,
           profiles:user_id (
             first_name,
             last_name
@@ -67,15 +66,21 @@ export const EnhancedCommunityChat = ({ tableId, title = "Community Chat" }: Enh
         .order('created_at', { ascending: true })
         .limit(50);
 
+      // For now, we'll use thread_id to simulate table-specific chats
       if (tableId) {
-        query = query.eq('table_id', tableId);
+        query = query.eq('thread_id', tableId);
       } else {
-        query = query.is('table_id', null);
+        query = query.is('thread_id', null);
       }
       
       const { data, error } = await query;
       if (error) throw error;
-      return data as Message[];
+      
+      // Transform the data to match our Message interface
+      return (data || []).map(item => ({
+        ...item,
+        reactions: {} // Initialize empty reactions for now
+      })) as Message[];
     },
     refetchInterval: 3000,
   });
@@ -120,7 +125,7 @@ export const EnhancedCommunityChat = ({ tableId, title = "Community Chat" }: Enh
         .insert({
           body: messageText,
           user_id: user.id,
-          table_id: tableId || null
+          thread_id: tableId || null
         });
       
       if (error) throw error;

@@ -212,53 +212,6 @@ export const AtmosphericBackground = ({ currentSeat, weather: propWeather }: Atm
           </div>
         </Card>
       )}
-
-      {/* CSS for animations */}
-      <style jsx>{`
-        .rain-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-        }
-        
-        .rain-drop {
-          position: absolute;
-          top: -10px;
-          width: 2px;
-          height: 20px;
-          background: linear-gradient(to bottom, transparent, #4A90E2, transparent);
-          animation: rain-fall linear infinite;
-        }
-        
-        @keyframes rain-fall {
-          to {
-            transform: translateY(calc(100vh + 20px));
-          }
-        }
-        
-        .steam-particle {
-          position: absolute;
-          width: 6px;
-          height: 30px;
-          background: linear-gradient(to top, transparent, rgba(255,255,255,0.6), transparent);
-          border-radius: 50%;
-          animation: steam-rise 3s infinite ease-out;
-        }
-        
-        @keyframes steam-rise {
-          0% { 
-            transform: translateY(0) scale(1); 
-            opacity: 0.8; 
-          }
-          100% { 
-            transform: translateY(-40px) scale(1.5); 
-            opacity: 0; 
-          }
-        }
-      `}</style>
     </div>
   );
 };
