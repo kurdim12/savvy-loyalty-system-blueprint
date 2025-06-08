@@ -3,15 +3,14 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Coffee, MessageCircle, Users, Music, Sparkles, Settings, Gamepad2 } from 'lucide-react';
+import { Coffee, MessageCircle, Users, Music, Settings, Gamepad2 } from 'lucide-react';
 import { AtmosphericBackground } from './AtmosphericBackground';
 import { RealTimeChat } from './RealTimeChat';
 import { AvatarCustomizer } from './AvatarCustomizer';
 import { AmbientSounds } from './AmbientSounds';
 import { CafeMinigames } from './CafeMinigames';
-import { VirtualOrdering } from './VirtualOrdering';
 import { WeatherSystem } from './WeatherSystem';
-import { EnhancedSpotifyIntegration } from './EnhancedSpotifyIntegration';
+import { RealTimeDJSystem } from './RealTimeDJSystem';
 
 interface CoffeeShopSeatedProps {
   seatId: string;
@@ -19,7 +18,7 @@ interface CoffeeShopSeatedProps {
 }
 
 export const CoffeeShopSeated = ({ seatId, onLeave }: CoffeeShopSeatedProps) => {
-  const [activeTab, setActiveTab] = useState<'chill' | 'music' | 'chat' | 'customize' | 'games' | 'order'>('chill');
+  const [activeTab, setActiveTab] = useState<'chill' | 'music' | 'chat' | 'customize' | 'games'>('chill');
   const [userMood, setUserMood] = useState('😊');
   const [userActivity, setUserActivity] = useState('Enjoying coffee');
   const [weather, setWeather] = useState<'sunny' | 'cloudy' | 'rainy' | 'evening' | 'snowy'>('sunny');
@@ -106,11 +105,10 @@ export const CoffeeShopSeated = ({ seatId, onLeave }: CoffeeShopSeatedProps) => 
         <div className="flex gap-2 mb-6 flex-wrap">
           {[
             { key: 'chill', label: 'Chill', icon: Coffee },
-            { key: 'music', label: 'Spotify', icon: Music },
+            { key: 'music', label: 'DJ & Music', icon: Music },
             { key: 'chat', label: 'Chat', icon: MessageCircle },
             { key: 'customize', label: 'Avatar', icon: Settings },
-            { key: 'games', label: 'Games', icon: Gamepad2 },
-            { key: 'order', label: 'Menu', icon: Sparkles }
+            { key: 'games', label: 'Games', icon: Gamepad2 }
           ].map(({ key, label, icon: Icon }) => (
             <Button
               key={key}
@@ -138,7 +136,7 @@ export const CoffeeShopSeated = ({ seatId, onLeave }: CoffeeShopSeatedProps) => 
                 <CardContent className="p-6">
                   <div className="text-center">
                     <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-[#8B4513] to-[#D2B48C] rounded-full flex items-center justify-center">
-                      <Sparkles className="h-12 w-12 text-white" />
+                      <Coffee className="h-12 w-12 text-white" />
                     </div>
                     <h3 className="text-xl font-bold text-[#8B4513] mb-2">Peaceful Moments</h3>
                     <p className="text-[#95A5A6] mb-4">
@@ -155,7 +153,7 @@ export const CoffeeShopSeated = ({ seatId, onLeave }: CoffeeShopSeatedProps) => 
 
           {activeTab === 'music' && (
             <div className="h-full overflow-y-auto">
-              <EnhancedSpotifyIntegration />
+              <RealTimeDJSystem seatArea={seatId} />
             </div>
           )}
 
@@ -174,10 +172,6 @@ export const CoffeeShopSeated = ({ seatId, onLeave }: CoffeeShopSeatedProps) => 
 
           {activeTab === 'games' && (
             <CafeMinigames />
-          )}
-
-          {activeTab === 'order' && (
-            <VirtualOrdering onMoodChange={setUserMood} />
           )}
         </div>
       </div>
