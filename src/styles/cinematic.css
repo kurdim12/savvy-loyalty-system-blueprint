@@ -1,0 +1,316 @@
+
+/* Cinematic Landing Styles */
+.cinematic-container {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.exterior-shot {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, 
+    #1a1a2e 0%, 
+    #16213e 25%, 
+    #2d4a7a 50%, 
+    #4a6fa5 75%, 
+    #6b93c0 100%
+  );
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* When real photo is available, replace gradient with: */
+.exterior-shot.with-photo {
+  background-image: url('/images/coffee-shop-exterior-evening.jpg');
+}
+
+.atmospheric-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg, 
+    rgba(0,0,0,0.4) 0%, 
+    rgba(255,165,0,0.1) 50%,
+    rgba(0,0,0,0.3) 100%
+  );
+  backdrop-filter: blur(1px);
+}
+
+/* Loyalty Status Integration */
+.loyalty-status-cinematic {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  z-index: 10;
+  text-align: right;
+}
+
+.member-welcome {
+  background: rgba(139, 69, 19, 0.9);
+  backdrop-filter: blur(15px);
+  padding: 20px 25px;
+  border-radius: 15px;
+  border: 2px solid rgba(255,165,0,0.3);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.welcome-text {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 300;
+  margin: 0 0 10px 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.tier-badge-cinematic {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.tier-bronze {
+  background: linear-gradient(45deg, #cd7f32, #b8860b);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(205, 127, 50, 0.4);
+}
+
+.tier-silver {
+  background: linear-gradient(45deg, #c0c0c0, #a8a8a8);
+  color: #333;
+  box-shadow: 0 0 20px rgba(192, 192, 192, 0.4);
+}
+
+.tier-gold {
+  background: linear-gradient(45deg, #ffd700, #ffb347);
+  color: #333;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+}
+
+.points-display-atmospheric {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.points-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ff6b35;
+  text-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+}
+
+.points-label {
+  font-size: 14px;
+  color: #fff;
+  opacity: 0.8;
+}
+
+/* Neon Community Sign */
+.neon-community-sign {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 64px;
+  font-weight: 700;
+  color: #ff6b35;
+  text-shadow: 
+    0 0 10px #ff6b35,
+    0 0 20px #ff6b35,
+    0 0 30px #ff6b35,
+    0 0 40px #ff6b35;
+  animation: neon-flicker 3s infinite alternate;
+  z-index: 5;
+}
+
+@keyframes neon-flicker {
+  0%, 90% { opacity: 1; }
+  95% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+
+/* Entry Button */
+.enter-coffee-shop-cinematic {
+  position: relative;
+  padding: 20px 40px;
+  background: rgba(139, 69, 19, 0.9);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  border: 2px solid rgba(255,165,0,0.3);
+  transition: all 0.3s ease;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.enter-coffee-shop-cinematic:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  border-color: rgba(255,165,0,0.6);
+}
+
+.enter-coffee-shop-cinematic:hover .button-glow {
+  opacity: 1;
+}
+
+.enter-coffee-shop-cinematic:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button-text {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.point-preview {
+  font-size: 14px;
+  opacity: 0.8;
+  color: #ffb347;
+}
+
+.button-glow {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: all 0.6s ease;
+  opacity: 0;
+}
+
+/* Steam Effects */
+.steam-effects {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.steam-particle {
+  position: absolute;
+  bottom: 30%;
+  width: 4px;
+  height: 40px;
+  background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+  animation: steam-rise 4s infinite ease-in-out;
+}
+
+@keyframes steam-rise {
+  0% { 
+    transform: translateY(0) scale(1); 
+    opacity: 0.6; 
+  }
+  50% { 
+    transform: translateY(-20px) scale(1.2); 
+    opacity: 0.8; 
+  }
+  100% { 
+    transform: translateY(-40px) scale(1.5); 
+    opacity: 0; 
+  }
+}
+
+/* Cinematic Points Notification */
+.points-notification-cinematic {
+  position: fixed;
+  top: 100px;
+  right: 40px;
+  z-index: 1000;
+  background: rgba(139, 69, 19, 0.95);
+  backdrop-filter: blur(15px);
+  padding: 15px 20px;
+  border-radius: 10px;
+  border: 2px solid rgba(255,165,0,0.4);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.points-earned {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.points-amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ff6b35;
+  text-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+}
+
+.points-activity {
+  font-size: 12px;
+  color: #fff;
+  opacity: 0.8;
+  text-transform: capitalize;
+  margin-top: 2px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .neon-community-sign {
+    font-size: 36px;
+    top: 15%;
+  }
+  
+  .loyalty-status-cinematic {
+    top: 20px;
+    right: 20px;
+  }
+  
+  .member-welcome {
+    padding: 15px 20px;
+  }
+  
+  .welcome-text {
+    font-size: 18px;
+  }
+  
+  .enter-coffee-shop-cinematic {
+    padding: 15px 30px;
+    font-size: 18px;
+  }
+  
+  .points-notification-cinematic {
+    top: 80px;
+    right: 20px;
+  }
+}
+
+/* Loading State */
+.loading-cinematic {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #fff;
+  font-size: 18px;
+}
