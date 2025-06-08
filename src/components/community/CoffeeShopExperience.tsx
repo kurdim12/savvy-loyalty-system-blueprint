@@ -25,6 +25,11 @@ export const CoffeeShopExperience = ({ onEarnPoints, onBack }: CoffeeShopExperie
     setSelectedSeat(null);
   };
 
+  const handleViewChange = (view: 'interior') => {
+    // Handle view change if needed
+    console.log('View change requested:', view);
+  };
+
   return (
     <div className="relative w-full h-screen bg-gradient-to-br from-[#8B4513]/10 to-[#D2B48C]/20">
       {/* Back Button */}
@@ -40,11 +45,14 @@ export const CoffeeShopExperience = ({ onEarnPoints, onBack }: CoffeeShopExperie
       )}
 
       {currentView === 'floor-plan' ? (
-        <CoffeeShopFloorPlan onSeatSelect={handleSeatSelect} />
+        <CoffeeShopFloorPlan 
+          onSeatSelect={handleSeatSelect}
+          onViewChange={handleViewChange}
+        />
       ) : (
         <CoffeeShopSeated 
           seatId={selectedSeat!}
-          onStandUp={handleStandUp}
+          onLeave={handleStandUp}
           onEarnPoints={onEarnPoints}
         />
       )}
