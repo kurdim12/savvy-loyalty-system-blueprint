@@ -3,9 +3,12 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Coffee, MessageCircle, Users, Star } from 'lucide-react';
-import { CommunityChat } from './CommunityChat';
+import { Coffee, MessageCircle, Users, Star, Gamepad2, Sparkles } from 'lucide-react';
+import { EnhancedCommunityChat } from './EnhancedCommunityChat';
 import { SitChillTimer } from './SitChillTimer';
+import { AIBarista } from './AIBarista';
+import { CoffeeActivities } from './CoffeeActivities';
+import { AtmosphericBackground } from './AtmosphericBackground';
 
 interface CoffeeShopSeatedProps {
   seatId: string;
@@ -14,32 +17,36 @@ interface CoffeeShopSeatedProps {
 }
 
 export const CoffeeShopSeated = ({ seatId, onEarnPoints, onLeave }: CoffeeShopSeatedProps) => {
-  const [activeTab, setActiveTab] = useState<'chat' | 'chill' | 'barista'>('chill');
+  const [activeTab, setActiveTab] = useState<'chill' | 'chat' | 'barista' | 'activities'>('chill');
 
   const seatViews = {
     'seat-1': {
       name: 'Window Seat',
       view: 'Street View',
       background: 'linear-gradient(135deg, #F5DEB3 0%, #DEB887 50%, #D2B48C 100%)',
-      description: 'Watch the world go by while enjoying your coffee'
+      description: 'Watch the world go by while enjoying your coffee',
+      weather: 'sunny' as const
     },
     'seat-2': {
       name: 'Corner Table', 
       view: 'Garden View',
       background: 'linear-gradient(135deg, #E6D7C7 0%, #D2B48C 50%, #C1A882 100%)',
-      description: 'Peaceful garden views for quiet contemplation'
+      description: 'Peaceful garden views for quiet contemplation',
+      weather: 'cloudy' as const
     },
     'seat-3': {
       name: 'Counter Stool',
       view: 'Barista View', 
       background: 'linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #CD853F 100%)',
-      description: 'Front row seat to the coffee-making magic'
+      description: 'Front row seat to the coffee-making magic',
+      weather: 'evening' as const
     },
     'seat-4': {
       name: 'Lounge Chair',
       view: 'Fireplace View',
       background: 'linear-gradient(135deg, #DEB887 0%, #D2B48C 50%, #BC9A6A 100%)',
-      description: 'Cozy warmth by the fireplace'
+      description: 'Cozy warmth by the fireplace',
+      weather: 'rainy' as const
     }
   };
 
@@ -53,41 +60,63 @@ export const CoffeeShopSeated = ({ seatId, onEarnPoints, onLeave }: CoffeeShopSe
     price: '$4.50'
   };
 
+  const handleOrderCoffee = () => {
+    console.log('Coffee ordered!');
+    onEarnPoints?.(3);
+  };
+
+  const handleLearnMore = (topic: string) => {
+    console.log('Learning more about:', topic);
+    onEarnPoints?.(2);
+  };
+
+  const handleActivityComplete = (activityId: string, score: number) => {
+    console.log('Activity completed:', activityId, 'Score:', score);
+    onEarnPoints?.(5);
+  };
+
   return (
-    <div 
-      className="relative w-full h-full"
-      style={{ background: currentSeat.background }}
-    >
-      {/* Atmospheric Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/10" />
+    <div className="relative w-full h-full overflow-hidden">
+      {/* Atmospheric Background */}
+      <AtmosphericBackground 
+        currentSeat={seatId}
+        weather={currentSeat.weather}
+      />
       
       {/* Main Content */}
       <div className="relative z-10 p-6 h-full flex flex-col">
         {/* Seat Info Header */}
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-white mb-1">{currentSeat.name}</h2>
-            <p className="text-white/80">{currentSeat.description}</p>
-            <Badge className="mt-2 bg-white/20 text-white border-white/30">
-              {currentSeat.view}
-            </Badge>
+            <h2 className="text-2xl font-bold text-white mb-1 drop-shadow-lg">{currentSeat.name}</h2>
+            <p className="text-white/90 drop-shadow">{currentSeat.description}</p>
+            <div className="flex gap-2 mt-2">
+              <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                {currentSeat.view}
+              </Badge>
+              <Badge className="bg-[#8B4513]/80 text-white border-[#8B4513]/50 backdrop-blur-sm">
+                <Users className="h-3 w-3 mr-1" />
+                3 others nearby
+              </Badge>
+            </div>
           </div>
           
           <Button
             onClick={onLeave}
             variant="outline"
-            className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+            className="bg-white/20 text-white border-white/30 hover:bg-white/30 backdrop-blur-sm"
           >
             Stand Up
           </Button>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Enhanced Tab Navigation */}
         <div className="flex gap-2 mb-6">
           {[
             { key: 'chill', label: 'Chill & Earn', icon: Coffee },
             { key: 'chat', label: 'Community Chat', icon: MessageCircle },
-            { key: 'barista', label: 'Daily Special', icon: Star }
+            { key: 'barista', label: 'AI Barista', icon: Star },
+            { key: 'activities', label: 'Activities', icon: Gamepad2 }
           ].map(({ key, label, icon: Icon }) => (
             <Button
               key={key}
@@ -95,79 +124,99 @@ export const CoffeeShopSeated = ({ seatId, onEarnPoints, onLeave }: CoffeeShopSe
               variant={activeTab === key ? 'default' : 'outline'}
               className={
                 activeTab === key
-                  ? 'bg-white text-[#8B4513]'
-                  : 'bg-white/20 text-white border-white/30 hover:bg-white/30'
+                  ? 'bg-white text-[#8B4513] hover:bg-white/90'
+                  : 'bg-white/20 text-white border-white/30 hover:bg-white/30 backdrop-blur-sm'
               }
             >
               <Icon className="h-4 w-4 mr-2" />
-              {label}
+              <span className="hidden sm:inline">{label}</span>
             </Button>
           ))}
         </div>
 
-        {/* Tab Content */}
+        {/* Enhanced Tab Content */}
         <div className="flex-1 overflow-hidden">
           {activeTab === 'chill' && (
             <div className="h-full flex items-center justify-center">
-              <SitChillTimer onPointsEarned={onEarnPoints} />
-            </div>
-          )}
-
-          {activeTab === 'chat' && (
-            <div className="h-full">
-              <CommunityChat />
-            </div>
-          )}
-
-          {activeTab === 'barista' && (
-            <div className="h-full flex items-center justify-center">
-              <Card className="w-full max-w-lg bg-white/95 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-[#8B4513]">
-                    <Star className="h-5 w-5" />
-                    Today's Special
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center">
+              <Card className="bg-white/95 backdrop-blur-sm border-white/50 max-w-lg w-full">
+                <CardContent className="p-6">
+                  <div className="text-center mb-6">
                     <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-[#8B4513] to-[#D2B48C] rounded-full flex items-center justify-center">
-                      <Coffee className="h-12 w-12 text-white" />
+                      <Sparkles className="h-12 w-12 text-white" />
                     </div>
-                    
-                    <h3 className="text-xl font-bold text-[#8B4513] mb-2">{dailySpecial.name}</h3>
-                    <p className="text-[#95A5A6] mb-3">{dailySpecial.origin}</p>
-                    <p className="text-sm text-[#8B4513] mb-4">{dailySpecial.notes}</p>
-                    
-                    <div className="flex items-center justify-center gap-4 mb-4">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="font-medium">{dailySpecial.rating}</span>
-                      </div>
-                      <div className="text-lg font-bold text-[#8B4513]">{dailySpecial.price}</div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Button className="w-full bg-[#8B4513] hover:bg-[#8B4513]/90 text-white">
-                        <Coffee className="h-4 w-4 mr-2" />
-                        Order Now (+3 XP)
-                      </Button>
-                      <Button variant="outline" className="w-full border-[#8B4513] text-[#8B4513] hover:bg-[#8B4513]/10">
-                        Learn About Origin
-                      </Button>
-                    </div>
+                    <h3 className="text-xl font-bold text-[#8B4513] mb-2">Peaceful Moments</h3>
+                    <p className="text-[#95A5A6]">
+                      Relax and soak in the café atmosphere. Let time slow down as you enjoy this moment.
+                    </p>
                   </div>
+                  <SitChillTimer onPointsEarned={onEarnPoints} />
                 </CardContent>
               </Card>
             </div>
           )}
-        </div>
-      </div>
 
-      {/* Ambient Elements */}
-      <div className="absolute bottom-6 left-6">
-        <div className="flex items-center gap-2 text-white/60 text-sm">
-          <Users className="h-4 w-4" />
-          <span>3 others nearby</span>
+          {activeTab === 'chat' && (
+            <div className="h-full max-w-4xl mx-auto">
+              <EnhancedCommunityChat 
+                tableId={seatId}
+                title={`${currentSeat.name} Chat`}
+              />
+            </div>
+          )}
+
+          {activeTab === 'barista' && (
+            <div className="h-full overflow-y-auto max-w-4xl mx-auto">
+              <div className="space-y-4">
+                <AIBarista 
+                  onOrderCoffee={handleOrderCoffee}
+                  onLearnMore={handleLearnMore}
+                />
+                
+                {/* Daily Special Card */}
+                <Card className="bg-white/95 backdrop-blur-sm border-white/50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-[#8B4513]">
+                      <Star className="h-5 w-5" />
+                      Today's Special
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center">
+                      <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-[#8B4513] to-[#D2B48C] rounded-full flex items-center justify-center">
+                        <Coffee className="h-10 w-10 text-white" />
+                      </div>
+                      
+                      <h3 className="text-lg font-bold text-[#8B4513] mb-2">{dailySpecial.name}</h3>
+                      <p className="text-[#95A5A6] mb-3">{dailySpecial.origin}</p>
+                      <p className="text-sm text-[#8B4513] mb-4">{dailySpecial.notes}</p>
+                      
+                      <div className="flex items-center justify-center gap-4 mb-4">
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                          <span className="font-medium">{dailySpecial.rating}</span>
+                        </div>
+                        <div className="text-lg font-bold text-[#8B4513]">{dailySpecial.price}</div>
+                      </div>
+                      
+                      <Button 
+                        onClick={handleOrderCoffee}
+                        className="w-full bg-[#8B4513] hover:bg-[#8B4513]/90 text-white"
+                      >
+                        <Coffee className="h-4 w-4 mr-2" />
+                        Order Now
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'activities' && (
+            <div className="h-full overflow-y-auto max-w-4xl mx-auto">
+              <CoffeeActivities onActivityComplete={handleActivityComplete} />
+            </div>
+          )}
         </div>
       </div>
     </div>

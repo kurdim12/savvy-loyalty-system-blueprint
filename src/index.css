@@ -1,9 +1,9 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @import './styles/cinematic.css';
+@import './styles/animations.css';
 
 @layer base {
   :root {
