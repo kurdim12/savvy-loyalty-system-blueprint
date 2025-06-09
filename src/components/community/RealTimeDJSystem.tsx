@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, SkipForward, Users, Music, Crown, Plus, Vote, Heart } from 'lucide-react';
+import { Play, Pause, SkipForward, Users, Music, Plus, Vote, Heart, Volume2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -27,7 +27,8 @@ interface CurrentlyPlaying {
   artist_name: string;
   duration: number;
   current_time: number;
-  dj_name: string;
+  requested_by: string;
+  total_votes: number;
 }
 
 interface RealTimeDJSystemProps {
@@ -43,14 +44,15 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
     artist_name: 'Coffee House Collective',
     duration: 240,
     current_time: 67,
-    dj_name: 'Community DJ'
+    requested_by: 'Maya S.',
+    total_votes: 15
   });
   const [isPlaying, setIsPlaying] = useState(true);
   const queryClient = useQueryClient();
 
-  // Fetch song requests for this area
+  // Fetch song requests (global queue, not area-specific)
   const { data: songRequests = [], isLoading, error } = useQuery({
-    queryKey: ['song-requests', seatArea],
+    queryKey: ['song-requests-global'],
     queryFn: async () => {
       try {
         const { data, error } = await supabase
@@ -67,7 +69,6 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
               last_name
             )
           `)
-          .eq('area_id', seatArea)
           .order('votes', { ascending: false })
           .order('created_at', { ascending: true })
           .limit(10);
@@ -94,24 +95,23 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
         return [];
       }
     },
-    refetchInterval: 5000,
+    refetchInterval: 3000,
     retry: 3,
   });
 
   // Real-time subscription for song requests
   useEffect(() => {
     const channel = supabase
-      .channel(`dj-system-${seatArea}`)
+      .channel('global-dj-system')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'song_requests',
-          filter: `area_id=eq.${seatArea}`
+          table: 'song_requests'
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['song-requests', seatArea] });
+          queryClient.invalidateQueries({ queryKey: ['song-requests-global'] });
         }
       )
       .subscribe();
@@ -119,25 +119,26 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [seatArea, queryClient]);
+  }, [queryClient]);
 
-  // Simulate currently playing progress
+  // Simulate currently playing progress and auto-play next song
   useEffect(() => {
     if (!isPlaying) return;
     
     const interval = setInterval(() => {
       setCurrentlyPlaying(prev => {
         if (prev.current_time >= prev.duration) {
-          // Auto-play next song when current finishes
+          // Auto-play the top voted song when current finishes
           const topSong = songRequests[0];
           if (topSong) {
-            toast.success(`🎵 Now playing: ${topSong.song_name} by ${topSong.artist_name}`);
+            toast.success(`🎵 Now playing across all areas: ${topSong.song_name} by ${topSong.artist_name}`);
             return {
               song_name: topSong.song_name,
               artist_name: topSong.artist_name,
               duration: 180 + Math.random() * 120,
               current_time: 0,
-              dj_name: 'Community DJ'
+              requested_by: topSong.requested_by,
+              total_votes: topSong.votes
             };
           }
           return { ...prev, current_time: 0 };
@@ -160,7 +161,7 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
           song_name: songName,
           artist_name: artistName,
           requested_by: user.id,
-          area_id: seatArea,
+          area_id: 'global', // All requests go to global queue
           votes: 1
         });
       
@@ -169,8 +170,8 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
     onSuccess: () => {
       setNewSongName('');
       setNewArtistName('');
-      toast.success('🎵 Song requested! Others can now vote for it!');
-      queryClient.invalidateQueries({ queryKey: ['song-requests', seatArea] });
+      toast.success('🎵 Song requested! Others can vote for it to play across all areas!');
+      queryClient.invalidateQueries({ queryKey: ['song-requests-global'] });
     },
     onError: (error: any) => {
       console.error('Failed to request song:', error);
@@ -213,8 +214,8 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
       if (updateError) throw updateError;
     },
     onSuccess: () => {
-      toast.success('🗳️ Vote cast! Thanks for participating!');
-      queryClient.invalidateQueries({ queryKey: ['song-requests', seatArea] });
+      toast.success('🗳️ Vote cast! When this song gets enough votes, it will play across all areas!');
+      queryClient.invalidateQueries({ queryKey: ['song-requests-global'] });
     },
     onError: (error: any) => {
       console.error('Failed to vote:', error);
@@ -248,7 +249,7 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
         <CardContent className="flex items-center justify-center h-64">
           <div className="text-center text-red-500">
             <Music className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Failed to load DJ system. Please try refreshing.</p>
+            <p>Failed to load music system. Please try refreshing.</p>
           </div>
         </CardContent>
       </Card>
@@ -257,20 +258,20 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Now Playing Card */}
+      {/* Now Playing Across All Areas */}
       <Card className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 border-purple-300/30 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="flex items-center justify-between text-white">
             <div className="flex items-center gap-3">
-              <Crown className="h-6 w-6 text-yellow-400" />
+              <Volume2 className="h-6 w-6 text-purple-400" />
               <div>
-                <span className="text-lg">Now Playing</span>
-                <div className="text-xs text-purple-200 font-normal">Community Choice</div>
+                <span className="text-lg">Playing in All Areas</span>
+                <div className="text-xs text-purple-200 font-normal">Everyone hears this</div>
               </div>
             </div>
-            <Badge className="bg-yellow-500/20 text-yellow-200 border-yellow-400/30">
+            <Badge className="bg-green-500/20 text-green-200 border-green-400/30">
               <Users className="h-3 w-3 mr-1" />
-              Live DJ
+              Live Everywhere
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -282,7 +283,8 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
             </div>
             <div className="flex-1">
               <h4 className="font-bold text-white text-lg">{currentlyPlaying.song_name}</h4>
-              <p className="text-purple-200 text-sm mb-2">{currentlyPlaying.artist_name}</p>
+              <p className="text-purple-200 text-sm mb-1">{currentlyPlaying.artist_name}</p>
+              <p className="text-xs text-purple-300 mb-2">Requested by {currentlyPlaying.requested_by} • {currentlyPlaying.total_votes} votes</p>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-purple-300 min-w-[2.5rem]">{formatTime(currentlyPlaying.current_time)}</span>
                 <Progress 
@@ -315,7 +317,7 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
 
             <div className="flex items-center gap-2">
               <Heart className="h-4 w-4 text-pink-400" />
-              <span className="text-sm text-white">Community favorite</span>
+              <span className="text-sm text-white">Playing everywhere in the café</span>
             </div>
           </div>
         </CardContent>
@@ -326,9 +328,9 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
         <CardHeader>
           <CardTitle className="text-[#8B4513] flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            Request a Song
+            Request a Song for Everyone
           </CardTitle>
-          <p className="text-sm text-gray-600">Add your favorite track to the community queue!</p>
+          <p className="text-sm text-gray-600">Your song will play across all areas when it gets enough votes!</p>
         </CardHeader>
         
         <CardContent>
@@ -355,11 +357,11 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
               className="w-full bg-[#8B4513] hover:bg-[#8B4513]/90 text-white shadow-lg"
             >
               {requestSongMutation.isPending ? (
-                <>Adding to queue...</>
+                <>Adding to global queue...</>
               ) : (
                 <>
                   <Plus className="h-4 w-4 mr-2" />
-                  Request Song
+                  Request Song for All Areas
                 </>
               )}
             </Button>
@@ -372,14 +374,14 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
         </CardContent>
       </Card>
 
-      {/* Song Queue with Voting */}
+      {/* Global Song Queue with Voting */}
       <Card className="bg-white/95 backdrop-blur-sm border-[#8B4513]/20">
         <CardHeader>
           <CardTitle className="text-[#8B4513] flex items-center gap-2">
             <Vote className="h-5 w-5" />
-            Community Song Queue
+            Global Song Queue - Vote for Next!
           </CardTitle>
-          <p className="text-sm text-gray-600">Vote for songs you want to hear next! Most voted songs play first.</p>
+          <p className="text-sm text-gray-600">The most voted song plays next across all areas! Vote to make your favorite play everywhere.</p>
         </CardHeader>
         
         <CardContent className="space-y-3">
@@ -391,8 +393,8 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
           ) : songRequests.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
               <Music className="h-12 w-12 mx-auto mb-4 opacity-30" />
-              <p className="text-lg font-medium mb-2">No songs in queue</p>
-              <p className="text-sm">Be the first to request a song!</p>
+              <p className="text-lg font-medium mb-2">No songs in global queue</p>
+              <p className="text-sm">Be the first to request a song for everyone!</p>
             </div>
           ) : (
             songRequests.map((request, index) => (
@@ -400,12 +402,12 @@ export const RealTimeDJSystem = ({ seatArea }: RealTimeDJSystemProps) => {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
                     <Badge className={index === 0 ? "bg-yellow-500 text-white" : "bg-[#8B4513]/10 text-[#8B4513]"}>
-                      {index === 0 ? "🎵 Next" : `#${index + 1}`}
+                      {index === 0 ? "🎵 Next Up" : `#${index + 1}`}
                     </Badge>
                     <h5 className="font-semibold text-[#8B4513]">{request.song_name}</h5>
                   </div>
                   <p className="text-sm text-gray-600 mb-1">{request.artist_name}</p>
-                  <p className="text-xs text-purple-600">Requested by {request.requested_by}</p>
+                  <p className="text-xs text-purple-600">Requested by {request.requested_by} • Will play everywhere</p>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2 bg-[#8B4513]/10 px-3 py-1 rounded-full">
