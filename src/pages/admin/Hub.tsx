@@ -2,71 +2,129 @@
 import { useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trophy, Camera, Users, Target, TrendingUp } from 'lucide-react';
-import ChallengesSection from '@/components/admin/hub/ChallengesSection';
-import PhotoContestsSection from '@/components/admin/hub/PhotoContestsSection';
-import ReferralsSection from '@/components/admin/hub/ReferralsSection';
-import CommunityGoalsSection from '@/components/admin/hub/CommunityGoalsSection';
-import HubOverview from '@/components/admin/hub/HubOverview';
+import { Coffee, Users, Music } from 'lucide-react';
+import { CoffeeShopFloorPlan } from '@/components/community/CoffeeShopFloorPlan';
+import { RealTimeDJSystem } from '@/components/community/RealTimeDJSystem';
+import { CoffeeShopSeated } from '@/components/community/CoffeeShopSeated';
 
 const Hub = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [currentView, setCurrentView] = useState<'floor-plan' | 'seated' | 'dj'>('floor-plan');
+  const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
+
+  const handleSeatSelect = (seatId: string) => {
+    setSelectedSeat(seatId);
+    setCurrentView('seated');
+  };
+
+  const handleLeaveSeated = () => {
+    setSelectedSeat(null);
+    setCurrentView('floor-plan');
+  };
+
+  const handleViewChange = (view: 'floor-plan' | 'dj') => {
+    setCurrentView(view);
+  };
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Community Hub</h1>
-            <p className="text-gray-500">Manage all community features from one central location</p>
+            <h1 className="text-3xl font-bold text-gray-900">Virtual Café Hub</h1>
+            <p className="text-gray-500">Experience our interactive coffee shop with real-time music and social features</p>
+          </div>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentView('floor-plan')}
+              className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                currentView === 'floor-plan' 
+                  ? 'bg-[#8B4513] text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <Coffee className="h-4 w-4" />
+              Floor Plan
+            </button>
+            <button
+              onClick={() => setCurrentView('dj')}
+              className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                currentView === 'dj' 
+                  ? 'bg-[#8B4513] text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <Music className="h-4 w-4" />
+              DJ System
+            </button>
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="challenges" className="flex items-center gap-2">
-              <Trophy className="h-4 w-4" />
-              Challenges
-            </TabsTrigger>
-            <TabsTrigger value="contests" className="flex items-center gap-2">
-              <Camera className="h-4 w-4" />
-              Photo Contests
-            </TabsTrigger>
-            <TabsTrigger value="referrals" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Referrals
-            </TabsTrigger>
-            <TabsTrigger value="goals" className="flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              Community Goals
-            </TabsTrigger>
-          </TabsList>
+        <Card className="min-h-[600px]">
+          <CardContent className="p-0">
+            {currentView === 'floor-plan' && (
+              <CoffeeShopFloorPlan 
+                onSeatSelect={handleSeatSelect}
+                onViewChange={handleViewChange}
+              />
+            )}
+            
+            {currentView === 'seated' && selectedSeat && (
+              <CoffeeShopSeated 
+                seatId={selectedSeat}
+                onLeave={handleLeaveSeated}
+              />
+            )}
+            
+            {currentView === 'dj' && (
+              <div className="p-6">
+                <RealTimeDJSystem seatArea="global" />
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-          <TabsContent value="overview" className="space-y-6">
-            <HubOverview />
-          </TabsContent>
-
-          <TabsContent value="challenges" className="space-y-6">
-            <ChallengesSection />
-          </TabsContent>
-
-          <TabsContent value="contests" className="space-y-6">
-            <PhotoContestsSection />
-          </TabsContent>
-
-          <TabsContent value="referrals" className="space-y-6">
-            <ReferralsSection />
-          </TabsContent>
-
-          <TabsContent value="goals" className="space-y-6">
-            <CommunityGoalsSection />
-          </TabsContent>
-        </Tabs>
+        {/* Café Statistics */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">23</div>
+              <p className="text-xs text-muted-foreground">
+                +2 from last hour
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Songs in Queue</CardTitle>
+              <Music className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">8</div>
+              <p className="text-xs text-muted-foreground">
+                +3 new requests
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Occupied Tables</CardTitle>
+              <Coffee className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">15/18</div>
+              <p className="text-xs text-muted-foreground">
+                83% occupancy
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </AdminLayout>
   );
