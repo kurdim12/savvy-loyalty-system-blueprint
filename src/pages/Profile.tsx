@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/layout/Header';
@@ -11,10 +12,10 @@ import { CoffeePersonalityForm } from '@/components/profile/CoffeePersonalityFor
 import { SocialPreferencesForm } from '@/components/profile/SocialPreferencesForm';
 import { CoffeeJourneyView } from '@/components/profile/CoffeeJourneyView';
 import { ConnectionsView } from '@/components/profile/ConnectionsView';
-import { ProfileDiscovery } from '@/components/profile/ProfileDiscovery';
-import { ProfileHeader } from '@/components/profile/ProfileHeader';
+import { EnhancedProfileDiscovery } from '@/components/profile/EnhancedProfileDiscovery';
+import { ProfileShowcase } from '@/components/profile/ProfileShowcase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Coffee, Users, Star, Search, Settings } from 'lucide-react';
+import { User, Coffee, Users, Star, Search, Settings, Trophy, Heart } from 'lucide-react';
 
 const Profile = () => {
   const { profile, updateProfile } = useAuth();
@@ -45,40 +46,57 @@ const Profile = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-[#FAF6F0] via-white to-amber-50/30">
       <Header />
-      <main className="flex-1 p-4 md:p-6 container mx-auto">
+      <main className="flex-1 p-4 md:p-6 container mx-auto max-w-6xl">
         <div className="space-y-6">
-          <ProfileHeader />
+          {/* Main Profile Showcase - This is now the hero */}
+          <ProfileShowcase />
 
-          {/* Profile Tabs */}
-          <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 bg-white/50">
-              <TabsTrigger value="basic" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Basic</span>
-              </TabsTrigger>
-              <TabsTrigger value="coffee" className="flex items-center gap-2">
-                <Coffee className="h-4 w-4" />
-                <span className="hidden sm:inline">Coffee</span>
-              </TabsTrigger>
-              <TabsTrigger value="social" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span className="hidden sm:inline">Social</span>
-              </TabsTrigger>
-              <TabsTrigger value="discover" className="flex items-center gap-2">
+          {/* Enhanced Profile Tabs */}
+          <Tabs defaultValue="discover" className="w-full">
+            <TabsList className="grid w-full grid-cols-6 bg-white/70 backdrop-blur-sm border border-[#8B4513]/10">
+              <TabsTrigger value="discover" className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white">
                 <Search className="h-4 w-4" />
                 <span className="hidden sm:inline">Discover</span>
               </TabsTrigger>
-              <TabsTrigger value="journey" className="flex items-center gap-2">
+              <TabsTrigger value="coffee" className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white">
+                <Coffee className="h-4 w-4" />
+                <span className="hidden sm:inline">Coffee</span>
+              </TabsTrigger>
+              <TabsTrigger value="social" className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white">
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">Social</span>
+              </TabsTrigger>
+              <TabsTrigger value="journey" className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white">
                 <Star className="h-4 w-4" />
                 <span className="hidden sm:inline">Journey</span>
               </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
+              <TabsTrigger value="basic" className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white">
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Basic</span>
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white">
                 <Settings className="h-4 w-4" />
                 <span className="hidden sm:inline">Settings</span>
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="discover" className="space-y-6">
+              <EnhancedProfileDiscovery />
+            </TabsContent>
+
+            <TabsContent value="coffee">
+              <CoffeePersonalityForm />
+            </TabsContent>
+
+            <TabsContent value="social">
+              <SocialPreferencesForm />
+            </TabsContent>
+
+            <TabsContent value="journey">
+              <CoffeeJourneyView />
+            </TabsContent>
 
             <TabsContent value="basic" className="space-y-6">
               <Card className="border-[#8B4513]/20">
@@ -140,22 +158,6 @@ const Profile = () => {
               </Card>
               
               <BirthdaySelector />
-            </TabsContent>
-
-            <TabsContent value="coffee">
-              <CoffeePersonalityForm />
-            </TabsContent>
-
-            <TabsContent value="social">
-              <SocialPreferencesForm />
-            </TabsContent>
-
-            <TabsContent value="discover">
-              <ProfileDiscovery />
-            </TabsContent>
-
-            <TabsContent value="journey">
-              <CoffeeJourneyView />
             </TabsContent>
 
             <TabsContent value="settings" className="space-y-6">
@@ -223,7 +225,7 @@ const Profile = () => {
           </Tabs>
         </div>
       </main>
-      <footer className="py-4 px-6 text-center text-sm text-[#6F4E37] border-t border-[#8B4513]/10">
+      <footer className="py-4 px-6 text-center text-sm text-[#6F4E37] border-t border-[#8B4513]/10 bg-white/50 backdrop-blur-sm">
         &copy; {new Date().getFullYear()} Raw Smith Coffee Loyalty Program
       </footer>
     </div>
