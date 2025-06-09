@@ -92,6 +92,82 @@ export type Database = {
         }
         Relationships: []
       }
+      coffee_education_progress: {
+        Row: {
+          badge_name: string
+          badge_type: string
+          description: string | null
+          earned_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_name: string
+          badge_type: string
+          description?: string | null
+          earned_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_name?: string
+          badge_type?: string
+          description?: string | null
+          earned_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coffee_education_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coffee_journey: {
+        Row: {
+          brewing_method: string | null
+          drink_name: string
+          id: string
+          notes: string | null
+          origin: string | null
+          rating: number | null
+          tried_at: string | null
+          user_id: string
+        }
+        Insert: {
+          brewing_method?: string | null
+          drink_name: string
+          id?: string
+          notes?: string | null
+          origin?: string | null
+          rating?: number | null
+          tried_at?: string | null
+          user_id: string
+        }
+        Update: {
+          brewing_method?: string | null
+          drink_name?: string
+          id?: string
+          notes?: string | null
+          origin?: string | null
+          rating?: number | null
+          tried_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coffee_journey_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_goal_contributions: {
         Row: {
           created_at: string
@@ -444,48 +520,93 @@ export type Database = {
       }
       profiles: {
         Row: {
+          availability_status: string | null
+          avatar_url: string | null
+          bio: string | null
           birthday: string | null
+          brewing_preference: string | null
+          coffee_adventure_level: string | null
+          conversation_style: string | null
           created_at: string
+          current_drink: string | null
+          current_mood: string | null
           current_points: number
           email: string
+          favorite_coffee_origin: string | null
+          favorite_seating: string | null
           first_name: string | null
+          flavor_profile: string | null
           id: string
+          languages_spoken: string[] | null
           last_name: string | null
           membership_tier: Database["public"]["Enums"]["membership_tier"]
           phone: string | null
+          primary_topics: string[] | null
           referral_code: string | null
           role: Database["public"]["Enums"]["user_role"]
+          time_zone: string | null
           updated_at: string
+          visit_frequency: string | null
           visits: number
         }
         Insert: {
+          availability_status?: string | null
+          avatar_url?: string | null
+          bio?: string | null
           birthday?: string | null
+          brewing_preference?: string | null
+          coffee_adventure_level?: string | null
+          conversation_style?: string | null
           created_at?: string
+          current_drink?: string | null
+          current_mood?: string | null
           current_points?: number
           email: string
+          favorite_coffee_origin?: string | null
+          favorite_seating?: string | null
           first_name?: string | null
+          flavor_profile?: string | null
           id: string
+          languages_spoken?: string[] | null
           last_name?: string | null
           membership_tier?: Database["public"]["Enums"]["membership_tier"]
           phone?: string | null
+          primary_topics?: string[] | null
           referral_code?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          time_zone?: string | null
           updated_at?: string
+          visit_frequency?: string | null
           visits?: number
         }
         Update: {
+          availability_status?: string | null
+          avatar_url?: string | null
+          bio?: string | null
           birthday?: string | null
+          brewing_preference?: string | null
+          coffee_adventure_level?: string | null
+          conversation_style?: string | null
           created_at?: string
+          current_drink?: string | null
+          current_mood?: string | null
           current_points?: number
           email?: string
+          favorite_coffee_origin?: string | null
+          favorite_seating?: string | null
           first_name?: string | null
+          flavor_profile?: string | null
           id?: string
+          languages_spoken?: string[] | null
           last_name?: string | null
           membership_tier?: Database["public"]["Enums"]["membership_tier"]
           phone?: string | null
+          primary_topics?: string[] | null
           referral_code?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          time_zone?: string | null
           updated_at?: string
+          visit_frequency?: string | null
           visits?: number
         }
         Relationships: []
@@ -827,6 +948,51 @@ export type Database = {
           },
           {
             foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_connections: {
+        Row: {
+          connected_user_id: string
+          connection_type: string | null
+          first_met_at: string | null
+          id: string
+          notes: string | null
+          shared_experiences: string[] | null
+          user_id: string
+        }
+        Insert: {
+          connected_user_id: string
+          connection_type?: string | null
+          first_met_at?: string | null
+          id?: string
+          notes?: string | null
+          shared_experiences?: string[] | null
+          user_id: string
+        }
+        Update: {
+          connected_user_id?: string
+          connection_type?: string | null
+          first_met_at?: string | null
+          id?: string
+          notes?: string | null
+          shared_experiences?: string[] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_connections_connected_user_id_fkey"
+            columns: ["connected_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_connections_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
