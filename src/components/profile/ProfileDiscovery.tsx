@@ -126,7 +126,7 @@ export const ProfileDiscovery = () => {
                       </div>
                       
                       {profile.availability_status && (
-                        <Badge className={getAvailabilityColor(profile.availability_status)} variant="outline" size="sm">
+                        <Badge className={getAvailabilityColor(profile.availability_status)} variant="outline">
                           {profile.availability_status}
                         </Badge>
                       )}
