@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -345,7 +344,7 @@ const CommunityHub = () => {
 
           {/* Navigation Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-5 mb-8 bg-[#95A5A6]/10 p-1 rounded-xl">
+            <TabsList className="grid w-full grid-cols-4 mb-8 bg-[#95A5A6]/10 p-1 rounded-xl">
               <TabsTrigger 
                 value="cafe" 
                 className="flex items-center gap-2 data-[state=active]:bg-black data-[state=active]:text-white"
@@ -373,13 +372,6 @@ const CommunityHub = () => {
               >
                 <Share2 className="h-4 w-4" />
                 <span className="hidden sm:inline">Social & Referrals</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="goals" 
-                className="flex items-center gap-2 data-[state=active]:bg-black data-[state=active]:text-white"
-              >
-                <Target className="h-4 w-4" />
-                <span className="hidden sm:inline">Community Goals</span>
               </TabsTrigger>
             </TabsList>
 
@@ -447,10 +439,6 @@ const CommunityHub = () => {
                   userRank={12}
                 />
               )}
-            </TabsContent>
-
-            <TabsContent value="goals" className="space-y-6">
-              <CommunityGoalsList />
             </TabsContent>
           </Tabs>
         </div>
