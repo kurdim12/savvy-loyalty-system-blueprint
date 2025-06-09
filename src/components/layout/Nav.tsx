@@ -1,7 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Home, Coffee, User, Award, Users, Gift, MessageSquare, Settings, Trophy, Camera, Target } from 'lucide-react';
+import { Home, Coffee, User, Award, Users, Gift, MessageSquare, Settings, Camera, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -40,7 +40,6 @@ export function Nav({ className }: { className?: string }) {
       <UserLink to="/dashboard" label="Dashboard" icon={<Home size={16} />} />
       <UserLink to="/rewards" label="Rewards" icon={<Award size={16} />} />
       <UserLink to="/community" label="Community" icon={<MessageSquare size={16} />} />
-      <UserLink to="/community-hub" label="Community Hub" icon={<Trophy size={16} />} />
       <UserLink to="/profile" label="Profile" icon={<User size={16} />} />
       
       {isAdmin && (
