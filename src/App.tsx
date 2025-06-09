@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -18,7 +17,6 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Rewards from "./pages/Rewards";
 import CommunityPage from "./pages/CommunityPage";
-import CommunityHub from "./pages/CommunityHub";
 import ThreadPage from "./pages/ThreadPage";
 import NotFound from "./pages/NotFound";
 
@@ -86,7 +84,6 @@ function App() {
               <Route path="/profile" element={<UserRoute><Profile /></UserRoute>} />
               <Route path="/rewards" element={<UserRoute><Rewards /></UserRoute>} />
               <Route path="/community" element={<UserRoute><CommunityPage /></UserRoute>} />
-              <Route path="/community-hub" element={<UserRoute><CommunityHub /></UserRoute>} />
               <Route path="/thread/:id" element={<UserRoute><ThreadPage /></UserRoute>} />
 
               {/* Admin routes */}
