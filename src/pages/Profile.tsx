@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/layout/Header';
@@ -13,6 +14,7 @@ import { CoffeeJourneyView } from '@/components/profile/CoffeeJourneyView';
 import { ConnectionsView } from '@/components/profile/ConnectionsView';
 import { EnhancedProfileDiscovery } from '@/components/profile/EnhancedProfileDiscovery';
 import { ProfileShowcase } from '@/components/profile/ProfileShowcase';
+import { LoyaltyDashboard } from '@/components/loyalty/LoyaltyDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, Coffee, Users, Star, Search, Settings, Trophy, Heart, Bell } from 'lucide-react';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
