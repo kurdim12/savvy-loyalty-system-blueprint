@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,8 +20,9 @@ const Hub = () => {
     setCurrentView('floor-plan');
   };
 
-  const handleViewChange = (view: 'floor-plan' | 'dj') => {
-    setCurrentView(view);
+  const handleViewChange = (view: 'interior') => {
+    // Handle the interior view change - for now we'll keep it on floor-plan
+    setCurrentView('floor-plan');
   };
 
   return (
