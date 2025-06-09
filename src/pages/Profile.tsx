@@ -1,21 +1,20 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { BirthdaySelector } from '@/components/profile/BirthdaySelector';
 import { CoffeePersonalityForm } from '@/components/profile/CoffeePersonalityForm';
 import { SocialPreferencesForm } from '@/components/profile/SocialPreferencesForm';
 import { CoffeeJourneyView } from '@/components/profile/CoffeeJourneyView';
 import { ConnectionsView } from '@/components/profile/ConnectionsView';
+import { ProfileDiscovery } from '@/components/profile/ProfileDiscovery';
+import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Coffee, Users, Star, Settings } from 'lucide-react';
+import { User, Coffee, Users, Star, Search, Settings } from 'lucide-react';
 
 const Profile = () => {
   const { profile, updateProfile } = useAuth();
@@ -45,71 +44,39 @@ const Profile = () => {
     }
   };
 
-  const getMembershipColor = (tier: string) => {
-    switch (tier) {
-      case 'gold': return 'bg-yellow-100 text-yellow-800';
-      case 'silver': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-orange-100 text-orange-800';
-    }
-  };
-
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
       <Header />
       <main className="flex-1 p-4 md:p-6 container mx-auto">
         <div className="space-y-6">
-          {/* Profile Header */}
-          <div className="text-center space-y-4">
-            <div className="relative w-24 h-24 mx-auto">
-              <img
-                src={profile?.avatar_url || '/placeholder.svg'}
-                alt="Profile Avatar"
-                className="w-24 h-24 rounded-full object-cover border-4 border-[#8B4513]"
-              />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-[#8B4513]">
-                {profile?.first_name} {profile?.last_name}
-              </h1>
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <Badge className={getMembershipColor(profile?.membership_tier || 'bronze')}>
-                  {profile?.membership_tier?.toUpperCase()} Member
-                </Badge>
-                <Badge variant="outline" className="text-[#8B4513]">
-                  {profile?.current_points || 0} Points
-                </Badge>
-              </div>
-              {profile?.current_mood && (
-                <p className="text-[#6F4E37] mt-2">Currently feeling: {profile.current_mood}</p>
-              )}
-              {profile?.current_drink && (
-                <p className="text-[#6F4E37]">Enjoying: {profile.current_drink}</p>
-              )}
-            </div>
-          </div>
+          <ProfileHeader />
 
           {/* Profile Tabs */}
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6 bg-white/50">
               <TabsTrigger value="basic" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
-                Basic Info
+                <span className="hidden sm:inline">Basic</span>
               </TabsTrigger>
               <TabsTrigger value="coffee" className="flex items-center gap-2">
                 <Coffee className="h-4 w-4" />
-                Coffee Profile
+                <span className="hidden sm:inline">Coffee</span>
               </TabsTrigger>
               <TabsTrigger value="social" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Social
+                <span className="hidden sm:inline">Social</span>
+              </TabsTrigger>
+              <TabsTrigger value="discover" className="flex items-center gap-2">
+                <Search className="h-4 w-4" />
+                <span className="hidden sm:inline">Discover</span>
               </TabsTrigger>
               <TabsTrigger value="journey" className="flex items-center gap-2">
                 <Star className="h-4 w-4" />
-                Journey
+                <span className="hidden sm:inline">Journey</span>
               </TabsTrigger>
               <TabsTrigger value="settings" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
-                Settings
+                <span className="hidden sm:inline">Settings</span>
               </TabsTrigger>
             </TabsList>
 
@@ -181,6 +148,10 @@ const Profile = () => {
 
             <TabsContent value="social">
               <SocialPreferencesForm />
+            </TabsContent>
+
+            <TabsContent value="discover">
+              <ProfileDiscovery />
             </TabsContent>
 
             <TabsContent value="journey">
