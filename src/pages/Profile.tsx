@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/layout/Header';
@@ -15,7 +14,8 @@ import { ConnectionsView } from '@/components/profile/ConnectionsView';
 import { EnhancedProfileDiscovery } from '@/components/profile/EnhancedProfileDiscovery';
 import { ProfileShowcase } from '@/components/profile/ProfileShowcase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Coffee, Users, Star, Search, Settings, Trophy, Heart } from 'lucide-react';
+import { User, Coffee, Users, Star, Search, Settings, Trophy, Heart, Bell } from 'lucide-react';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 
 const Profile = () => {
   const { profile, updateProfile } = useAuth();
@@ -54,8 +54,12 @@ const Profile = () => {
           <ProfileShowcase />
 
           {/* Enhanced Profile Tabs */}
-          <Tabs defaultValue="discover" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 bg-white/70 backdrop-blur-sm border border-[#8B4513]/10">
+          <Tabs defaultValue="loyalty" className="w-full">
+            <TabsList className="grid w-full grid-cols-8 bg-white/70 backdrop-blur-sm border border-[#8B4513]/10">
+              <TabsTrigger value="loyalty" className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white">
+                <Trophy className="h-4 w-4" />
+                <span className="hidden sm:inline">Loyalty</span>
+              </TabsTrigger>
               <TabsTrigger value="discover" className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white">
                 <Search className="h-4 w-4" />
                 <span className="hidden sm:inline">Discover</span>
@@ -72,6 +76,10 @@ const Profile = () => {
                 <Star className="h-4 w-4" />
                 <span className="hidden sm:inline">Journey</span>
               </TabsTrigger>
+              <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white">
+                <Bell className="h-4 w-4" />
+                <span className="hidden sm:inline">Alerts</span>
+              </TabsTrigger>
               <TabsTrigger value="basic" className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white">
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Basic</span>
@@ -82,8 +90,16 @@ const Profile = () => {
               </TabsTrigger>
             </TabsList>
 
+            <TabsContent value="loyalty" className="space-y-6">
+              <LoyaltyDashboard />
+            </TabsContent>
+
             <TabsContent value="discover" className="space-y-6">
               <EnhancedProfileDiscovery />
+            </TabsContent>
+
+            <TabsContent value="notifications" className="space-y-6">
+              <NotificationCenter />
             </TabsContent>
 
             <TabsContent value="coffee">
