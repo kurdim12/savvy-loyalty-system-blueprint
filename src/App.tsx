@@ -35,7 +35,6 @@ import CommunityManagement from "./pages/admin/CommunityManagement";
 import CommunityGoalsAdmin from "./pages/admin/CommunityGoalsAdmin";
 import CommunityHubManagement from "./pages/admin/CommunityHubManagement";
 import RewardsAdmin from "./pages/admin/RewardsAdmin";
-import Hub from "./pages/admin/Hub";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -93,7 +92,6 @@ function App() {
               {/* Admin routes */}
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-              <Route path="/admin/hub" element={<AdminRoute><Hub /></AdminRoute>} />
               <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
               <Route path="/admin/rewards" element={<AdminRoute><RewardsManagement /></AdminRoute>} />
               <Route path="/admin/transactions" element={<AdminRoute><TransactionsManagement /></AdminRoute>} />
