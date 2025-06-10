@@ -1,6 +1,6 @@
 
 import { ReactNode, useEffect, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from './Header';
 import { toast } from 'sonner';
@@ -18,7 +18,6 @@ export default function Layout({
   adminOnly
 }: LayoutProps) {
   const { user, loading, isAdmin, isUser, membershipTier, profile } = useAuth();
-  const navigate = useNavigate();
   const [pageReady, setPageReady] = useState(false);
   
   console.log("Layout mounting, auth state:", { 

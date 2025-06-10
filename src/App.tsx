@@ -53,9 +53,9 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <BrowserRouter>
-          <AuthProvider>
-            <ErrorBoundary>
+        <ErrorBoundary>
+          <BrowserRouter>
+            <AuthProvider>
               <div className="min-h-screen bg-[#FAF6F0]">
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -123,9 +123,9 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>
-            </ErrorBoundary>
-          </AuthProvider>
-        </BrowserRouter>
+            </AuthProvider>
+          </BrowserRouter>
+        </ErrorBoundary>
       </TooltipProvider>
     </QueryClientProvider>
   );
