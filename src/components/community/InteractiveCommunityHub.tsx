@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,13 @@ import { useAuth } from '@/contexts/AuthContext';
 export const InteractiveCommunityHub = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('floor-plan');
+
+  // Mock online users data - in a real app, this would come from Supabase presence
+  const mockOnlineUsers = [
+    { name: 'Alex', mood: 'focused', activity: 'working' },
+    { name: 'Sarah', mood: 'relaxed', activity: 'reading' },
+    { name: 'Mike', mood: 'social', activity: 'chatting' },
+  ];
 
   const tabs = [
     {
@@ -30,7 +38,7 @@ export const InteractiveCommunityHub = () => {
       id: 'chat',
       label: 'Community Chat',
       icon: <MessageCircle className="h-4 w-4" />,
-      component: <RealTimeChat />
+      component: <RealTimeChat seatArea="community-hub" onlineUsers={mockOnlineUsers} />
     },
     {
       id: 'activities',
