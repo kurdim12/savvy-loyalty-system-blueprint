@@ -881,6 +881,36 @@ export type Database = {
           },
         ]
       }
+      songs: {
+        Row: {
+          added_by: string
+          artist: string
+          created_at: string
+          id: string
+          seat_area: string
+          title: string
+          votes: number
+        }
+        Insert: {
+          added_by: string
+          artist: string
+          created_at?: string
+          id?: string
+          seat_area?: string
+          title: string
+          votes?: number
+        }
+        Update: {
+          added_by?: string
+          artist?: string
+          created_at?: string
+          id?: string
+          seat_area?: string
+          title?: string
+          votes?: number
+        }
+        Relationships: []
+      }
       threads: {
         Row: {
           created_at: string | null
@@ -1085,6 +1115,10 @@ export type Database = {
       }
       update_community_goal_points: {
         Args: { p_goal_id: string; p_amount: number }
+        Returns: undefined
+      }
+      vote_for_song: {
+        Args: { song_id: string }
         Returns: undefined
       }
     }

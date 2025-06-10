@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Play, Pause, SkipForward, Volume2, Users, Music, Search, Plus, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +16,7 @@ interface Song {
   artist: string;
   votes: number;
   added_by: string;
+  seat_area: string;
   created_at: string;
 }
 
@@ -67,12 +69,17 @@ export const RealCafeMusicSystem = ({ seatArea = 'global' }: RealCafeMusicSystem
 
   // Add song mutation
   const addSongMutation = useMutation({
-    mutationFn: async (newSong: Omit<Song, 'id' | 'votes'>) => {
+    mutationFn: async (newSong: { title: string; artist: string }) => {
       if (!user) throw new Error('Not authenticated');
 
       const { data, error } = await supabase
         .from('songs')
-        .insert([{ ...newSong, added_by: user.id, seat_area: seatArea }]);
+        .insert([{ 
+          ...newSong, 
+          added_by: user.id, 
+          seat_area: seatArea,
+          votes: 0
+        }]);
 
       if (error) {
         console.error('Error adding song:', error);
