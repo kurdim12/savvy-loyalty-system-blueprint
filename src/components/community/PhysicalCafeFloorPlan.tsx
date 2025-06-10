@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, Coffee, BookOpen, Heart, Laptop, Music, MessageSquare, MapPin, Wifi, Volume2 } from 'lucide-react';
+import { Users, Coffee, BookOpen, Heart, Laptop, Music, MessageSquare, MapPin, Wifi, Volume2, Flame, Bean } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -23,12 +23,12 @@ interface OccupiedSeat {
 }
 
 const SEAT_PURPOSES: SeatPurpose[] = [
-  { id: 'work', label: 'Work/Study', icon: <Laptop className="h-4 w-4" />, color: 'bg-blue-500' },
-  { id: 'social', label: 'Meet People', icon: <Users className="h-4 w-4" />, color: 'bg-green-500' },
-  { id: 'relax', label: 'Relax/Chill', icon: <Heart className="h-4 w-4" />, color: 'bg-purple-500' },
-  { id: 'read', label: 'Reading', icon: <BookOpen className="h-4 w-4" />, color: 'bg-orange-500' },
-  { id: 'coffee', label: 'Coffee Tasting', icon: <Coffee className="h-4 w-4" />, color: 'bg-amber-600' },
-  { id: 'music', label: 'Music Listening', icon: <Music className="h-4 w-4" />, color: 'bg-pink-500' }
+  { id: 'work', label: 'Deep Work', icon: <Laptop className="h-4 w-4" />, color: 'bg-slate-600' },
+  { id: 'social', label: 'Coffee & Chat', icon: <Users className="h-4 w-4" />, color: 'bg-amber-600' },
+  { id: 'relax', label: 'Slow Coffee', icon: <Heart className="h-4 w-4" />, color: 'bg-rose-500' },
+  { id: 'read', label: 'Reading Corner', icon: <BookOpen className="h-4 w-4" />, color: 'bg-emerald-600' },
+  { id: 'coffee', label: 'Coffee Tasting', icon: <Coffee className="h-4 w-4" />, color: 'bg-orange-600' },
+  { id: 'music', label: 'Acoustic Vibes', icon: <Music className="h-4 w-4" />, color: 'bg-purple-600' }
 ];
 
 export const PhysicalCafeFloorPlan = () => {
@@ -37,76 +37,76 @@ export const PhysicalCafeFloorPlan = () => {
   const [selectedPurpose, setSelectedPurpose] = useState<string>('');
   const [occupiedSeats, setOccupiedSeats] = useState<OccupiedSeat[]>([
     {
-      seatId: 'T1',
+      seatId: 'BR1',
       userId: '1',
-      userName: 'Sarah M.',
-      purpose: 'work',
+      userName: 'Elena',
+      purpose: 'coffee',
       checkedInAt: '2024-01-10T10:30:00Z',
-      status: 'available'
+      status: 'open_to_meet'
     },
     {
-      seatId: 'T4',
+      seatId: 'CT2',
       userId: '2',
-      userName: 'Alex K.',
-      purpose: 'social',
+      userName: 'Marcus',
+      purpose: 'work',
       checkedInAt: '2024-01-10T11:15:00Z',
-      status: 'looking_for_chat'
-    },
-    {
-      seatId: 'B2',
-      userId: '3',
-      userName: 'Emma L.',
-      purpose: 'read',
-      checkedInAt: '2024-01-10T09:45:00Z',
       status: 'do_not_disturb'
     },
     {
-      seatId: 'P1',
+      seatId: 'RC3',
+      userId: '3',
+      userName: 'Sophia',
+      purpose: 'read',
+      checkedInAt: '2024-01-10T09:45:00Z',
+      status: 'available'
+    },
+    {
+      seatId: 'LT4',
       userId: '4',
-      userName: 'Jordan P.',
-      purpose: 'relax',
+      userName: 'Kai',
+      purpose: 'social',
       checkedInAt: '2024-01-10T12:00:00Z',
-      status: 'open_to_meet'
+      status: 'looking_for_chat'
     }
   ]);
 
   const [userCurrentSeat, setUserCurrentSeat] = useState<string | null>(null);
 
-  // Realistic coffee shop layout based on typical floor plans
-  const tables = [
-    // Window seating area
-    { id: 'W1', x: 8, y: 15, size: 'small', label: 'Window Table 1', zone: 'window' },
-    { id: 'W2', x: 8, y: 25, size: 'small', label: 'Window Table 2', zone: 'window' },
-    { id: 'W3', x: 8, y: 35, size: 'small', label: 'Window Table 3', zone: 'window' },
-    
-    // Central area tables
-    { id: 'T1', x: 25, y: 20, size: 'medium', label: 'Round Table 1', zone: 'center' },
-    { id: 'T2', x: 45, y: 15, size: 'large', label: 'Community Table', zone: 'center' },
-    { id: 'T3', x: 25, y: 40, size: 'medium', label: 'Round Table 3', zone: 'center' },
-    { id: 'T4', x: 45, y: 35, size: 'small', label: 'Cozy Table 4', zone: 'center' },
-    
-    // Back corner cozy area
-    { id: 'C1', x: 75, y: 20, size: 'medium', label: 'Corner Booth 1', zone: 'cozy' },
-    { id: 'C2', x: 75, y: 35, size: 'medium', label: 'Corner Booth 2', zone: 'cozy' },
-    
-    // Near entrance quick tables
-    { id: 'Q1', x: 25, y: 65, size: 'small', label: 'Quick Table 1', zone: 'entrance' },
-    { id: 'Q2', x: 40, y: 65, size: 'small', label: 'Quick Table 2', zone: 'entrance' }
+  // Unique coffee shop layout - no kitchen, all about coffee experience
+  const brewingBar = [
+    { id: 'BR1', x: 15, y: 75, label: 'Espresso Bar Seat 1', type: 'brewing' },
+    { id: 'BR2', x: 25, y: 75, label: 'Espresso Bar Seat 2', type: 'brewing' },
+    { id: 'BR3', x: 35, y: 75, label: 'Pour Over Counter 1', type: 'brewing' },
+    { id: 'BR4', x: 45, y: 75, label: 'Pour Over Counter 2', type: 'brewing' },
+    { id: 'BR5', x: 55, y: 75, label: 'Cold Brew Station', type: 'brewing' }
   ];
 
-  const barSeats = [
-    { id: 'B1', x: 15, y: 85, label: 'Bar Seat 1' },
-    { id: 'B2', x: 25, y: 85, label: 'Bar Seat 2' },
-    { id: 'B3', x: 35, y: 85, label: 'Bar Seat 3' },
-    { id: 'B4', x: 45, y: 85, label: 'Bar Seat 4' },
-    { id: 'B5', x: 55, y: 85, label: 'Bar Seat 5' },
-    { id: 'B6', x: 65, y: 85, label: 'Bar Seat 6' }
+  const communityTables = [
+    { id: 'CT1', x: 25, y: 35, size: 'large', label: 'Community Table', type: 'community' },
+    { id: 'CT2', x: 45, y: 35, size: 'large', label: 'Sharing Table', type: 'community' },
+    { id: 'CT3', x: 65, y: 35, size: 'medium', label: 'Group Spot', type: 'community' }
   ];
 
-  const patioSeats = [
-    { id: 'P1', x: 85, y: 15, label: 'Patio Table 1' },
-    { id: 'P2', x: 85, y: 30, label: 'Patio Table 2' },
-    { id: 'P3', x: 85, y: 45, label: 'Patio Table 3' }
+  const readingNooks = [
+    { id: 'RC1', x: 15, y: 20, label: 'Window Reading Nook', type: 'reading' },
+    { id: 'RC2', x: 15, y: 50, label: 'Cozy Reading Corner', type: 'reading' },
+    { id: 'RC3', x: 85, y: 20, label: 'Quiet Book Spot', type: 'reading' },
+    { id: 'RC4', x: 85, y: 50, label: 'Literature Corner', type: 'reading' }
+  ];
+
+  const laptopTables = [
+    { id: 'LT1', x: 35, y: 15, label: 'Focus Table 1', type: 'laptop' },
+    { id: 'LT2', x: 55, y: 15, label: 'Focus Table 2', type: 'laptop' },
+    { id: 'LT3', x: 75, y: 15, label: 'Solo Work Spot', type: 'laptop' },
+    { id: 'LT4', x: 35, y: 55, label: 'Study Table', type: 'laptop' },
+    { id: 'LT5', x: 55, y: 55, label: 'Creative Desk', type: 'laptop' }
+  ];
+
+  const loungeSeats = [
+    { id: 'LS1', x: 75, y: 65, label: 'Velvet Armchair', type: 'lounge' },
+    { id: 'LS2', x: 85, y: 65, label: 'Leather Sofa Spot', type: 'lounge' },
+    { id: 'LS3', x: 25, y: 20, label: 'Vintage Chair', type: 'lounge' },
+    { id: 'LS4', x: 75, y: 40, label: 'Conversation Couch', type: 'lounge' }
   ];
 
   const handleSeatClick = (seatId: string) => {
@@ -165,50 +165,52 @@ export const PhysicalCafeFloorPlan = () => {
   };
 
   const getSeatLabel = (seatId: string) => {
-    const table = tables.find(t => t.id === seatId);
-    const bar = barSeats.find(b => b.id === seatId);
-    const patio = patioSeats.find(p => p.id === seatId);
-    return table?.label || bar?.label || patio?.label || seatId;
+    const allSeats = [...brewingBar, ...communityTables, ...readingNooks, ...laptopTables, ...loungeSeats];
+    const seat = allSeats.find(s => s.id === seatId);
+    return seat?.label || seatId;
   };
 
-  const getSeatColor = (seatId: string) => {
+  const getSeatColor = (seatId: string, seatType: string) => {
     const occupant = getSeatOccupant(seatId);
-    if (!occupant) return 'bg-emerald-100 hover:bg-emerald-200 border-emerald-300';
+    if (!occupant) {
+      // Different colors for different seat types when empty
+      switch (seatType) {
+        case 'brewing': return 'bg-amber-100 hover:bg-amber-200 border-amber-300';
+        case 'reading': return 'bg-emerald-100 hover:bg-emerald-200 border-emerald-300';
+        case 'laptop': return 'bg-blue-100 hover:bg-blue-200 border-blue-300';
+        case 'lounge': return 'bg-purple-100 hover:bg-purple-200 border-purple-300';
+        case 'community': return 'bg-orange-100 hover:bg-orange-200 border-orange-300';
+        default: return 'bg-gray-100 hover:bg-gray-200 border-gray-300';
+      }
+    }
     
-    if (occupant.userId === user?.id) return 'bg-blue-400 hover:bg-blue-500 border-blue-600';
+    if (occupant.userId === user?.id) return 'bg-rose-400 hover:bg-rose-500 border-rose-600';
     
     const purpose = getPurposeInfo(occupant.purpose);
-    return purpose ? purpose.color.replace('bg-', 'bg-') + '/60 hover:' + purpose.color.replace('bg-', 'bg-') + '/80 border-' + purpose.color.replace('bg-', '') + '-400' : 'bg-gray-400 border-gray-500';
+    return purpose ? purpose.color.replace('bg-', 'bg-') + '/70 hover:' + purpose.color.replace('bg-', 'bg-') + '/90 border-' + purpose.color.replace('bg-', '') + '-500' : 'bg-gray-400 border-gray-500';
   };
 
-  const getZoneColor = (zone: string) => {
-    switch (zone) {
-      case 'window': return 'bg-yellow-50';
-      case 'center': return 'bg-white';
-      case 'cozy': return 'bg-purple-50';
-      case 'entrance': return 'bg-blue-50';
-      default: return 'bg-gray-50';
-    }
-  };
-
-  const renderSeat = (seat: any, type: 'table' | 'bar' | 'patio') => {
+  const renderSeat = (seat: any, seatType: string) => {
     const occupant = getSeatOccupant(seat.id);
     const isUserSeat = occupant?.userId === user?.id;
-    const sizeClass = type === 'table' ? 
-      (seat.size === 'small' ? 'w-12 h-12' : seat.size === 'medium' ? 'w-16 h-16' : 'w-20 h-20') : 
-      'w-10 h-10';
+    
+    let sizeClass = 'w-14 h-14';
+    if (seat.size === 'large') sizeClass = 'w-20 h-16';
+    else if (seat.size === 'medium') sizeClass = 'w-16 h-14';
+    else if (seatType === 'brewing') sizeClass = 'w-12 h-12';
+    else if (seatType === 'lounge') sizeClass = 'w-16 h-16';
     
     return (
       <div
         key={seat.id}
-        className={`absolute cursor-pointer transition-all duration-300 hover:scale-110 hover:shadow-lg ${getSeatColor(seat.id)} rounded-2xl border-2 shadow-md flex flex-col items-center justify-center text-xs font-bold ${sizeClass}`}
+        className={`absolute cursor-pointer transition-all duration-300 hover:scale-110 hover:shadow-xl ${getSeatColor(seat.id, seatType)} rounded-xl border-2 shadow-lg flex flex-col items-center justify-center text-xs font-bold ${sizeClass}`}
         style={{
           left: `${seat.x}%`,
           top: `${seat.y}%`,
           transform: 'translate(-50%, -50%)'
         }}
         onClick={() => handleSeatClick(seat.id)}
-        title={`${seat.label || seat.id}${occupant ? ` - ${occupant.userName} (${getPurposeInfo(occupant.purpose)?.label})` : ' - Available'}`}
+        title={`${seat.label}${occupant ? ` - ${occupant.userName} (${getPurposeInfo(occupant.purpose)?.label})` : ' - Available'}`}
       >
         <div className="text-center">
           <div className="text-xs font-bold text-gray-800 mb-1">{seat.id}</div>
@@ -227,16 +229,16 @@ export const PhysicalCafeFloorPlan = () => {
   return (
     <div className="space-y-6">
       {/* Café Status Bar */}
-      <Card className="bg-gradient-to-r from-[#8B4513]/10 to-[#D2B48C]/20 border-[#8B4513]/20">
+      <Card className="bg-gradient-to-r from-amber-900/20 to-orange-900/20 border-amber-700/30">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-[#8B4513]">
-            <MapPin className="h-5 w-5" />
-            Physical Café Floor Plan
-            <Badge className="bg-green-500 text-white">
+          <CardTitle className="flex items-center gap-2 text-amber-800">
+            <Coffee className="h-6 w-6" />
+            Artisan Coffee House Floor Plan
+            <Badge className="bg-amber-600 text-white">
               <Users className="h-3 w-3 mr-1" />
-              {occupiedSeats.length} people here
+              {occupiedSeats.length} coffee lovers here
             </Badge>
-            <Badge className="bg-blue-500 text-white">
+            <Badge className="bg-emerald-600 text-white">
               <Wifi className="h-3 w-3 mr-1" />
               Free WiFi
             </Badge>
@@ -246,11 +248,11 @@ export const PhysicalCafeFloorPlan = () => {
 
       {/* User Status */}
       {userCurrentSeat && (
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-rose-50 border-rose-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Badge className="bg-blue-500 text-white">
+                <Badge className="bg-rose-500 text-white">
                   Currently at {getSeatLabel(userCurrentSeat)}
                 </Badge>
                 <span className="text-sm text-gray-600">
@@ -265,105 +267,118 @@ export const PhysicalCafeFloorPlan = () => {
         </Card>
       )}
 
-      {/* Enhanced Floor Plan */}
-      <Card className="h-[600px] relative overflow-hidden bg-gradient-to-br from-[#F5E6D3] to-[#FAF6F0]">
+      {/* Enhanced Coffee House Floor Plan */}
+      <Card className="h-[700px] relative overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
         <CardContent className="p-0 h-full relative">
-          {/* Background zones */}
+          {/* Coffee House Background Design */}
           <div className="absolute inset-0">
-            {/* Window zone */}
-            <div className="absolute bg-yellow-100/50 rounded-lg" style={{ left: '2%', top: '10%', width: '20%', height: '40%' }} />
+            {/* Main brewing area background */}
+            <div className="absolute bg-gradient-to-t from-amber-200/60 to-amber-100/40 rounded-t-3xl shadow-inner" 
+                 style={{ left: '8%', top: '68%', width: '55%', height: '25%' }} />
             
-            {/* Center zone */}
-            <div className="absolute bg-white/30 rounded-lg" style={{ left: '20%', top: '10%', width: '45%', height: '50%' }} />
+            {/* Window seating zones */}
+            <div className="absolute bg-gradient-to-r from-yellow-100/60 to-amber-100/40 rounded-lg shadow-sm" 
+                 style={{ left: '5%', top: '10%', width: '25%', height: '50%' }} />
             
-            {/* Cozy corner zone */}
-            <div className="absolute bg-purple-100/50 rounded-lg" style={{ left: '68%', top: '10%', width: '28%', height: '40%' }} />
+            {/* Central community area */}
+            <div className="absolute bg-gradient-to-br from-orange-100/50 to-amber-100/30 rounded-2xl shadow-sm" 
+                 style={{ left: '25%', top: '25%', width: '50%', height: '35%' }} />
             
-            {/* Entrance zone */}
-            <div className="absolute bg-blue-100/50 rounded-lg" style={{ left: '20%', top: '55%', width: '35%', height: '20%' }} />
+            {/* Reading corners */}
+            <div className="absolute bg-gradient-to-bl from-emerald-100/50 to-green-100/30 rounded-xl shadow-sm" 
+                 style={{ left: '78%', top: '10%', width: '20%', height: '45%' }} />
             
-            {/* Patio zone */}
-            <div className="absolute bg-green-100/50 rounded-lg border-2 border-dashed border-green-300" style={{ left: '75%', top: '10%', width: '22%', height: '40%' }} />
+            {/* Lounge area */}
+            <div className="absolute bg-gradient-to-tl from-purple-100/40 to-pink-100/30 rounded-2xl shadow-sm" 
+                 style={{ left: '70%', top: '55%', width: '28%', height: '25%' }} />
           </div>
 
-          {/* Counter/Bar Area */}
+          {/* Coffee Brewing Bar - The Heart of the Café */}
           <div 
-            className="absolute bg-gradient-to-r from-[#8B4513] to-[#A0522D] rounded-2xl shadow-2xl flex items-center justify-center text-white font-bold border-4 border-[#654321]"
-            style={{ left: '10%', top: '80%', width: '60%', height: '12%' }}
+            className="absolute bg-gradient-to-t from-amber-800 via-amber-700 to-amber-600 rounded-t-3xl shadow-2xl flex items-center justify-center text-white font-bold border-4 border-amber-900"
+            style={{ left: '10%', top: '70%', width: '50%', height: '20%' }}
           >
-            <Coffee className="h-6 w-6 mr-2" />
-            COFFEE BAR & COUNTER
-            <Volume2 className="h-4 w-4 ml-3 animate-pulse" />
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Coffee className="h-8 w-8" />
+                <Flame className="h-6 w-6 text-orange-300 animate-pulse" />
+                <Bean className="h-6 w-6 text-amber-200" />
+              </div>
+              <div className="text-lg font-bold">ARTISAN BREWING BAR</div>
+              <div className="text-xs text-amber-200">Fresh roasted • Pour over • Espresso</div>
+            </div>
+          </div>
+
+          {/* Coffee Storage & Equipment Display */}
+          <div 
+            className="absolute bg-gradient-to-r from-amber-700 to-orange-700 rounded-xl shadow-lg flex items-center justify-center text-white font-bold text-sm border-2 border-amber-800"
+            style={{ left: '65%', top: '72%', width: '20%', height: '15%' }}
+          >
+            <div className="text-center">
+              <Bean className="h-6 w-6 mx-auto mb-1 text-orange-200" />
+              <div>BEAN ROASTERY</div>
+              <div className="text-xs text-orange-200">Fresh Daily</div>
+            </div>
           </div>
 
           {/* Entrance */}
           <div 
-            className="absolute bg-gray-300 rounded-xl shadow-lg flex items-center justify-center text-gray-700 font-bold text-sm border-2 border-gray-400"
-            style={{ left: '45%', top: '3%', width: '10%', height: '6%' }}
+            className="absolute bg-amber-200 rounded-xl shadow-lg flex items-center justify-center text-amber-800 font-bold text-sm border-2 border-amber-300"
+            style={{ left: '45%', top: '3%', width: '10%', height: '8%' }}
           >
             ↓ ENTRANCE ↓
           </div>
 
-          {/* Zone Labels */}
-          <div className="absolute top-2 left-4 text-xs font-semibold text-yellow-700 bg-yellow-100/80 px-2 py-1 rounded">
-            🌅 Window Seating
+          {/* Area Labels with Coffee Theme */}
+          <div className="absolute top-2 left-4 text-xs font-semibold text-amber-800 bg-yellow-100/90 px-3 py-2 rounded-full shadow-sm">
+            ☀️ Morning Light Reading
           </div>
-          <div className="absolute top-2 left-1/3 text-xs font-semibold text-gray-700 bg-white/80 px-2 py-1 rounded">
-            ☕ Main Area
+          <div className="absolute top-2 left-1/3 text-xs font-semibold text-orange-800 bg-orange-100/90 px-3 py-2 rounded-full shadow-sm">
+            🤝 Community Coffee Tables
           </div>
-          <div className="absolute top-2 right-20 text-xs font-semibold text-purple-700 bg-purple-100/80 px-2 py-1 rounded">
-            🛋️ Cozy Corner
+          <div className="absolute top-2 right-4 text-xs font-semibold text-emerald-800 bg-emerald-100/90 px-3 py-2 rounded-full shadow-sm">
+            📚 Quiet Study Corners
           </div>
-          <div className="absolute top-12 right-4 text-xs font-semibold text-green-700 bg-green-100/80 px-2 py-1 rounded">
-            🌿 Outdoor Patio
+          <div className="absolute bottom-20 right-4 text-xs font-semibold text-purple-800 bg-purple-100/90 px-3 py-2 rounded-full shadow-sm">
+            🛋️ Comfort Lounge
           </div>
-
-          {/* Tables */}
-          {tables.map(table => renderSeat(table, 'table'))}
-
-          {/* Bar Seats */}
-          {barSeats.map(seat => renderSeat(seat, 'bar'))}
-
-          {/* Patio Seats */}
-          {patioSeats.map(seat => renderSeat(seat, 'patio'))}
-
-          {/* Restroom indicator */}
-          <div 
-            className="absolute bg-gray-200 rounded-lg shadow-md flex items-center justify-center text-gray-600 text-xs font-medium border border-gray-300"
-            style={{ left: '75%', top: '75%', width: '8%', height: '8%' }}
-          >
-            🚻
+          <div className="absolute bottom-2 left-1/4 text-xs font-semibold text-amber-800 bg-amber-100/90 px-3 py-2 rounded-full shadow-sm">
+            ☕ Watch Your Coffee Being Made
           </div>
 
-          {/* Kitchen indicator */}
-          <div 
-            className="absolute bg-red-100 rounded-lg shadow-md flex items-center justify-center text-red-600 text-xs font-medium border border-red-300"
-            style={{ left: '75%', top: '82%', width: '15%', height: '8%' }}
-          >
-            👨‍🍳 Kitchen
-          </div>
+          {/* Render all seating areas */}
+          {brewingBar.map(seat => renderSeat(seat, 'brewing'))}
+          {communityTables.map(seat => renderSeat(seat, 'community'))}
+          {readingNooks.map(seat => renderSeat(seat, 'reading'))}
+          {laptopTables.map(seat => renderSeat(seat, 'laptop'))}
+          {loungeSeats.map(seat => renderSeat(seat, 'lounge'))}
+
+          {/* Coffee Bean Decorative Elements */}
+          <div className="absolute top-12 left-12 w-6 h-6 bg-amber-700 rounded-full opacity-20"></div>
+          <div className="absolute top-20 right-20 w-4 h-4 bg-orange-600 rounded-full opacity-20"></div>
+          <div className="absolute bottom-32 left-20 w-5 h-5 bg-amber-600 rounded-full opacity-20"></div>
         </CardContent>
       </Card>
 
       {/* Check-in Modal */}
       {selectedSeat && (
-        <Card className="border-2 border-[#8B4513] bg-white">
+        <Card className="border-2 border-amber-600 bg-white shadow-xl">
           <CardHeader>
-            <CardTitle className="text-[#8B4513]">
-              Check into {getSeatLabel(selectedSeat)}
+            <CardTitle className="text-amber-800">
+              Join the Coffee Community at {getSeatLabel(selectedSeat)}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">
-                What are you here for today?
+                What brings you to our coffee house today?
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {SEAT_PURPOSES.map(purpose => (
                   <Button
                     key={purpose.id}
                     variant={selectedPurpose === purpose.id ? "default" : "outline"}
-                    className={`justify-start gap-2 ${selectedPurpose === purpose.id ? purpose.color + ' text-white' : ''}`}
+                    className={`justify-start gap-2 ${selectedPurpose === purpose.id ? purpose.color + ' text-white hover:opacity-90' : 'hover:border-amber-400'}`}
                     onClick={() => setSelectedPurpose(purpose.id)}
                   >
                     {purpose.icon}
@@ -377,16 +392,16 @@ export const PhysicalCafeFloorPlan = () => {
               <Button 
                 onClick={handleCheckIn}
                 disabled={!selectedPurpose}
-                className="bg-[#8B4513] hover:bg-[#8B4513]/90 text-white flex-1"
+                className="bg-amber-700 hover:bg-amber-800 text-white flex-1"
               >
-                Check In
+                Join the Coffee Community
               </Button>
               <Button 
                 onClick={() => setSelectedSeat(null)}
                 variant="outline"
                 className="flex-1"
               >
-                Cancel
+                Maybe Later
               </Button>
             </div>
           </CardContent>
@@ -396,10 +411,10 @@ export const PhysicalCafeFloorPlan = () => {
       {/* Enhanced Legend */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-[#8B4513]">Seating Areas & Purpose Legend</CardTitle>
+          <CardTitle className="text-amber-800">Coffee House Seating Guide</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
               <h4 className="font-semibold text-gray-700">Seat Status</h4>
               <div className="grid grid-cols-2 gap-3">
@@ -408,21 +423,35 @@ export const PhysicalCafeFloorPlan = () => {
                   <span className="text-sm">Available</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-blue-400 border border-blue-600 rounded"></div>
-                  <span className="text-sm">Your seat</span>
+                  <div className="w-4 h-4 bg-rose-400 border border-rose-600 rounded"></div>
+                  <span className="text-sm">Your spot</span>
                 </div>
               </div>
             </div>
             
             <div className="space-y-3">
-              <h4 className="font-semibold text-gray-700">Purpose Colors</h4>
-              <div className="grid grid-cols-2 gap-2">
-                {SEAT_PURPOSES.map(purpose => (
-                  <div key={purpose.id} className="flex items-center gap-2">
-                    <div className={`w-4 h-4 ${purpose.color} rounded border`}></div>
-                    <span className="text-sm">{purpose.label}</span>
-                  </div>
-                ))}
+              <h4 className="font-semibold text-gray-700">Coffee Experience Zones</h4>
+              <div className="grid grid-cols-1 gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-amber-100 border border-amber-300 rounded"></div>
+                  <span className="text-sm">Brewing Bar - Watch coffee being made</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-orange-100 border border-orange-300 rounded"></div>
+                  <span className="text-sm">Community Tables - Meet fellow coffee lovers</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-emerald-100 border border-emerald-300 rounded"></div>
+                  <span className="text-sm">Reading Nooks - Quiet coffee moments</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-blue-100 border border-blue-300 rounded"></div>
+                  <span className="text-sm">Focus Tables - Work with coffee</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-purple-100 border border-purple-300 rounded"></div>
+                  <span className="text-sm">Lounge - Relax and savor</span>
+                </div>
               </div>
             </div>
           </div>
@@ -432,9 +461,9 @@ export const PhysicalCafeFloorPlan = () => {
       {/* Currently Here */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-[#8B4513] flex items-center gap-2">
+          <CardTitle className="text-amber-800 flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Who's Here Now
+            Coffee Lovers Currently Here
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -443,30 +472,30 @@ export const PhysicalCafeFloorPlan = () => {
             const isUser = seat.userId === user?.id;
             
             return (
-              <div key={seat.seatId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={seat.seatId} className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200 hover:shadow-md transition-all duration-200">
                 <div className="flex items-center gap-3">
                   <Badge className={`${purpose?.color} text-white`}>
                     {getSeatLabel(seat.seatId)}
                   </Badge>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-[#8B4513]">
+                      <span className="font-medium text-amber-800">
                         {isUser ? 'You' : seat.userName}
                       </span>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs border-amber-300 text-amber-700">
                         {purpose?.label}
                       </Badge>
                     </div>
                     <span className="text-xs text-gray-500">
-                      Since {new Date(seat.checkedInAt).toLocaleTimeString()}
+                      Enjoying coffee since {new Date(seat.checkedInAt).toLocaleTimeString()}
                     </span>
                   </div>
                 </div>
                 
                 {!isUser && seat.status === 'looking_for_chat' && (
-                  <Button size="sm" variant="outline" className="border-green-500 text-green-600">
+                  <Button size="sm" variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50">
                     <MessageSquare className="h-3 w-3 mr-1" />
-                    Chat
+                    Coffee Chat
                   </Button>
                 )}
               </div>
@@ -475,8 +504,9 @@ export const PhysicalCafeFloorPlan = () => {
           
           {occupiedSeats.length === 0 && (
             <div className="text-center text-gray-500 py-8">
-              <Users className="h-12 w-12 mx-auto mb-4 opacity-30" />
-              <p>No one is checked in yet. Be the first!</p>
+              <Coffee className="h-12 w-12 mx-auto mb-4 opacity-30 text-amber-400" />
+              <p>The coffee house awaits your arrival!</p>
+              <p className="text-sm mt-2">Be the first to check in and start the coffee community.</p>
             </div>
           )}
         </CardContent>
