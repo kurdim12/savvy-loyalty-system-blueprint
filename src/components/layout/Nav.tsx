@@ -40,7 +40,7 @@ export function Nav({ className }: { className?: string }) {
       <UserLink to="/profile" label="Profile Hub" icon={<User size={16} />} />
       <UserLink to="/dashboard" label="Dashboard" icon={<Home size={16} />} />
       <UserLink to="/rewards" label="Rewards" icon={<Award size={16} />} />
-      <UserLink to="/community" label="Virtual Café" icon={<Coffee size={16} />} />
+      <UserLink to="/community" label="Community" icon={<Users size={16} />} />
       
       {isAdmin && (
         <>

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import loyaltyService, { LOYALTY_ACTIONS } from '@/services/loyaltyService';
 import { Coffee, Users, Star, Gift, MapPin, MessageSquare, Camera, Music } from 'lucide-react';
+import { toast } from 'sonner';
 
 const ACTION_ICONS = {
   visit: MapPin,
@@ -21,13 +22,20 @@ export const LoyaltyActions = () => {
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
   const handleAction = async (actionKey: string) => {
-    if (!user) return;
+    if (!user) {
+      toast.error('Please log in to earn points');
+      return;
+    }
 
     setLoadingAction(actionKey);
     try {
-      await loyaltyService.awardPoints(user.id, actionKey);
+      const success = await loyaltyService.awardPoints(user.id, actionKey);
+      if (!success) {
+        toast.error('Failed to award points. Please try again.');
+      }
     } catch (error) {
       console.error('Error performing action:', error);
+      toast.error('An error occurred while awarding points');
     } finally {
       setLoadingAction(null);
     }
@@ -59,6 +67,11 @@ export const LoyaltyActions = () => {
             const actionData = LOYALTY_ACTIONS[action.key];
             const IconComponent = action.icon;
             
+            if (!actionData) {
+              console.warn(`Action data not found for key: ${action.key}`);
+              return null;
+            }
+            
             return (
               <Button
                 key={action.key}
@@ -71,9 +84,11 @@ export const LoyaltyActions = () => {
                   <IconComponent className="h-5 w-5" />
                 </div>
                 <div className="text-center">
-                  <div className="font-medium text-sm text-[#8B4513]">{action.label}</div>
+                  <div className="font-medium text-sm text-[#8B4513]">
+                    {loadingAction === action.key ? 'Processing...' : action.label}
+                  </div>
                   <Badge variant="secondary" className="text-xs mt-1">
-                    +{actionData?.points} pts
+                    +{actionData.points} pts
                   </Badge>
                 </div>
               </Button>

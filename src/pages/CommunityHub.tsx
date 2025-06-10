@@ -1,16 +1,16 @@
 
-import Layout from '@/components/layout/Layout';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const CommunityHub = () => {
-  return (
-    <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-[#95A5A6]/5 via-white to-[#95A5A6]/10">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          {/* Empty content area */}
-        </div>
-      </div>
-    </Layout>
-  );
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect to community page since hub tab was removed
+    navigate('/community', { replace: true });
+  }, [navigate]);
+
+  return null;
 };
 
 export default CommunityHub;
