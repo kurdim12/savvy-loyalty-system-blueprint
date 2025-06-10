@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import ProtectedRoutes from "@/components/auth/ProtectedRoutes";
+import { UserRoute, AdminRoute } from "@/components/auth/ProtectedRoutes";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 
 // Pages
@@ -50,7 +50,7 @@ const App = () => (
               <Route path="/auth/spotify/callback" element={<SpotifyCallback />} />
               
               {/* Protected User Routes */}
-              <Route element={<ProtectedRoutes.UserRoute />}>
+              <Route element={<UserRoute><></></UserRoute>}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/rewards" element={<Rewards />} />
@@ -61,7 +61,7 @@ const App = () => (
 
               {/* Admin Routes */}
               <Route path="/admin/login" element={<AdminLogin />} />
-              <Route element={<ProtectedRoutes.AdminRoute />}>
+              <Route element={<AdminRoute><></></AdminRoute>}>
                 <Route path="/admin" element={<Admin />}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="users" element={<UserManagement />} />
