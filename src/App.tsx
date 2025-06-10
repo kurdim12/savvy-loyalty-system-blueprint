@@ -32,7 +32,6 @@ import DrinksList from "./pages/admin/DrinksList";
 import SettingsManagement from "./pages/admin/SettingsManagement";
 import CommunityManagement from "./pages/admin/CommunityManagement";
 import CommunityGoalsAdmin from "./pages/admin/CommunityGoalsAdmin";
-import CommunityHubManagement from "./pages/admin/CommunityHubManagement";
 import RewardsAdmin from "./pages/admin/RewardsAdmin";
 
 const queryClient = new QueryClient({
@@ -98,7 +97,6 @@ function App() {
               <Route path="/admin/settings" element={<AdminRoute><SettingsManagement /></AdminRoute>} />
               <Route path="/admin/community" element={<AdminRoute><CommunityManagement /></AdminRoute>} />
               <Route path="/admin/community-goals" element={<AdminRoute><CommunityGoalsAdmin /></AdminRoute>} />
-              <Route path="/admin/community-hub-management" element={<AdminRoute><CommunityHubManagement /></AdminRoute>} />
               <Route path="/admin/rewards-admin" element={<AdminRoute><RewardsAdmin /></AdminRoute>} />
 
               {/* 404 route */}
