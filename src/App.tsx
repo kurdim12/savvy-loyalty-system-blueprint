@@ -2,111 +2,90 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { UserRoute, AdminRoute } from "@/components/auth/ProtectedRoutes";
+import ProtectedRoutes from "@/components/auth/ProtectedRoutes";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
-import { useEffect } from "react";
-import { Capacitor } from "@capacitor/core";
-import { StatusBar, Style } from "@capacitor/status-bar";
-import { SplashScreen } from "@capacitor/splash-screen";
 
-// Import pages
+// Pages
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Rewards from "./pages/Rewards";
+import CommunityHome from "./pages/CommunityHome";
 import CommunityPage from "./pages/CommunityPage";
 import ThreadPage from "./pages/ThreadPage";
 import NotFound from "./pages/NotFound";
+import SpotifyCallback from "./pages/SpotifyCallback";
 
-// Admin pages
-import AdminLogin from "./pages/admin/Login";
+// Admin Pages
+import AdminLogin from "./pages/AdminLogin";
+import Admin from "./pages/Admin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement";
-import RewardsManagement from "./pages/admin/RewardsManagement";
 import TransactionsManagement from "./pages/admin/TransactionsManagement";
+import RewardsManagement from "./pages/admin/RewardsManagement";
 import RedemptionManagement from "./pages/admin/RedemptionManagement";
-import DrinksList from "./pages/admin/DrinksList";
 import SettingsManagement from "./pages/admin/SettingsManagement";
 import CommunityManagement from "./pages/admin/CommunityManagement";
 import CommunityGoalsAdmin from "./pages/admin/CommunityGoalsAdmin";
+import DrinksList from "./pages/admin/DrinksList";
 import RewardsAdmin from "./pages/admin/RewardsAdmin";
+import CommunityHubManagement from "./pages/admin/CommunityHubManagement";
+import AdminCommunityHub from "./pages/AdminCommunityHub";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 3,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
-function App() {
-  useEffect(() => {
-    const initMobileApp = async () => {
-      if (Capacitor.isNativePlatform()) {
-        console.log('Running in native mobile app');
-        
-        try {
-          // Hide splash screen after app loads
-          await SplashScreen.hide();
-          
-          // Configure status bar
-          await StatusBar.setStyle({ style: Style.Dark });
-          await StatusBar.setBackgroundColor({ color: '#FAF6F0' });
-          
-          console.log('Mobile app initialization complete');
-        } catch (error) {
-          console.error('Error initializing mobile app:', error);
-        }
-      }
-    };
-
-    initMobileApp();
-  }, []);
-
-  return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <BrowserRouter>
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster position="top-right" expand={false} richColors />
+          <ErrorBoundary>
             <Routes>
-              {/* Public routes */}
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/spotify/callback" element={<SpotifyCallback />} />
               
-              {/* Protected user routes */}
-              <Route path="/dashboard" element={<UserRoute><Dashboard /></UserRoute>} />
-              <Route path="/profile" element={<UserRoute><Profile /></UserRoute>} />
-              <Route path="/rewards" element={<UserRoute><Rewards /></UserRoute>} />
-              <Route path="/community" element={<UserRoute><CommunityPage /></UserRoute>} />
-              <Route path="/thread/:id" element={<UserRoute><ThreadPage /></UserRoute>} />
+              {/* Protected User Routes */}
+              <Route element={<ProtectedRoutes.UserRoute />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/rewards" element={<Rewards />} />
+                <Route path="/community-home" element={<CommunityHome />} />
+                <Route path="/community" element={<CommunityPage />} />
+                <Route path="/thread/:id" element={<ThreadPage />} />
+              </Route>
 
-              {/* Admin routes */}
+              {/* Admin Routes */}
               <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-              <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
-              <Route path="/admin/rewards" element={<AdminRoute><RewardsManagement /></AdminRoute>} />
-              <Route path="/admin/transactions" element={<AdminRoute><TransactionsManagement /></AdminRoute>} />
-              <Route path="/admin/redemptions" element={<AdminRoute><RedemptionManagement /></AdminRoute>} />
-              <Route path="/admin/drinks" element={<AdminRoute><DrinksList /></AdminRoute>} />
-              <Route path="/admin/settings" element={<AdminRoute><SettingsManagement /></AdminRoute>} />
-              <Route path="/admin/community" element={<AdminRoute><CommunityManagement /></AdminRoute>} />
-              <Route path="/admin/community-goals" element={<AdminRoute><CommunityGoalsAdmin /></AdminRoute>} />
-              <Route path="/admin/rewards-admin" element={<AdminRoute><RewardsAdmin /></AdminRoute>} />
+              <Route element={<ProtectedRoutes.AdminRoute />}>
+                <Route path="/admin" element={<Admin />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="users" element={<UserManagement />} />
+                  <Route path="transactions" element={<TransactionsManagement />} />
+                  <Route path="rewards" element={<RewardsManagement />} />
+                  <Route path="redemptions" element={<RedemptionManagement />} />
+                  <Route path="settings" element={<SettingsManagement />} />
+                  <Route path="community" element={<CommunityManagement />} />
+                  <Route path="community-goals" element={<CommunityGoalsAdmin />} />
+                  <Route path="drinks" element={<DrinksList />} />
+                  <Route path="rewards-admin" element={<RewardsAdmin />} />
+                  <Route path="community-hub" element={<CommunityHubManagement />} />
+                </Route>
+                <Route path="/admin-community-hub" element={<AdminCommunityHub />} />
+              </Route>
 
-              {/* 404 route */}
+              {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </TooltipProvider>
+          </ErrorBoundary>
         </AuthProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
-  );
-}
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
