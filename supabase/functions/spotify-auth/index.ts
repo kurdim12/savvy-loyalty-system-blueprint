@@ -19,17 +19,40 @@ Deno.serve(async (req) => {
     )
 
     const url = new URL(req.url)
-    const action = url.searchParams.get('action')
+    
+    // Get action from URL params for GET requests, or from body for POST requests
+    let action: string | null = null;
+    let requestBody: any = {};
+
+    if (req.method === 'GET') {
+      action = url.searchParams.get('action');
+    } else if (req.method === 'POST') {
+      try {
+        requestBody = await req.json();
+        action = requestBody.action;
+      } catch (e) {
+        console.error('Error parsing request body:', e);
+        action = url.searchParams.get('action');
+      }
+    }
+
+    console.log('Action received:', action);
+    console.log('Request method:', req.method);
 
     const SPOTIFY_CLIENT_ID = Deno.env.get('SPOTIFY_CLIENT_ID')
     const SPOTIFY_CLIENT_SECRET = Deno.env.get('SPOTIFY_CLIENT_SECRET')
     const REDIRECT_URI = `${url.origin}/auth/spotify/callback`
+
+    console.log('Spotify Client ID:', SPOTIFY_CLIENT_ID ? 'Set' : 'Not set');
+    console.log('Spotify Client Secret:', SPOTIFY_CLIENT_SECRET ? 'Set' : 'Not set');
 
     if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) {
       throw new Error('Spotify credentials not configured')
     }
 
     if (action === 'authorize') {
+      console.log('Generating authorization URL...');
+      
       // Generate authorization URL
       const scopes = [
         'user-read-playback-state',
@@ -52,14 +75,18 @@ Deno.serve(async (req) => {
 
       const authUrl = `https://accounts.spotify.com/authorize?${params}`
       
+      console.log('Auth URL generated:', authUrl);
+      
       return new Response(JSON.stringify({ authUrl }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     if (action === 'callback') {
-      const code = url.searchParams.get('code')
-      const state = url.searchParams.get('state')
+      const code = url.searchParams.get('code') || requestBody.code
+      const state = url.searchParams.get('state') || requestBody.state
+
+      console.log('Callback received with code:', code ? 'Present' : 'Missing');
 
       if (!code) {
         throw new Error('No authorization code provided')
@@ -80,6 +107,8 @@ Deno.serve(async (req) => {
       })
 
       if (!tokenResponse.ok) {
+        const errorText = await tokenResponse.text();
+        console.error('Token exchange failed:', errorText);
         throw new Error('Failed to exchange code for token')
       }
 
@@ -91,7 +120,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'refresh') {
-      const { refresh_token } = await req.json()
+      const refresh_token = requestBody.refresh_token
 
       if (!refresh_token) {
         throw new Error('No refresh token provided')
@@ -120,7 +149,8 @@ Deno.serve(async (req) => {
       })
     }
 
-    return new Response(JSON.stringify({ error: 'Invalid action' }), {
+    console.error('Invalid action received:', action);
+    return new Response(JSON.stringify({ error: 'Invalid action', receivedAction: action }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
