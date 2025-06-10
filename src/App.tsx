@@ -35,55 +35,70 @@ import RewardsAdmin from "./pages/admin/RewardsAdmin";
 import CommunityHubManagement from "./pages/admin/CommunityHubManagement";
 import AdminCommunityHub from "./pages/AdminCommunityHub";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+});
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <AuthProvider>
-        <ErrorBoundary>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/auth/spotify/callback" element={<SpotifyCallback />} />
-            
-            {/* Protected User Routes */}
-            <Route element={<UserRoute><></></UserRoute>}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/rewards" element={<Rewards />} />
-              <Route path="/community-home" element={<CommunityHome />} />
-              <Route path="/community" element={<CommunityPage />} />
-              <Route path="/thread/:id" element={<ThreadPage />} />
-            </Route>
+console.log('App component loading...');
 
-            {/* Admin Routes */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route element={<AdminRoute><></></AdminRoute>}>
-              <Route path="/admin" element={<Admin />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="users" element={<UserManagement />} />
-                <Route path="transactions" element={<TransactionsManagement />} />
-                <Route path="rewards" element={<RewardsManagement />} />
-                <Route path="redemptions" element={<RedemptionManagement />} />
-                <Route path="settings" element={<SettingsManagement />} />
-                <Route path="community" element={<CommunityManagement />} />
-                <Route path="community-goals" element={<CommunityGoalsAdmin />} />
-                <Route path="drinks" element={<DrinksList />} />
-                <Route path="rewards-admin" element={<RewardsAdmin />} />
-                <Route path="community-hub" element={<CommunityHubManagement />} />
-              </Route>
-              <Route path="/admin-community-hub" element={<AdminCommunityHub />} />
-            </Route>
+const App = () => {
+  console.log('App component rendering');
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <AuthProvider>
+          <ErrorBoundary>
+            <div className="min-h-screen bg-[#FAF6F0]">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/auth/spotify/callback" element={<SpotifyCallback />} />
+                
+                {/* Protected User Routes */}
+                <Route element={<UserRoute><></></UserRoute>}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/rewards" element={<Rewards />} />
+                  <Route path="/community-home" element={<CommunityHome />} />
+                  <Route path="/community" element={<CommunityPage />} />
+                  <Route path="/thread/:id" element={<ThreadPage />} />
+                </Route>
 
-            {/* 404 Route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </ErrorBoundary>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+                {/* Admin Routes */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route element={<AdminRoute><></></AdminRoute>}>
+                  <Route path="/admin" element={<Admin />}>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="users" element={<UserManagement />} />
+                    <Route path="transactions" element={<TransactionsManagement />} />
+                    <Route path="rewards" element={<RewardsManagement />} />
+                    <Route path="redemptions" element={<RedemptionManagement />} />
+                    <Route path="settings" element={<SettingsManagement />} />
+                    <Route path="community" element={<CommunityManagement />} />
+                    <Route path="community-goals" element={<CommunityGoalsAdmin />} />
+                    <Route path="drinks" element={<DrinksList />} />
+                    <Route path="rewards-admin" element={<RewardsAdmin />} />
+                    <Route path="community-hub" element={<CommunityHubManagement />} />
+                  </Route>
+                  <Route path="/admin-community-hub" element={<AdminCommunityHub />} />
+                </Route>
+
+                {/* 404 Route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+          </ErrorBoundary>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

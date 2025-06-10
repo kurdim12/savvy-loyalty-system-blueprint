@@ -8,8 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { Coffee, Award, Users, Star, ArrowRight, Gift, Heart, Sparkles, Trophy, Camera, Share2 } from 'lucide-react';
 
 const Index = () => {
+  console.log('Index page rendering...');
   const { user, profile } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  console.log('Index - Auth state:', { user: user ? 'logged in' : 'not logged in', profile });
 
   const heroImages = [
     '/lovable-uploads/e2fc2611-a942-411c-a3e2-676b7cf86455.png',
@@ -19,6 +22,7 @@ const Index = () => {
   ];
 
   useEffect(() => {
+    console.log('Index - Setting up image carousel');
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
     }, 5000);
@@ -26,8 +30,19 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [heroImages.length]);
 
+  // Simple loading fallback
+  if (typeof window === 'undefined') {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-concrete/10 via-white to-concrete/20">
+      {/* Debug info */}
+      <div className="fixed top-4 right-4 bg-black/80 text-white p-2 rounded text-xs z-50">
+        <p>User: {user ? 'Yes' : 'No'}</p>
+        <p>Time: {new Date().toLocaleTimeString()}</p>
+      </div>
+
       {/* Hero Section */}
       <div className="relative h-screen flex items-center justify-center overflow-hidden">
         {/* Background Image Carousel */}
@@ -43,6 +58,10 @@ const Index = () => {
                 src={image}
                 alt={`Coffee shop interior ${index + 1}`}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.log('Image failed to load:', image);
+                  e.currentTarget.style.display = 'none';
+                }}
               />
               <div className="absolute inset-0 bg-black/50"></div>
             </div>
@@ -80,7 +99,7 @@ const Index = () => {
                     <ArrowRight className="ml-3 h-6 w-6" />
                   </Button>
                 </Link>
-                <Link to="/community-hub">
+                <Link to="/community-home">
                   <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-black px-10 py-6 text-xl transition-all duration-300 transform hover:scale-105">
                     <Users className="mr-3 h-6 w-6" />
                     Community Hub
@@ -224,7 +243,7 @@ const Index = () => {
             </div>
           </div>
           
-          <Link to="/community-hub">
+          <Link to="/community-home">
             <Button size="lg" className="mt-12 bg-white text-black hover:bg-white/90 px-10 py-6 text-xl transition-all duration-300 transform hover:scale-105">
               <Users className="mr-3 h-6 w-6" />
               Explore Community
