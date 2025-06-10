@@ -30,19 +30,8 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [heroImages.length]);
 
-  // Simple loading fallback
-  if (typeof window === 'undefined') {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-concrete/10 via-white to-concrete/20">
-      {/* Debug info */}
-      <div className="fixed top-4 right-4 bg-black/80 text-white p-2 rounded text-xs z-50">
-        <p>User: {user ? 'Yes' : 'No'}</p>
-        <p>Time: {new Date().toLocaleTimeString()}</p>
-      </div>
-
       {/* Hero Section */}
       <div className="relative h-screen flex items-center justify-center overflow-hidden">
         {/* Background Image Carousel */}
