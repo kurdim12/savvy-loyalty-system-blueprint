@@ -54,7 +54,7 @@ export function Nav({ className }: { className?: string }) {
           <UserLink to="/admin/drinks" label="Manage Drinks" icon={<Coffee size={16} />} />
           <UserLink to="/admin/community-goals" label="Community Goals" icon={<Target size={16} />} />
           <UserLink to="/admin/community" label="Community Posts" icon={<MessageSquare size={16} />} />
-          <UserLink to="/admin/redeem" label="Redemptions" icon={<Gift size={16} />} />
+          <UserLink to="/admin/redemptions" label="Redemptions" icon={<Gift size={16} />} />
         </>
       )}
     </nav>
