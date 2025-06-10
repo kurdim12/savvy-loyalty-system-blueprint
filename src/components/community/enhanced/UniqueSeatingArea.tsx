@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Coffee, Wifi, Volume2, Music, Vote, Star, Heart, Zap, Sun } from 'lucide-react';
+import { Users, Coffee, Wifi, Volume2, Music, Vote, Star, Heart, Zap, Sun, Crown, ChefHat } from 'lucide-react';
 
 interface UniqueSeatingAreaProps {
   onSeatSelect: (seatId: string) => void;
@@ -26,6 +26,15 @@ interface SeatZone {
   specialFeature: string;
   musicGenre: string;
   ambiance: string;
+  shape?: 'round' | 'square' | 'rectangle';
+}
+
+interface Barista {
+  name: string;
+  mood: string;
+  activity: string;
+  specialty: string;
+  isWorking: boolean;
 }
 
 export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingAreaProps) => {
@@ -37,152 +46,234 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
     return () => clearInterval(timer);
   }, []);
 
+  const barista: Barista = {
+    name: 'Marco',
+    mood: '☕',
+    activity: 'Crafting the perfect espresso',
+    specialty: 'Latte Art Master',
+    isWorking: true
+  };
+
   const seatingZones: SeatZone[] = [
+    // Coffee Bar Counter - Front row seating facing the barista
     {
-      id: 'cosmic-corner',
-      name: 'Cosmic Corner',
-      theme: 'Space Café',
-      atmosphere: 'dreamy',
-      capacity: 6,
-      occupied: 4,
+      id: 'bar-counter-1',
+      name: 'Espresso Bar Seat 1',
+      theme: 'Watch the Magic',
+      atmosphere: 'energetic',
+      capacity: 1,
+      occupied: 1,
       users: [
-        { name: 'Luna', mood: '🌙', activity: 'Stargazing poetry', vibe: 'mystical' },
-        { name: 'Cosmos', mood: '✨', activity: 'Astrology reading', vibe: 'ethereal' },
-        { name: 'Nebula', mood: '🌌', activity: 'Galaxy sketching', vibe: 'cosmic' },
-        { name: 'Orbit', mood: '🚀', activity: 'Space documentary', vibe: 'adventurous' }
+        { name: 'Sofia', mood: '😍', activity: 'Watching latte art', vibe: 'fascinated' }
       ],
-      position: { x: 15, y: 20, width: 25, height: 20 },
-      specialFeature: 'Constellation ceiling projector',
-      musicGenre: 'Ambient Cosmos',
-      ambiance: 'purple-cosmic'
+      position: { x: 15, y: 75, width: 8, height: 6 },
+      specialFeature: 'Front row barista view',
+      musicGenre: 'Upbeat Coffee Shop',
+      ambiance: 'amber-warm',
+      shape: 'round'
     },
     {
-      id: 'retro-vinyl-lounge',
-      name: 'Retro Vinyl Lounge',
-      theme: 'Vintage Records',
-      atmosphere: 'nostalgic',
+      id: 'bar-counter-2',
+      name: 'Espresso Bar Seat 2',
+      theme: 'Coffee Conversation',
+      atmosphere: 'social',
+      capacity: 1,
+      occupied: 1,
+      users: [
+        { name: 'Diego', mood: '🗣️', activity: 'Chatting with barista', vibe: 'friendly' }
+      ],
+      position: { x: 25, y: 75, width: 8, height: 6 },
+      specialFeature: 'Direct barista chat',
+      musicGenre: 'Café Jazz',
+      ambiance: 'amber-warm',
+      shape: 'round'
+    },
+    {
+      id: 'bar-counter-3',
+      name: 'Espresso Bar Seat 3',
+      theme: 'Coffee Learning',
+      atmosphere: 'curious',
+      capacity: 1,
+      occupied: 0,
+      users: [],
+      position: { x: 35, y: 75, width: 8, height: 6 },
+      specialFeature: 'Coffee education spot',
+      musicGenre: 'Smooth Jazz',
+      ambiance: 'amber-warm',
+      shape: 'round'
+    },
+    {
+      id: 'bar-counter-4',
+      name: 'Espresso Bar Seat 4',
+      theme: 'Morning Rush',
+      atmosphere: 'efficient',
+      capacity: 1,
+      occupied: 1,
+      users: [
+        { name: 'Alex', mood: '💼', activity: 'Quick coffee break', vibe: 'focused' }
+      ],
+      position: { x: 45, y: 75, width: 8, height: 6 },
+      specialFeature: 'Express service',
+      musicGenre: 'Energetic Beats',
+      ambiance: 'amber-warm',
+      shape: 'round'
+    },
+
+    // Window Seats - Perfect natural lighting
+    {
+      id: 'window-nook-1',
+      name: 'Sunrise Window Nook',
+      theme: 'Golden Hour Reading',
+      atmosphere: 'peaceful',
+      capacity: 2,
+      occupied: 1,
+      users: [
+        { name: 'Luna', mood: '📖', activity: 'Reading poetry', vibe: 'serene' }
+      ],
+      position: { x: 8, y: 25, width: 15, height: 12 },
+      specialFeature: 'Best natural light',
+      musicGenre: 'Ambient Morning',
+      ambiance: 'golden-warm',
+      shape: 'rectangle'
+    },
+    {
+      id: 'window-nook-2',
+      name: 'Garden View Corner',
+      theme: 'Nature Connection',
+      atmosphere: 'inspiring',
+      capacity: 2,
+      occupied: 2,
+      users: [
+        { name: 'Sage', mood: '🌿', activity: 'Journal writing', vibe: 'reflective' },
+        { name: 'River', mood: '🎨', activity: 'Sketching outdoors', vibe: 'creative' }
+      ],
+      position: { x: 8, y: 45, width: 15, height: 12 },
+      specialFeature: 'Garden view & plants',
+      musicGenre: 'Nature Sounds',
+      ambiance: 'green-natural',
+      shape: 'rectangle'
+    },
+
+    // Central Community Tables
+    {
+      id: 'community-round',
+      name: 'Grand Community Circle',
+      theme: 'Social Hub',
+      atmosphere: 'vibrant',
       capacity: 8,
       occupied: 6,
       users: [
-        { name: 'Vinyl', mood: '🎵', activity: 'Record collecting', vibe: 'vintage' },
-        { name: 'Jazz', mood: '🎷', activity: 'Album discussions', vibe: 'smooth' },
-        { name: 'Blues', mood: '🎸', activity: 'Music history', vibe: 'soulful' },
-        { name: 'Melody', mood: '🎼', activity: 'Songwriting', vibe: 'creative' },
-        { name: 'Rhythm', mood: '🥁', activity: 'Beat analysis', vibe: 'energetic' },
-        { name: 'Harmony', mood: '🎹', activity: 'Chord theory', vibe: 'melodic' }
+        { name: 'Maya', mood: '🎵', activity: 'DJ mixing', vibe: 'energetic' },
+        { name: 'Jazz', mood: '🎶', activity: 'Music discussion', vibe: 'passionate' },
+        { name: 'Harmony', mood: '😄', activity: 'Making friends', vibe: 'social' },
+        { name: 'Beat', mood: '🥁', activity: 'Rhythm games', vibe: 'playful' },
+        { name: 'Melody', mood: '🎼', activity: 'Songwriting', vibe: 'artistic' },
+        { name: 'Chord', mood: '🎹', activity: 'Music theory', vibe: 'intellectual' }
       ],
-      position: { x: 45, y: 15, width: 30, height: 25 },
-      specialFeature: 'Authentic turntable setup',
-      musicGenre: 'Classic Vinyl',
-      ambiance: 'amber-vintage'
+      position: { x: 40, y: 35, width: 25, height: 20 },
+      specialFeature: 'Community DJ booth & large space',
+      musicGenre: 'Live DJ Mix',
+      ambiance: 'purple-vibrant',
+      shape: 'round'
     },
+
+    // Cozy Corners
     {
-      id: 'zen-garden-pods',
-      name: 'Zen Garden Pods',
-      theme: 'Mindful Serenity',
-      atmosphere: 'peaceful',
+      id: 'fireplace-corner',
+      name: 'Fireplace Lounge',
+      theme: 'Winter Warmth',
+      atmosphere: 'cozy',
       capacity: 4,
-      occupied: 2,
-      users: [
-        { name: 'Zen', mood: '🧘', activity: 'Meditation', vibe: 'tranquil' },
-        { name: 'Sage', mood: '🌿', activity: 'Mindful journaling', vibe: 'wise' }
-      ],
-      position: { x: 80, y: 25, width: 18, height: 20 },
-      specialFeature: 'Mini zen rock garden',
-      musicGenre: 'Nature Sounds',
-      ambiance: 'green-zen'
-    },
-    {
-      id: 'neon-cyber-cafe',
-      name: 'Neon Cyber Café',
-      theme: 'Digital Future',
-      atmosphere: 'energetic',
-      capacity: 10,
-      occupied: 8,
-      users: [
-        { name: 'Pixel', mood: '💻', activity: 'Coding session', vibe: 'focused' },
-        { name: 'Neon', mood: '🌈', activity: 'Digital art', vibe: 'creative' },
-        { name: 'Cyber', mood: '🔮', activity: 'VR exploration', vibe: 'futuristic' },
-        { name: 'Matrix', mood: '🤖', activity: 'AI discussions', vibe: 'analytical' },
-        { name: 'Quantum', mood: '⚡', activity: 'Tech innovation', vibe: 'inventive' },
-        { name: 'Binary', mood: '🎮', activity: 'Game development', vibe: 'playful' },
-        { name: 'Neural', mood: '🧠', activity: 'ML research', vibe: 'intellectual' },
-        { name: 'Digital', mood: '💫', activity: 'Crypto trading', vibe: 'ambitious' }
-      ],
-      position: { x: 20, y: 50, width: 35, height: 25 },
-      specialFeature: 'RGB LED atmosphere',
-      musicGenre: 'Synthwave',
-      ambiance: 'cyan-neon'
-    },
-    {
-      id: 'forest-canopy-loft',
-      name: 'Forest Canopy Loft',
-      theme: 'Elevated Nature',
-      atmosphere: 'inspiring',
-      capacity: 6,
       occupied: 3,
       users: [
-        { name: 'Forest', mood: '🌳', activity: 'Nature writing', vibe: 'grounded' },
-        { name: 'Canopy', mood: '🍃', activity: 'Botanical study', vibe: 'curious' },
-        { name: 'Branch', mood: '🦋', activity: 'Environmental blog', vibe: 'passionate' }
+        { name: 'Ember', mood: '🔥', activity: 'Warming up', vibe: 'comfortable' },
+        { name: 'Ash', mood: '📚', activity: 'Reading by fire', vibe: 'content' },
+        { name: 'Flame', mood: '☕', activity: 'Slow coffee', vibe: 'relaxed' }
       ],
-      position: { x: 60, y: 50, width: 25, height: 20 },
-      specialFeature: 'Living wall installation',
-      musicGenre: 'Forest Ambience',
-      ambiance: 'emerald-forest'
+      position: { x: 75, y: 25, width: 20, height: 15 },
+      specialFeature: 'Real fireplace & soft seating',
+      musicGenre: 'Cozy Acoustic',
+      ambiance: 'orange-cozy',
+      shape: 'rectangle'
     },
+
+    // Work Spaces
     {
-      id: 'sunset-terrace',
-      name: 'Sunset Terrace',
-      theme: 'Golden Hour',
-      atmosphere: 'romantic',
-      capacity: 8,
-      occupied: 5,
-      users: [
-        { name: 'Sunset', mood: '🌅', activity: 'Poetry reading', vibe: 'romantic' },
-        { name: 'Golden', mood: '✨', activity: 'Photo editing', vibe: 'artistic' },
-        { name: 'Twilight', mood: '🌄', activity: 'Date night', vibe: 'intimate' },
-        { name: 'Horizon', mood: '🧡', activity: 'Love letters', vibe: 'tender' },
-        { name: 'Glow', mood: '💛', activity: 'Sunset painting', vibe: 'inspired' }
-      ],
-      position: { x: 25, y: 80, width: 30, height: 15 },
-      specialFeature: 'Color-changing sunset lights',
-      musicGenre: 'Acoustic Romance',
-      ambiance: 'orange-sunset'
-    },
-    {
-      id: 'crystal-cave-booth',
-      name: 'Crystal Cave Booth',
-      theme: 'Mystical Gems',
-      atmosphere: 'mystical',
-      capacity: 4,
+      id: 'focus-pod-1',
+      name: 'Productivity Pod Alpha',
+      theme: 'Deep Work Sanctuary',
+      atmosphere: 'focused',
+      capacity: 2,
       occupied: 2,
       users: [
-        { name: 'Crystal', mood: '💎', activity: 'Gem collection', vibe: 'magical' },
-        { name: 'Prism', mood: '🔮', activity: 'Tarot reading', vibe: 'intuitive' }
+        { name: 'Focus', mood: '💻', activity: 'Coding session', vibe: 'concentrated' },
+        { name: 'Flow', mood: '📊', activity: 'Data analysis', vibe: 'analytical' }
       ],
-      position: { x: 70, y: 75, width: 20, height: 18 },
-      specialFeature: 'Illuminated crystal display',
-      musicGenre: 'Mystical Chimes',
-      ambiance: 'violet-crystal'
+      position: { x: 75, y: 50, width: 18, height: 12 },
+      specialFeature: 'Noise isolation & power outlets',
+      musicGenre: 'Focus Instrumentals',
+      ambiance: 'blue-calm',
+      shape: 'rectangle'
+    },
+
+    // Creative Space
+    {
+      id: 'artist-table',
+      name: 'Creator\'s Canvas',
+      theme: 'Artistic Expression',
+      atmosphere: 'creative',
+      capacity: 4,
+      occupied: 3,
+      users: [
+        { name: 'Canvas', mood: '🎨', activity: 'Digital art', vibe: 'inspired' },
+        { name: 'Brush', mood: '✏️', activity: 'Illustration', vibe: 'artistic' },
+        { name: 'Color', mood: '🌈', activity: 'Design work', vibe: 'vibrant' }
+      ],
+      position: { x: 25, y: 15, width: 20, height: 15 },
+      specialFeature: 'Art supplies & large table',
+      musicGenre: 'Creative Flow',
+      ambiance: 'rainbow-creative',
+      shape: 'rectangle'
+    },
+
+    // Quiet Study Area
+    {
+      id: 'library-corner',
+      name: 'Silent Study Sanctuary',
+      theme: 'Academic Focus',
+      atmosphere: 'studious',
+      capacity: 3,
+      occupied: 2,
+      users: [
+        { name: 'Scholar', mood: '📝', activity: 'Research writing', vibe: 'studious' },
+        { name: 'Wisdom', mood: '🤓', activity: 'Exam prep', vibe: 'determined' }
+      ],
+      position: { x: 55, y: 15, width: 15, height: 12 },
+      specialFeature: 'Library silence & study materials',
+      musicGenre: 'White Noise',
+      ambiance: 'green-study',
+      shape: 'rectangle'
     }
   ];
 
   const getZoneStyle = (zone: SeatZone) => {
-    const baseStyle = "absolute cursor-pointer transition-all duration-500 rounded-2xl border-2 shadow-xl";
+    const baseStyle = "absolute cursor-pointer transition-all duration-500 border-2 shadow-xl";
     const hoverStyle = hoveredZone === zone.id ? 'scale-105 shadow-2xl z-20' : 'hover:scale-102 hover:shadow-xl';
     
+    const shapeClass = zone.shape === 'round' ? 'rounded-full' : 'rounded-2xl';
+    
     const ambianceStyles = {
-      'purple-cosmic': 'bg-gradient-to-br from-purple-900/40 to-indigo-900/40 border-purple-400/60',
-      'amber-vintage': 'bg-gradient-to-br from-amber-900/40 to-orange-900/40 border-amber-400/60',
-      'green-zen': 'bg-gradient-to-br from-emerald-900/40 to-teal-900/40 border-emerald-400/60',
-      'cyan-neon': 'bg-gradient-to-br from-cyan-900/40 to-blue-900/40 border-cyan-400/60',
-      'emerald-forest': 'bg-gradient-to-br from-green-900/40 to-emerald-900/40 border-green-400/60',
-      'orange-sunset': 'bg-gradient-to-br from-orange-900/40 to-red-900/40 border-orange-400/60',
-      'violet-crystal': 'bg-gradient-to-br from-violet-900/40 to-purple-900/40 border-violet-400/60'
+      'amber-warm': 'bg-gradient-to-br from-amber-800/40 to-orange-800/40 border-amber-400/60',
+      'golden-warm': 'bg-gradient-to-br from-yellow-700/40 to-amber-700/40 border-yellow-400/60',
+      'green-natural': 'bg-gradient-to-br from-emerald-800/40 to-green-800/40 border-emerald-400/60',
+      'purple-vibrant': 'bg-gradient-to-br from-purple-800/40 to-indigo-800/40 border-purple-400/60',
+      'orange-cozy': 'bg-gradient-to-br from-orange-800/40 to-red-800/40 border-orange-400/60',
+      'blue-calm': 'bg-gradient-to-br from-blue-800/40 to-cyan-800/40 border-blue-400/60',
+      'rainbow-creative': 'bg-gradient-to-br from-pink-800/40 to-purple-800/40 border-pink-400/60',
+      'green-study': 'bg-gradient-to-br from-teal-800/40 to-green-800/40 border-teal-400/60'
     };
 
-    return `${baseStyle} ${hoverStyle} ${ambianceStyles[zone.ambiance as keyof typeof ambianceStyles]}`;
+    return `${baseStyle} ${hoverStyle} ${shapeClass} ${ambianceStyles[zone.ambiance as keyof typeof ambianceStyles]}`;
   };
 
   const getOccupancyColor = (occupied: number, capacity: number) => {
@@ -200,52 +291,109 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
   };
 
   return (
-    <div className="relative w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 overflow-hidden">
-      {/* Animated Background Elements */}
+    <div className="relative w-full h-full bg-gradient-to-br from-amber-900 via-orange-900 to-brown-900 p-4 overflow-hidden">
+      {/* Café Interior Background */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-10 left-10 w-32 h-32 bg-purple-500/10 rounded-full animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-cyan-500/10 rounded-full animate-bounce delay-1000"></div>
-        <div className="absolute bottom-20 left-1/3 w-40 h-40 bg-emerald-500/10 rounded-full animate-pulse delay-2000"></div>
+        {/* Coffee Bar Background */}
+        <div className="absolute bg-gradient-to-t from-amber-800 to-amber-700 rounded-t-2xl shadow-2xl"
+             style={{ left: '10%', top: '68%', width: '45%', height: '25%' }}>
+          <div className="text-center pt-2">
+            <div className="text-amber-100 font-bold text-lg">☕ ARTISAN COFFEE BAR ☕</div>
+            <div className="text-amber-200 text-sm">Fresh • Handcrafted • Perfect</div>
+          </div>
+        </div>
+
+        {/* Barista Station - Behind the bar */}
+        <div 
+          className="absolute bg-gradient-to-br from-amber-900 to-brown-900 rounded-xl border-4 border-amber-600 shadow-2xl flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300"
+          style={{ left: '28%', top: '82%', width: '14%', height: '12%' }}
+          title={`${barista.name} - ${barista.activity} | ${barista.specialty}`}
+        >
+          <div className="text-center text-white">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <ChefHat className="h-5 w-5 text-amber-300" />
+              <Crown className="h-4 w-4 text-yellow-400" />
+            </div>
+            <div className="text-2xl mb-1">{barista.mood}</div>
+            <div className="text-xs font-bold text-amber-200">{barista.name}</div>
+            <div className="text-xs text-amber-300">Barista</div>
+            {barista.isWorking && (
+              <div className="w-2 h-2 bg-green-400 rounded-full mx-auto mt-1 animate-pulse"></div>
+            )}
+          </div>
+        </div>
+
+        {/* Coffee Machine & Equipment */}
+        <div className="absolute bg-gradient-to-r from-gray-700 to-gray-600 rounded-lg shadow-lg"
+             style={{ left: '15%', top: '82%', width: '10%', height: '10%' }}>
+          <div className="text-center pt-2 text-white text-xs">
+            <div>🔥 ESPRESSO</div>
+            <div>MACHINE</div>
+          </div>
+        </div>
+
+        {/* Coffee Bean Storage */}
+        <div className="absolute bg-gradient-to-r from-brown-700 to-brown-600 rounded-lg shadow-lg"
+             style={{ left: '45%', top: '82%', width: '8%', height: '10%' }}>
+          <div className="text-center pt-2 text-white text-xs">
+            <div>☕ FRESH</div>
+            <div>BEANS</div>
+          </div>
+        </div>
+
+        {/* Animated steam from coffee machine */}
+        <div className="absolute" style={{ left: '20%', top: '78%' }}>
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="w-1 h-6 bg-white/30 rounded-full animate-pulse"
+              style={{
+                animationDelay: `${i * 0.5}s`,
+                transform: `translateX(${i * 8}px)`
+              }}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Enhanced Header */}
       <div className="absolute top-4 left-4 right-4 z-30 space-y-3">
         <div className="flex justify-between items-start">
           <div className="bg-black/60 backdrop-blur-lg rounded-2xl p-4 border border-white/20">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent mb-2">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent mb-2">
               {getTimeBasedGreeting()}
             </h1>
-            <p className="text-white/80 text-sm">Choose your perfect seating adventure</p>
+            <p className="text-white/80 text-sm">Choose your perfect coffee experience</p>
             <p className="text-white/60 text-xs">{currentTime.toLocaleTimeString()}</p>
           </div>
           
           <div className="flex flex-col gap-2">
-            <Badge className="bg-purple-600/80 text-white border-purple-400/50">
-              <Music className="h-4 w-4 mr-2" />
-              7 Unique Zones
+            <Badge className="bg-amber-600/80 text-white border-amber-400/50">
+              <Coffee className="h-4 w-4 mr-2" />
+              Artisan Coffee House
             </Badge>
-            <Badge className="bg-cyan-600/80 text-white border-cyan-400/50">
-              <Users className="h-4 w-4 mr-2" />
-              30 Fellow Explorers
+            <Badge className="bg-green-600/80 text-white border-green-400/50">
+              <ChefHat className="h-4 w-4 mr-2" />
+              Master Barista: {barista.name}
             </Badge>
           </div>
         </div>
 
-        {/* Live Music Status */}
-        <div className="bg-gradient-to-r from-purple-900/80 to-pink-900/80 backdrop-blur-lg rounded-xl p-3 border border-purple-400/30">
+        {/* Live Barista Activity */}
+        <div className="bg-gradient-to-r from-amber-900/80 to-orange-900/80 backdrop-blur-lg rounded-xl p-3 border border-amber-400/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center animate-pulse">
-                <Music className="h-6 w-6 text-white" />
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
+                <ChefHat className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-white">🎵 "Ethereal Dreams" - Cosmic Lounge Mix</h3>
-                <p className="text-purple-200 text-sm">DJ Luna spinning in Cosmic Corner • 23 votes • All zones synced</p>
+                <h3 className="font-bold text-white">☕ {barista.name} is {barista.activity}</h3>
+                <p className="text-amber-200 text-sm">{barista.specialty} • Now serving specialty drinks • All zones have perfect coffee</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Vote className="h-5 w-5 text-purple-300" />
-              <span className="text-purple-200 font-bold">Vote Next</span>
+              <Coffee className="h-5 w-5 text-amber-300" />
+              <span className="text-amber-200 font-bold">Fresh Coffee</span>
             </div>
           </div>
         </div>
@@ -267,62 +415,57 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
             onMouseLeave={() => setHoveredZone(null)}
             onClick={() => onSeatSelect(zone.id)}
           >
-            <div className="p-4 h-full flex flex-col justify-between relative overflow-hidden">
+            <div className="p-3 h-full flex flex-col justify-between relative overflow-hidden">
               {/* Zone Header */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-white text-lg">{zone.name}</h3>
+                  <h3 className="font-bold text-white text-sm">{zone.name}</h3>
                   <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 text-yellow-400" />
-                    <span className="text-yellow-300 text-sm font-bold">4.9</span>
+                    <Star className="h-3 w-3 text-yellow-400" />
+                    <span className="text-yellow-300 text-xs font-bold">4.9</span>
                   </div>
                 </div>
                 
-                <p className="text-white/80 text-sm italic">"{zone.theme}"</p>
+                <p className="text-white/80 text-xs italic">"{zone.theme}"</p>
                 
-                <div className="flex items-center gap-2 text-xs">
-                  <Badge className="bg-white/20 text-white border-white/30">
+                <div className="flex items-center gap-1 text-xs">
+                  <Badge className="bg-white/20 text-white border-white/30 text-xs px-1 py-0">
                     {zone.musicGenre}
-                  </Badge>
-                  <Badge className="bg-white/20 text-white border-white/30">
-                    {zone.specialFeature}
                   </Badge>
                 </div>
 
-                <div className={`flex items-center gap-2 text-sm ${getOccupancyColor(zone.occupied, zone.capacity)}`}>
-                  <Users className="h-4 w-4" />
+                <div className={`flex items-center gap-1 text-xs ${getOccupancyColor(zone.occupied, zone.capacity)}`}>
+                  <Users className="h-3 w-3" />
                   <span className="font-bold">{zone.occupied}/{zone.capacity}</span>
-                  <span className="text-white/60">explorers</span>
                 </div>
               </div>
 
-              {/* User Avatars with Enhanced Display */}
-              <div className="space-y-2">
+              {/* User Avatars */}
+              <div className="space-y-1">
                 <div className="flex flex-wrap gap-1">
-                  {zone.users.slice(0, 4).map((user, index) => (
+                  {zone.users.slice(0, 3).map((user, index) => (
                     <div
                       key={index}
                       className="relative group"
                     >
-                      <div className="w-8 h-8 bg-white/20 backdrop-blur-sm text-white rounded-full flex items-center justify-center text-sm border border-white/30 hover:scale-110 transition-transform">
+                      <div className="w-6 h-6 bg-white/20 backdrop-blur-sm text-white rounded-full flex items-center justify-center text-xs border border-white/30 hover:scale-110 transition-transform">
                         {user.mood}
                       </div>
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-1 py-0.5 bg-black/80 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
                         {user.name}: {user.activity}
                       </div>
                     </div>
                   ))}
-                  {zone.users.length > 4 && (
-                    <div className="w-8 h-8 bg-white/30 text-white rounded-full flex items-center justify-center text-xs border border-white/30">
-                      +{zone.users.length - 4}
+                  {zone.users.length > 3 && (
+                    <div className="w-6 h-6 bg-white/30 text-white rounded-full flex items-center justify-center text-xs border border-white/30">
+                      +{zone.users.length - 3}
                     </div>
                   )}
                 </div>
 
-                {/* Zone Stats */}
                 <div className="flex items-center justify-between text-xs text-white/70">
                   <span>🎵 {zone.atmosphere}</span>
-                  <span>💫 {zone.users.length} vibes</span>
+                  <span>☕ Fresh coffee</span>
                 </div>
               </div>
 
@@ -347,12 +490,12 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-2xl font-bold text-white">{zone.name}</h3>
                   <div className="flex items-center gap-2">
-                    <Badge className="bg-purple-600 text-white">
-                      <Zap className="h-3 w-3 mr-1" />
+                    <Badge className="bg-amber-600 text-white">
+                      <Coffee className="h-3 w-3 mr-1" />
                       {zone.atmosphere}
                     </Badge>
-                    <Badge className="bg-cyan-600 text-white">
-                      <Heart className="h-3 w-3 mr-1" />
+                    <Badge className="bg-orange-600 text-white">
+                      <Music className="h-3 w-3 mr-1" />
                       {zone.musicGenre}
                     </Badge>
                   </div>
@@ -363,12 +506,12 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
                     <h4 className="font-semibold text-white mb-2">✨ Special Features</h4>
                     <p className="text-white/80 text-sm mb-3">{zone.specialFeature}</p>
                     
-                    <h4 className="font-semibold text-white mb-2">🎭 Current Vibe</h4>
+                    <h4 className="font-semibold text-white mb-2">🎭 Atmosphere</h4>
                     <p className="text-white/80 text-sm italic">"{zone.theme}" • Perfect for {zone.atmosphere} moments</p>
                   </div>
                   
                   <div>
-                    <h4 className="font-semibold text-white mb-2">👥 Fellow Explorers</h4>
+                    <h4 className="font-semibold text-white mb-2">👥 Coffee Lovers Here</h4>
                     <div className="space-y-1 max-h-20 overflow-y-auto">
                       {zone.users.map((user, index) => (
                         <div key={index} className="flex items-center gap-2 text-sm text-white/80">
@@ -383,10 +526,10 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
                 
                 <Button 
                   onClick={() => onSeatSelect(zone.id)}
-                  className="w-full mt-4 bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white py-3 text-lg"
+                  className="w-full mt-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white py-3 text-lg"
                 >
-                  <Star className="h-5 w-5 mr-2" />
-                  Join {zone.name} Adventure
+                  <Coffee className="h-5 w-5 mr-2" />
+                  Join {zone.name}
                 </Button>
               </>
             );
