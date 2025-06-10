@@ -41,10 +41,13 @@ Deno.serve(async (req) => {
 
     const SPOTIFY_CLIENT_ID = Deno.env.get('SPOTIFY_CLIENT_ID')
     const SPOTIFY_CLIENT_SECRET = Deno.env.get('SPOTIFY_CLIENT_SECRET')
-    const REDIRECT_URI = `${url.origin}/auth/spotify/callback`
+    
+    // Use the correct app URL for redirect instead of the Supabase function URL
+    const REDIRECT_URI = 'https://raw-smith-loyalty.lovable.app/auth/spotify/callback'
 
     console.log('Spotify Client ID:', SPOTIFY_CLIENT_ID ? 'Set' : 'Not set');
     console.log('Spotify Client Secret:', SPOTIFY_CLIENT_SECRET ? 'Set' : 'Not set');
+    console.log('Redirect URI:', REDIRECT_URI);
 
     if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) {
       throw new Error('Spotify credentials not configured')
