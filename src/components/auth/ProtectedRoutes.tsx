@@ -8,35 +8,17 @@ import { toast } from 'sonner';
 export function UserRoute({ children }: { children: ReactNode }) {
   const { user, loading, isUser, isAdmin } = useAuth();
   const location = useLocation();
-  const [isPageReady, setIsPageReady] = useState(false);
   
-  console.log("UserRoute: Init with auth state:", { 
+  console.log("UserRoute: Auth state:", { 
     user: user ? 'exists' : 'null', 
     loading, 
     isUser, 
-    isAdmin 
+    isAdmin,
+    pathname: location.pathname
   });
 
-  // Set timeout to prevent infinite loading
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      console.log('UserRoute: Timeout reached, forcing display');
-      setIsPageReady(true);
-    }, 3000);
-
-    return () => clearTimeout(timeoutId);
-  }, []);
-
-  // Allow render when auth loading completes
-  useEffect(() => {
-    if (!loading) {
-      console.log('UserRoute: Auth loading complete, preparing page');
-      setIsPageReady(true);
-    }
-  }, [loading]);
-
-  // Show loading only briefly
-  if (!isPageReady && loading) {
+  // Show loading state briefly
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center p-6">
@@ -53,20 +35,14 @@ export function UserRoute({ children }: { children: ReactNode }) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Admin accessing user routes (we allow it)
-  if (isAdmin) {
-    console.log('UserRoute: Admin user accessing user route - allowing access');
+  // User is authenticated and has proper role - allow access
+  if (isUser || isAdmin) {
+    console.log('UserRoute: Access granted to', location.pathname);
     return <>{children}</>;
   }
 
-  // Ensure only users can access this route
-  if (isUser) {
-    console.log('UserRoute: User access granted');
-    return <>{children}</>;
-  }
-
-  // Fallback - something is wrong with the role
-  console.log('UserRoute: No valid role found (not user or admin)');
+  // Fallback - redirect to auth if no valid role
+  console.log('UserRoute: No valid role found, redirecting to auth');
   return <Navigate to="/auth" replace />;
 }
 
@@ -74,34 +50,16 @@ export function UserRoute({ children }: { children: ReactNode }) {
 export function AdminRoute({ children }: { children: ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
   const location = useLocation();
-  const [isPageReady, setIsPageReady] = useState(false);
   
-  console.log("AdminRoute: Init with auth state:", { 
+  console.log("AdminRoute: Auth state:", { 
     user: user ? 'exists' : 'null',
     loading, 
-    isAdmin 
+    isAdmin,
+    pathname: location.pathname
   });
 
-  // Set timeout to prevent infinite loading
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      console.log('AdminRoute: Timeout reached, forcing display');
-      setIsPageReady(true);
-    }, 3000);
-
-    return () => clearTimeout(timeoutId);
-  }, []);
-
-  // Allow render when auth loading completes
-  useEffect(() => {
-    if (!loading) {
-      console.log('AdminRoute: Auth loading complete, preparing page');
-      setIsPageReady(true);
-    }
-  }, [loading]);
-
-  // Show loading only briefly
-  if (!isPageReady && loading) {
+  // Show loading state briefly
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center p-6">
@@ -125,42 +83,23 @@ export function AdminRoute({ children }: { children: ReactNode }) {
     return <Navigate to="/auth" replace />;
   }
 
-  console.log('AdminRoute: Admin access granted');
+  console.log('AdminRoute: Admin access granted to', location.pathname);
   return <>{children}</>;
 }
 
 // Component for public routes that should redirect authenticated users
 export function PublicRoute({ children }: { children: ReactNode }) {
   const { user, isAdmin, isUser, loading } = useAuth();
-  const [isPageReady, setIsPageReady] = useState(false);
   
-  console.log("PublicRoute: Init with auth state:", { 
+  console.log("PublicRoute: Auth state:", { 
     user: user ? 'exists' : 'null', 
     loading, 
     isAdmin, 
     isUser 
   });
   
-  // Set timeout to prevent infinite loading
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      console.log('PublicRoute: Timeout reached, forcing display');
-      setIsPageReady(true);
-    }, 3000);
-
-    return () => clearTimeout(timeoutId);
-  }, []);
-
-  // Allow render when auth loading completes
-  useEffect(() => {
-    if (!loading) {
-      console.log('PublicRoute: Auth loading complete, preparing page');
-      setIsPageReady(true);
-    }
-  }, [loading]);
-
-  // Show loading only briefly
-  if (!isPageReady && loading) {
+  // Show loading state briefly
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center">
@@ -171,11 +110,11 @@ export function PublicRoute({ children }: { children: ReactNode }) {
     );
   }
 
-  // Redirect authenticated users, but only if we're sure about their role
+  // Redirect authenticated users
   if (user && !loading) {
-    console.log('PublicRoute: User authenticated, redirecting to dashboard');
+    console.log('PublicRoute: User authenticated, redirecting');
     if (isAdmin) {
-      return <Navigate to="/admin/dashboard" replace />;
+      return <Navigate to="/admin" replace />;
     } else if (isUser) {
       return <Navigate to="/dashboard" replace />;
     }
@@ -189,33 +128,15 @@ export function PublicRoute({ children }: { children: ReactNode }) {
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const location = useLocation();
-  const [isPageReady, setIsPageReady] = useState(false);
   
-  console.log("ProtectedRoute: Init with auth state:", { 
+  console.log("ProtectedRoute: Auth state:", { 
     user: user ? 'exists' : 'null', 
-    loading
+    loading,
+    pathname: location.pathname
   });
 
-  // Set timeout to prevent infinite loading
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      console.log('ProtectedRoute: Timeout reached, forcing display');
-      setIsPageReady(true);
-    }, 3000);
-
-    return () => clearTimeout(timeoutId);
-  }, []);
-
-  // Allow render when auth loading completes
-  useEffect(() => {
-    if (!loading) {
-      console.log('ProtectedRoute: Auth loading complete, preparing page');
-      setIsPageReady(true);
-    }
-  }, [loading]);
-
-  // Show loading only briefly
-  if (!isPageReady && loading) {
+  // Show loading state briefly
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center p-6">
@@ -232,6 +153,6 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  console.log('ProtectedRoute: User authenticated, access granted');
+  console.log('ProtectedRoute: User authenticated, access granted to', location.pathname);
   return <>{children}</>;
 }

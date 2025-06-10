@@ -2,7 +2,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UserRoute, AdminRoute } from "@/components/auth/ProtectedRoutes";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
@@ -53,28 +53,54 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <AuthProvider>
-          <ErrorBoundary>
-            <div className="min-h-screen bg-[#FAF6F0]">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/auth/spotify/callback" element={<SpotifyCallback />} />
-                
-                {/* Protected User Routes */}
-                <Route element={<UserRoute><></></UserRoute>}>
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/rewards" element={<Rewards />} />
-                  <Route path="/community-home" element={<CommunityHome />} />
-                  <Route path="/community" element={<CommunityPage />} />
-                  <Route path="/thread/:id" element={<ThreadPage />} />
-                </Route>
+        <BrowserRouter>
+          <AuthProvider>
+            <ErrorBoundary>
+              <div className="min-h-screen bg-[#FAF6F0]">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/auth/spotify/callback" element={<SpotifyCallback />} />
+                  
+                  {/* Protected User Routes */}
+                  <Route path="/dashboard" element={
+                    <UserRoute>
+                      <Dashboard />
+                    </UserRoute>
+                  } />
+                  <Route path="/profile" element={
+                    <UserRoute>
+                      <Profile />
+                    </UserRoute>
+                  } />
+                  <Route path="/rewards" element={
+                    <UserRoute>
+                      <Rewards />
+                    </UserRoute>
+                  } />
+                  <Route path="/community-home" element={
+                    <UserRoute>
+                      <CommunityHome />
+                    </UserRoute>
+                  } />
+                  <Route path="/community" element={
+                    <UserRoute>
+                      <CommunityPage />
+                    </UserRoute>
+                  } />
+                  <Route path="/thread/:id" element={
+                    <UserRoute>
+                      <ThreadPage />
+                    </UserRoute>
+                  } />
 
-                {/* Admin Routes */}
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route element={<AdminRoute><></></AdminRoute>}>
-                  <Route path="/admin" element={<Admin />}>
+                  {/* Admin Routes */}
+                  <Route path="/admin/login" element={<AdminLogin />} />
+                  <Route path="/admin" element={
+                    <AdminRoute>
+                      <Admin />
+                    </AdminRoute>
+                  }>
                     <Route index element={<AdminDashboard />} />
                     <Route path="users" element={<UserManagement />} />
                     <Route path="transactions" element={<TransactionsManagement />} />
@@ -87,15 +113,19 @@ const App = () => {
                     <Route path="rewards-admin" element={<RewardsAdmin />} />
                     <Route path="community-hub" element={<CommunityHubManagement />} />
                   </Route>
-                  <Route path="/admin-community-hub" element={<AdminCommunityHub />} />
-                </Route>
+                  <Route path="/admin-community-hub" element={
+                    <AdminRoute>
+                      <AdminCommunityHub />
+                    </AdminRoute>
+                  } />
 
-                {/* 404 Route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </div>
-          </ErrorBoundary>
-        </AuthProvider>
+                  {/* 404 Route */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+            </ErrorBoundary>
+          </AuthProvider>
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );
