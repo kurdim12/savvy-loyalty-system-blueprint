@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +22,8 @@ export const SpotifyIntegration = () => {
     pausePlayback,
     nextTrack,
     getDevices,
-    logout
+    logout,
+    handleCallback
   } = useSpotify();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,13 +41,11 @@ export const SpotifyIntegration = () => {
       // Clear URL params
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (code && !isAuthenticated) {
-      // Handle callback in useSpotify hook
-      const { handleCallback } = useSpotify();
       handleCallback(code);
       // Clear URL params
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
+  }, [isAuthenticated, handleCallback]);
 
   // Fetch current playback and devices when authenticated
   useEffect(() => {
