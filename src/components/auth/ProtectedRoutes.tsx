@@ -1,5 +1,5 @@
 
-import { ReactNode, useState, useEffect } from 'react';
+import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -29,7 +29,7 @@ export function UserRoute({ children }: { children: ReactNode }) {
     );
   }
 
-  // Not authenticated at all
+  // Not authenticated at all - redirect to auth
   if (!user) {
     console.log('UserRoute: No user found, redirecting to auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
@@ -84,75 +84,5 @@ export function AdminRoute({ children }: { children: ReactNode }) {
   }
 
   console.log('AdminRoute: Admin access granted to', location.pathname);
-  return <>{children}</>;
-}
-
-// Component for public routes that should redirect authenticated users
-export function PublicRoute({ children }: { children: ReactNode }) {
-  const { user, isAdmin, isUser, loading } = useAuth();
-  
-  console.log("PublicRoute: Auth state:", { 
-    user: user ? 'exists' : 'null', 
-    loading, 
-    isAdmin, 
-    isUser 
-  });
-  
-  // Show loading state briefly
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#95A5A6] text-sm">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Redirect authenticated users
-  if (user && !loading) {
-    console.log('PublicRoute: User authenticated, redirecting');
-    if (isAdmin) {
-      return <Navigate to="/admin" replace />;
-    } else if (isUser) {
-      return <Navigate to="/dashboard" replace />;
-    }
-  }
-
-  console.log('PublicRoute: No authenticated user, showing public content');
-  return <>{children}</>;
-}
-
-// Generic protected route component - requires any authenticated user
-export function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
-  const location = useLocation();
-  
-  console.log("ProtectedRoute: Auth state:", { 
-    user: user ? 'exists' : 'null', 
-    loading,
-    pathname: location.pathname
-  });
-
-  // Show loading state briefly
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
-        <div className="text-center p-6">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#95A5A6] text-sm">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Not authenticated at all
-  if (!user) {
-    console.log('ProtectedRoute: No user found, redirecting to auth');
-    return <Navigate to="/auth" state={{ from: location }} replace />;
-  }
-
-  console.log('ProtectedRoute: User authenticated, access granted to', location.pathname);
   return <>{children}</>;
 }
