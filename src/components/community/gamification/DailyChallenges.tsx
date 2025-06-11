@@ -14,25 +14,28 @@ interface Challenge {
   id: string;
   title: string;
   description: string;
-  reward_points: number;
-  challenge_date: string;
+  reward: string;
+  target: number;
+  type: string;
+  expires_at: string;
   completed?: boolean;
+  current_progress?: number;
 }
 
 export const DailyChallenges = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch today's challenges
+  // Fetch active challenges
   const { data: challenges = [], isLoading } = useQuery({
-    queryKey: ['daily-challenges', user?.id],
+    queryKey: ['challenges', user?.id],
     queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-      
       const { data: challengesData, error } = await supabase
-        .from('daily_challenges')
+        .from('challenges')
         .select('*')
-        .eq('challenge_date', today);
+        .eq('active', true)
+        .gte('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       
@@ -40,17 +43,20 @@ export const DailyChallenges = () => {
 
       // Check which challenges the user has completed
       const challengeIds = challengesData.map(c => c.id);
-      const { data: completions } = await supabase
-        .from('user_challenge_completions')
-        .select('challenge_id')
+      const { data: participations } = await supabase
+        .from('challenge_participants')
+        .select('challenge_id, current_progress, completed')
         .in('challenge_id', challengeIds)
         .eq('user_id', user.id);
       
-      const completedIds = new Set(completions?.map(c => c.challenge_id) || []);
+      const participationMap = new Map(
+        participations?.map(p => [p.challenge_id, p]) || []
+      );
       
       return challengesData.map(challenge => ({
         ...challenge,
-        completed: completedIds.has(challenge.id)
+        completed: participationMap.get(challenge.id)?.completed || false,
+        current_progress: participationMap.get(challenge.id)?.current_progress || 0
       })) as Challenge[];
     },
     enabled: !!user?.id,
@@ -63,19 +69,15 @@ export const DailyChallenges = () => {
       if (!user?.id) return { totalCompleted: 0, pointsEarned: 0 };
       
       const { data, error } = await supabase
-        .from('user_challenge_completions')
-        .select(`
-          challenge_id,
-          daily_challenges (reward_points)
-        `)
-        .eq('user_id', user.id);
+        .from('challenge_participants')
+        .select('completed')
+        .eq('user_id', user.id)
+        .eq('completed', true);
       
       if (error) throw error;
       
       const totalCompleted = data.length;
-      const pointsEarned = data.reduce((sum, completion) => {
-        return sum + (completion.daily_challenges?.reward_points || 0);
-      }, 0);
+      const pointsEarned = totalCompleted * 50; // Assume 50 points per challenge
       
       return { totalCompleted, pointsEarned };
     },
@@ -87,19 +89,23 @@ export const DailyChallenges = () => {
     mutationFn: async (challengeId: string) => {
       if (!user?.id) throw new Error('Not authenticated');
       
+      // Insert or update challenge participation
       const { error } = await supabase
-        .from('user_challenge_completions')
-        .insert({
+        .from('challenge_participants')
+        .upsert({
           user_id: user.id,
-          challenge_id: challengeId
+          challenge_id: challengeId,
+          completed: true,
+          completed_at: new Date().toISOString(),
+          current_progress: challenges.find(c => c.id === challengeId)?.target || 1
         });
       
       if (error) throw error;
     },
     onSuccess: (_, challengeId) => {
       const challenge = challenges.find(c => c.id === challengeId);
-      toast.success(`Challenge completed! You earned ${challenge?.reward_points} points!`);
-      queryClient.invalidateQueries({ queryKey: ['daily-challenges'] });
+      toast.success(`Challenge completed! You earned points!`);
+      queryClient.invalidateQueries({ queryKey: ['challenges'] });
       queryClient.invalidateQueries({ queryKey: ['challenge-stats'] });
       queryClient.invalidateQueries({ queryKey: ['user-profile'] });
     },
@@ -129,12 +135,12 @@ export const DailyChallenges = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-[#8B4513]">
             <Star className="h-5 w-5" />
-            Daily Progress
+            Challenge Progress
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex justify-between text-sm">
-            <span>Today's Challenges</span>
+            <span>Active Challenges</span>
             <span>{completedToday}/{totalToday} completed</span>
           </div>
           <Progress value={progressPercentage} className="h-2" />
@@ -154,18 +160,18 @@ export const DailyChallenges = () => {
         </CardContent>
       </Card>
 
-      {/* Today's Challenges */}
+      {/* Active Challenges */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-[#8B4513]">
             <Clock className="h-5 w-5" />
-            Today's Challenges
+            Active Challenges
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {challenges.length === 0 ? (
             <p className="text-center text-muted-foreground py-4">
-              No challenges available today. Check back tomorrow!
+              No active challenges available. Check back soon!
             </p>
           ) : (
             challenges.map((challenge) => (
@@ -186,10 +192,27 @@ export const DailyChallenges = () => {
                     <p className="text-sm text-muted-foreground">
                       {challenge.description}
                     </p>
-                    <Badge className="bg-[#8B4513] text-white">
-                      <Gift className="h-3 w-3 mr-1" />
-                      {challenge.reward_points} points
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-[#8B4513] text-white">
+                        <Gift className="h-3 w-3 mr-1" />
+                        {challenge.reward}
+                      </Badge>
+                      <Badge variant="outline">
+                        {challenge.type}
+                      </Badge>
+                    </div>
+                    {!challenge.completed && challenge.current_progress !== undefined && (
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span>Progress</span>
+                          <span>{challenge.current_progress}/{challenge.target}</span>
+                        </div>
+                        <Progress 
+                          value={(challenge.current_progress / challenge.target) * 100} 
+                          className="h-1" 
+                        />
+                      </div>
+                    )}
                   </div>
                   
                   <div className="ml-4">

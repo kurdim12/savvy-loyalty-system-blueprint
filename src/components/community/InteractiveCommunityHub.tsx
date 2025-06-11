@@ -90,7 +90,10 @@ export const InteractiveCommunityHub = () => {
 
           <TabsContent value="cafe" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <CoffeeShopSeated />
+              <CoffeeShopSeated 
+                seatId={currentSeatId}
+                onLeave={() => console.log('User left seat')}
+              />
               <div className="space-y-4">
                 <PhysicalCafeChat />
                 <CoffeeActivities />
