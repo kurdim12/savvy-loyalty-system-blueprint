@@ -1,4 +1,3 @@
-
 import { InteractiveCommunityHub } from '@/components/community/InteractiveCommunityHub';
 import Layout from '@/components/layout/Layout';
 
