@@ -8,13 +8,16 @@ import { Leaderboard } from './gamification/Leaderboard';
 import { DailyChallenges } from './gamification/DailyChallenges';
 import { EventCalendar } from './practical/EventCalendar';
 import { LivePointsDisplay } from './LivePointsDisplay';
+import { RealTimeUserPresence } from './RealTimeUserPresence';
+import { RealTimeActivityFeed } from './RealTimeActivityFeed';
 import { 
   Coffee, 
   MessageCircle, 
   Users, 
   Trophy, 
   Calendar,
-  Target
+  Target,
+  Activity
 } from 'lucide-react';
 
 export const InteractiveCommunityHub = () => {
@@ -36,9 +39,15 @@ export const InteractiveCommunityHub = () => {
         {/* Live Points Display */}
         <LivePointsDisplay />
 
+        {/* Real-time Components Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <RealTimeUserPresence />
+          <RealTimeActivityFeed />
+        </div>
+
         {/* Main Hub */}
         <Tabs defaultValue="sitting-plan" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-6">
+          <TabsList className="grid w-full grid-cols-7 mb-6">
             <TabsTrigger value="sitting-plan" className="flex items-center gap-2">
               <Coffee className="h-4 w-4" />
               <span className="hidden sm:inline">Sitting Plan</span>
@@ -62,6 +71,10 @@ export const InteractiveCommunityHub = () => {
             <TabsTrigger value="events" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               <span className="hidden sm:inline">Events</span>
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              <span className="hidden sm:inline">Activity</span>
             </TabsTrigger>
           </TabsList>
 
@@ -109,6 +122,14 @@ export const InteractiveCommunityHub = () => {
           {/* Events Calendar */}
           <TabsContent value="events" className="space-y-6">
             <EventCalendar />
+          </TabsContent>
+
+          {/* Activity Feed */}
+          <TabsContent value="activity" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <RealTimeUserPresence />
+              <RealTimeActivityFeed />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
