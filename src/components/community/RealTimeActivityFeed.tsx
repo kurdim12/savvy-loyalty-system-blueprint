@@ -23,7 +23,7 @@ export const RealTimeActivityFeed = () => {
   const queryClient = useQueryClient();
   const [activities, setActivities] = useState<ActivityItem[]>([]);
 
-  // Fetch recent activities
+  // Fetch recent messages from database
   const { data: recentMessages } = useQuery({
     queryKey: ['recent-activities'],
     queryFn: async () => {
@@ -45,7 +45,32 @@ export const RealTimeActivityFeed = () => {
       if (error) throw error;
       return data;
     },
-    refetchInterval: 5000, // Refresh every 5 seconds
+    refetchInterval: 5000,
+  });
+
+  // Fetch recent transactions for points activities
+  const { data: recentTransactions } = useQuery({
+    queryKey: ['recent-transactions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(`
+          id,
+          points,
+          transaction_type,
+          created_at,
+          profiles:user_id (
+            first_name,
+            last_name
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: 10000,
   });
 
   // Real-time subscription for new activities
@@ -63,46 +88,7 @@ export const RealTimeActivityFeed = () => {
         },
         (payload) => {
           console.log('New message activity:', payload);
-          
-          const newActivity: ActivityItem = {
-            id: payload.new.id,
-            type: 'message',
-            user_name: 'Someone',
-            description: 'sent a message',
-            timestamp: payload.new.created_at,
-            area: payload.new.thread_id?.includes('area-') ? 
-              payload.new.thread_id.replace('area-', '').replace('-', ' ') : 
-              'community'
-          };
-          
-          setActivities(prev => [newActivity, ...prev.slice(0, 19)]);
           queryClient.invalidateQueries({ queryKey: ['recent-activities'] });
-        }
-      )
-      .subscribe();
-
-    const challengeChannel = supabase
-      .channel('activity-feed-challenges')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'challenge_participants'
-        },
-        (payload) => {
-          console.log('New challenge activity:', payload);
-          
-          const newActivity: ActivityItem = {
-            id: payload.new.id,
-            type: 'challenge',
-            user_name: 'Someone',
-            description: 'completed a challenge',
-            timestamp: payload.new.created_at,
-            points: 50
-          };
-          
-          setActivities(prev => [newActivity, ...prev.slice(0, 19)]);
         }
       )
       .subscribe();
@@ -118,18 +104,7 @@ export const RealTimeActivityFeed = () => {
         },
         (payload) => {
           console.log('New transaction activity:', payload);
-          
-          const newActivity: ActivityItem = {
-            id: payload.new.id,
-            type: payload.new.transaction_type === 'redemption' ? 'reward' : 'order',
-            user_name: 'Someone',
-            description: payload.new.transaction_type === 'redemption' ? 
-              'redeemed a reward' : 'earned points',
-            timestamp: payload.new.created_at,
-            points: Math.abs(payload.new.points)
-          };
-          
-          setActivities(prev => [newActivity, ...prev.slice(0, 19)]);
+          queryClient.invalidateQueries({ queryKey: ['recent-transactions'] });
         }
       )
       .subscribe();
@@ -137,13 +112,15 @@ export const RealTimeActivityFeed = () => {
     return () => {
       console.log('Cleaning up activity feed subscriptions');
       supabase.removeChannel(messageChannel);
-      supabase.removeChannel(challengeChannel);
       supabase.removeChannel(transactionChannel);
     };
   }, [queryClient]);
 
-  // Convert messages to activities
+  // Convert database data to activities
   useEffect(() => {
+    const allActivities: ActivityItem[] = [];
+    
+    // Add message activities
     if (recentMessages) {
       const messageActivities: ActivityItem[] = recentMessages.map(msg => ({
         id: msg.id,
@@ -159,17 +136,32 @@ export const RealTimeActivityFeed = () => {
           msg.thread_id.replace('area-', '').replace('-', ' ') : 
           'community'
       }));
-      
-      setActivities(prev => {
-        // Merge and deduplicate activities
-        const existing = prev.filter(a => a.type !== 'message');
-        const combined = [...existing, ...messageActivities];
-        return combined
-          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-          .slice(0, 20);
-      });
+      allActivities.push(...messageActivities);
     }
-  }, [recentMessages]);
+
+    // Add transaction activities
+    if (recentTransactions) {
+      const transactionActivities: ActivityItem[] = recentTransactions.map(txn => ({
+        id: txn.id,
+        type: txn.transaction_type === 'redeem' ? 'reward' as const : 'order' as const,
+        user_name: txn.profiles ? 
+          `${txn.profiles.first_name} ${txn.profiles.last_name}`.trim() || 'Anonymous' : 
+          'Anonymous',
+        description: txn.transaction_type === 'redeem' ? 
+          'redeemed a reward' : 'earned points',
+        timestamp: txn.created_at,
+        points: Math.abs(txn.points)
+      }));
+      allActivities.push(...transactionActivities);
+    }
+
+    // Sort by timestamp and limit
+    const sortedActivities = allActivities
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 20);
+
+    setActivities(sortedActivities);
+  }, [recentMessages, recentTransactions]);
 
   const getActivityIcon = (type: ActivityItem['type']) => {
     switch (type) {

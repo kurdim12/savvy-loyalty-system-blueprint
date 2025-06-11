@@ -25,7 +25,7 @@ export const RealTimeUserPresence = () => {
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
 
-  // Fetch online users
+  // Fetch real users from profiles table
   const { data: users = [] } = useQuery({
     queryKey: ['online-users'],
     queryFn: async () => {
@@ -37,7 +37,7 @@ export const RealTimeUserPresence = () => {
       if (error) throw error;
       return data as OnlineUser[];
     },
-    refetchInterval: 10000, // Refresh every 10 seconds
+    refetchInterval: 10000,
   });
 
   // Real-time presence tracking
@@ -120,15 +120,6 @@ export const RealTimeUserPresence = () => {
     };
   }, [user?.id, users]);
 
-  const getConnectionStatusColor = () => {
-    switch (connectionStatus) {
-      case 'connected': return 'text-green-500';
-      case 'connecting': return 'text-yellow-500';
-      case 'disconnected': return 'text-red-500';
-      default: return 'text-gray-500';
-    }
-  };
-
   const formatLastSeen = (timestamp: string) => {
     const now = new Date();
     const lastSeen = new Date(timestamp);
@@ -155,9 +146,6 @@ export const RealTimeUserPresence = () => {
           <div className="flex items-center gap-2">
             <Wifi className={`w-4 h-4 ${connectionStatus === 'connected' ? 'text-green-500' : connectionStatus === 'connecting' ? 'text-yellow-500' : 'text-red-500'}`} />
             <div className={`w-2 h-2 rounded-full ${connectionStatus === 'connected' ? 'bg-green-500' : connectionStatus === 'connecting' ? 'bg-yellow-500' : 'bg-red-500'}`} />
-            <span className={`text-xs ${getConnectionStatusColor()}`}>
-              {connectionStatus}
-            </span>
           </div>
         </CardTitle>
       </CardHeader>

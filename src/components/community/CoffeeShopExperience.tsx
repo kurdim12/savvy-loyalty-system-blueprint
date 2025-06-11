@@ -1,8 +1,6 @@
 
 import { useState } from 'react';
-import { EnhancedFloorPlan } from './EnhancedFloorPlan';
-import { CoffeeShopSeated } from './CoffeeShopSeated';
-import { PrivateChatSystem } from './PrivateChatSystem';
+import { PhysicalCafeFloorPlan } from './PhysicalCafeFloorPlan';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
@@ -13,7 +11,6 @@ interface CoffeeShopExperienceProps {
 export const CoffeeShopExperience = ({ onBack }: CoffeeShopExperienceProps) => {
   const [currentView, setCurrentView] = useState<'floor-plan' | 'seated'>('floor-plan');
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
-  const [showPrivateChat, setShowPrivateChat] = useState(false);
 
   const handleSeatSelect = (seatId: string) => {
     console.log('Seat selected:', seatId);
@@ -24,20 +21,10 @@ export const CoffeeShopExperience = ({ onBack }: CoffeeShopExperienceProps) => {
   const handleStandUp = () => {
     setCurrentView('floor-plan');
     setSelectedSeat(null);
-    setShowPrivateChat(false);
-  };
-
-  const handleStartPrivateChat = (userId: string) => {
-    console.log('Starting private chat with:', userId);
-    setShowPrivateChat(true);
-  };
-
-  const handleClosePrivateChat = () => {
-    setShowPrivateChat(false);
   };
 
   return (
-    <div className="relative w-full h-screen bg-gradient-to-br from-[#8B4513]/10 to-[#D2B48C]/20 overflow-hidden">
+    <div className="relative w-full h-full bg-gradient-to-br from-[#8B4513]/10 to-[#D2B48C]/20">
       {/* Back Button */}
       {onBack && (
         <Button
@@ -50,28 +37,10 @@ export const CoffeeShopExperience = ({ onBack }: CoffeeShopExperienceProps) => {
         </Button>
       )}
 
-      {/* Main Coffee Shop Experience - Always show Enhanced Floor Plan */}
+      {/* Main Coffee Shop Experience */}
       <div className="w-full h-full">
-        {currentView === 'floor-plan' ? (
-          <EnhancedFloorPlan 
-            onSeatSelect={handleSeatSelect}
-            onStartPrivateChat={handleStartPrivateChat}
-          />
-        ) : (
-          <CoffeeShopSeated 
-            seatId={selectedSeat!}
-            onLeave={handleStandUp}
-          />
-        )}
+        <PhysicalCafeFloorPlan />
       </div>
-
-      {/* Private Chat System Overlay */}
-      {showPrivateChat && selectedSeat && (
-        <PrivateChatSystem
-          currentSeatId={selectedSeat}
-          onClose={handleClosePrivateChat}
-        />
-      )}
     </div>
   );
 };
