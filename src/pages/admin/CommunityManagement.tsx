@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,7 +33,9 @@ import {
   Trash2,
   PenSquare,
   Users,
-  Shield
+  Shield,
+  Trophy,
+  Camera
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -47,6 +48,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import CommunityControl from '@/components/admin/CommunityControl';
+import CommunityHubControl from '@/components/admin/CommunityHubControl';
 
 interface Event {
   id: string;
@@ -179,7 +181,7 @@ const CommunityManagement = () => {
                 Community Management
               </h2>
               <p className="text-amber-700 mt-1">
-                Manage announcements, community discussions, and member interactions.
+                Manage announcements, community discussions, challenges, and member interactions.
               </p>
             </div>
             <Button 
@@ -200,6 +202,10 @@ const CommunityManagement = () => {
               <TabsTrigger value="community" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 Community Control
+              </TabsTrigger>
+              <TabsTrigger value="activities" className="flex items-center gap-2">
+                <Trophy className="h-4 w-4" />
+                Activities & Challenges
               </TabsTrigger>
             </TabsList>
 
@@ -310,6 +316,10 @@ const CommunityManagement = () => {
 
             <TabsContent value="community">
               <CommunityControl />
+            </TabsContent>
+
+            <TabsContent value="activities">
+              <CommunityHubControl />
             </TabsContent>
           </Tabs>
         </div>

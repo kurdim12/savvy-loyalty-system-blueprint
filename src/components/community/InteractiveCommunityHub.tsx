@@ -3,9 +3,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Coffee, MapPin, MessageCircle, Music, Users, Clock, Star, Zap } from 'lucide-react';
+import { Coffee, MapPin, MessageCircle, Users, Clock, Star, Zap } from 'lucide-react';
 import { PhysicalCafeFloorPlan } from './PhysicalCafeFloorPlan';
-import { EnhancedRealCafeMusicSystem } from './EnhancedRealCafeMusicSystem';
 import { RealTimeChat } from './RealTimeChat';
 import { CoffeeActivities } from './CoffeeActivities';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,12 +26,6 @@ export const InteractiveCommunityHub = () => {
       label: 'Café Floor',
       icon: <MapPin className="h-4 w-4" />,
       component: <PhysicalCafeFloorPlan />
-    },
-    {
-      id: 'music',
-      label: 'Music Hub',
-      icon: <Music className="h-4 w-4" />,
-      component: <EnhancedRealCafeMusicSystem />
     },
     {
       id: 'chat',
