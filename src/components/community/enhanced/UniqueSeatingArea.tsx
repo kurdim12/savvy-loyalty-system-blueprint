@@ -306,7 +306,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
   return (
     <div className="relative w-full h-full bg-gradient-to-br from-amber-900 via-orange-900 to-yellow-900 p-4 overflow-hidden">
       {/* Wood Grain Texture Overlay */}
-      <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Cpath d="M0 0h100v100H0z" fill="%23D2691E"/%3E%3Cpath d="M20 0v100M40 0v100M60 0v100M80 0v100" stroke="%23A0522D" stroke-width="1" opacity="0.5"/%3E%3C/svg%3E')] bg-repeat"></div>
+      <div className="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(210,105,30,0.1)_10px,rgba(210,105,30,0.1)_20px)]"></div>
 
       {/* Stone Archway Entrance */}
       <div className="absolute bg-gradient-to-b from-stone-700 to-stone-900 rounded-t-full shadow-2xl border-4 border-stone-600"
