@@ -12,34 +12,39 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-interface PhotoShare {
+interface CoffeePhoto {
   id: string;
   user_id: string;
-  photo_url: string;
-  caption: string;
-  location: string;
-  likes_count: number;
   created_at: string;
+  drink_name: string;
+  notes: string;
+  origin?: string;
+  brewing_method?: string;
+  rating?: number;
   profiles: {
     first_name: string;
     last_name: string;
     avatar_url?: string;
   };
-  isLiked?: boolean;
 }
 
 export const PhotoSharing = () => {
   const { user } = useAuth();
-  const [newPhoto, setNewPhoto] = useState({ caption: '', location: '', photoUrl: '' });
+  const [newPhoto, setNewPhoto] = useState({ 
+    drink_name: '', 
+    notes: '', 
+    origin: '',
+    brewing_method: '' 
+  });
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const queryClient = useQueryClient();
 
-  // Fetch photos
+  // Fetch coffee journey entries (using as photo shares)
   const { data: photos = [], isLoading } = useQuery({
-    queryKey: ['photo-shares'],
+    queryKey: ['coffee-photos'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('photo_shares')
+        .from('coffee_journey')
         .select(`
           *,
           profiles:user_id (
@@ -52,84 +57,36 @@ export const PhotoSharing = () => {
         .limit(20);
       
       if (error) throw error;
-
-      // Check which photos the current user has liked
-      if (user?.id) {
-        const photoIds = data.map(p => p.id);
-        const { data: likes } = await supabase
-          .from('photo_likes')
-          .select('photo_id')
-          .in('photo_id', photoIds)
-          .eq('user_id', user.id);
-        
-        const likedPhotoIds = new Set(likes?.map(l => l.photo_id) || []);
-        
-        return data.map(photo => ({
-          ...photo,
-          isLiked: likedPhotoIds.has(photo.id)
-        })) as PhotoShare[];
-      }
-      
-      return data as PhotoShare[];
+      return data as CoffeePhoto[];
     },
   });
 
-  // Share photo
+  // Share coffee moment
   const sharePhoto = useMutation({
-    mutationFn: async (photoData: { caption: string; location: string; photoUrl: string }) => {
+    mutationFn: async (photoData: typeof newPhoto) => {
       if (!user?.id) throw new Error('Not authenticated');
       
       const { error } = await supabase
-        .from('photo_shares')
+        .from('coffee_journey')
         .insert({
           user_id: user.id,
-          photo_url: photoData.photoUrl,
-          caption: photoData.caption,
-          location: photoData.location
+          drink_name: photoData.drink_name,
+          notes: photoData.notes,
+          origin: photoData.origin,
+          brewing_method: photoData.brewing_method,
+          tried_at: new Date().toISOString()
         });
       
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Photo shared successfully!');
-      setNewPhoto({ caption: '', location: '', photoUrl: '' });
+      toast.success('Coffee moment shared successfully!');
+      setNewPhoto({ drink_name: '', notes: '', origin: '', brewing_method: '' });
       setShowUploadDialog(false);
-      queryClient.invalidateQueries({ queryKey: ['photo-shares'] });
+      queryClient.invalidateQueries({ queryKey: ['coffee-photos'] });
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to share photo');
-    }
-  });
-
-  // Like/unlike photo
-  const toggleLike = useMutation({
-    mutationFn: async ({ photoId, isLiked }: { photoId: string; isLiked: boolean }) => {
-      if (!user?.id) throw new Error('Not authenticated');
-      
-      if (isLiked) {
-        const { error } = await supabase
-          .from('photo_likes')
-          .delete()
-          .eq('photo_id', photoId)
-          .eq('user_id', user.id);
-        
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('photo_likes')
-          .insert({
-            photo_id: photoId,
-            user_id: user.id
-          });
-        
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['photo-shares'] });
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to update like');
+      toast.error(error.message || 'Failed to share coffee moment');
     }
   });
 
@@ -160,7 +117,7 @@ export const PhotoSharing = () => {
             <DialogTrigger asChild>
               <Button className="bg-[#8B4513] hover:bg-[#8B4513]/90">
                 <Upload className="h-4 w-4 mr-2" />
-                Share Photo
+                Share Moment
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -169,35 +126,43 @@ export const PhotoSharing = () => {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Photo URL</label>
+                  <label className="block text-sm font-medium mb-2">Coffee/Drink Name</label>
                   <Input
-                    placeholder="Paste image URL..."
-                    value={newPhoto.photoUrl}
-                    onChange={(e) => setNewPhoto(prev => ({ ...prev, photoUrl: e.target.value }))}
+                    placeholder="Ethiopian Single Origin"
+                    value={newPhoto.drink_name}
+                    onChange={(e) => setNewPhoto(prev => ({ ...prev, drink_name: e.target.value }))}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Caption</label>
+                  <label className="block text-sm font-medium mb-2">Notes</label>
                   <Textarea
-                    placeholder="Share something about this moment..."
-                    value={newPhoto.caption}
-                    onChange={(e) => setNewPhoto(prev => ({ ...prev, caption: e.target.value }))}
+                    placeholder="Share something about this coffee moment..."
+                    value={newPhoto.notes}
+                    onChange={(e) => setNewPhoto(prev => ({ ...prev, notes: e.target.value }))}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Location (optional)</label>
+                  <label className="block text-sm font-medium mb-2">Origin (optional)</label>
                   <Input
-                    placeholder="Where was this taken?"
-                    value={newPhoto.location}
-                    onChange={(e) => setNewPhoto(prev => ({ ...prev, location: e.target.value }))}
+                    placeholder="Ethiopia, Yirgacheffe"
+                    value={newPhoto.origin}
+                    onChange={(e) => setNewPhoto(prev => ({ ...prev, origin: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Brewing Method (optional)</label>
+                  <Input
+                    placeholder="Pour over, Espresso, etc."
+                    value={newPhoto.brewing_method}
+                    onChange={(e) => setNewPhoto(prev => ({ ...prev, brewing_method: e.target.value }))}
                   />
                 </div>
                 <Button
                   onClick={() => sharePhoto.mutate(newPhoto)}
-                  disabled={sharePhoto.isPending || !newPhoto.photoUrl || !newPhoto.caption}
+                  disabled={sharePhoto.isPending || !newPhoto.drink_name || !newPhoto.notes}
                   className="w-full bg-[#8B4513] hover:bg-[#8B4513]/90"
                 >
-                  {sharePhoto.isPending ? 'Sharing...' : 'Share Photo'}
+                  {sharePhoto.isPending ? 'Sharing...' : 'Share Moment'}
                 </Button>
               </div>
             </DialogContent>
@@ -208,11 +173,11 @@ export const PhotoSharing = () => {
       <CardContent className="space-y-6">
         {isLoading ? (
           <div className="text-center text-muted-foreground py-8">
-            Loading photos...
+            Loading coffee moments...
           </div>
         ) : photos.length === 0 ? (
           <div className="text-center text-muted-foreground py-8">
-            No photos shared yet. Be the first to share a coffee moment!
+            No coffee moments shared yet. Be the first to share your coffee journey!
           </div>
         ) : (
           photos.map((photo) => (
@@ -226,8 +191,12 @@ export const PhotoSharing = () => {
                 </Avatar>
                 <div className="flex-1">
                   <p className="font-medium">{photo.profiles.first_name} {photo.profiles.last_name}</p>
-                  {photo.location && (
-                    <p className="text-sm text-muted-foreground">{photo.location}</p>
+                  <p className="text-sm font-medium text-[#8B4513]">{photo.drink_name}</p>
+                  {photo.origin && (
+                    <p className="text-sm text-muted-foreground">Origin: {photo.origin}</p>
+                  )}
+                  {photo.brewing_method && (
+                    <p className="text-sm text-muted-foreground">Method: {photo.brewing_method}</p>
                   )}
                 </div>
                 <span className="text-sm text-muted-foreground">
@@ -235,43 +204,29 @@ export const PhotoSharing = () => {
                 </span>
               </div>
 
-              {/* Photo */}
-              <img
-                src={photo.photo_url}
-                alt={photo.caption}
-                className="w-full max-h-96 object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = '/placeholder.svg';
-                }}
-              />
-
-              {/* Actions and caption */}
-              <div className="p-4 space-y-3">
-                <div className="flex items-center gap-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleLike.mutate({ photoId: photo.id, isLiked: photo.isLiked || false })}
-                    className={photo.isLiked ? 'text-red-500 hover:text-red-600' : 'hover:text-red-500'}
-                    disabled={!user || toggleLike.isPending}
-                  >
-                    <Heart className={`h-5 w-5 mr-1 ${photo.isLiked ? 'fill-current' : ''}`} />
-                    {photo.likes_count}
+              {/* Coffee moment details */}
+              <div className="px-4 pb-4">
+                <p className="text-sm mb-3">{photo.notes}</p>
+                
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <Button variant="ghost" size="sm" className="hover:text-red-500">
+                    <Heart className="h-4 w-4 mr-1" />
+                    Like
                   </Button>
                   <Button variant="ghost" size="sm">
-                    <MessageSquare className="h-5 w-5 mr-1" />
+                    <MessageSquare className="h-4 w-4 mr-1" />
                     Comment
                   </Button>
                   <Button variant="ghost" size="sm">
-                    <Share className="h-5 w-5 mr-1" />
+                    <Share className="h-4 w-4 mr-1" />
                     Share
                   </Button>
+                  {photo.rating && (
+                    <div className="ml-auto">
+                      <span className="font-medium">Rating: {photo.rating}/5 ⭐</span>
+                    </div>
+                  )}
                 </div>
-                
-                <p className="text-sm">
-                  <span className="font-medium">{photo.profiles.first_name}</span> {photo.caption}
-                </p>
               </div>
             </div>
           ))
