@@ -55,7 +55,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
   };
 
   const seatingZones: SeatZone[] = [
-    // Bar Counter Stools (Top right area from image)
+    // Bar Counter Stools (Top area from photo)
     {
       id: 'bar-stool-1',
       name: 'Bar Stool 1',
@@ -66,7 +66,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       users: [
         { name: 'Alex', mood: '💼', activity: 'Quick coffee', vibe: 'focused' }
       ],
-      position: { x: 70, y: 15, width: 6, height: 8 },
+      position: { x: 62, y: 10, width: 5, height: 6 },
       specialFeature: 'Direct barista interaction',
       musicGenre: 'Upbeat Coffee',
       ambiance: 'amber-warm',
@@ -80,7 +80,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       capacity: 1,
       occupied: 0,
       users: [],
-      position: { x: 78, y: 15, width: 6, height: 8 },
+      position: { x: 69, y: 10, width: 5, height: 6 },
       specialFeature: 'Direct barista interaction',
       musicGenre: 'Upbeat Coffee',
       ambiance: 'amber-warm',
@@ -96,14 +96,28 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       users: [
         { name: 'Sofia', mood: '😊', activity: 'Chatting with barista', vibe: 'friendly' }
       ],
-      position: { x: 86, y: 15, width: 6, height: 8 },
+      position: { x: 76, y: 10, width: 5, height: 6 },
+      specialFeature: 'Direct barista interaction',
+      musicGenre: 'Upbeat Coffee',
+      ambiance: 'amber-warm',
+      shape: 'round'
+    },
+    {
+      id: 'bar-stool-4',
+      name: 'Bar Stool 4',
+      theme: 'Counter Service',
+      atmosphere: 'social',
+      capacity: 1,
+      occupied: 0,
+      users: [],
+      position: { x: 83, y: 10, width: 5, height: 6 },
       specialFeature: 'Direct barista interaction',
       musicGenre: 'Upbeat Coffee',
       ambiance: 'amber-warm',
       shape: 'round'
     },
 
-    // Round Table 1 (Left side from image)
+    // Round Table 1 (Left side from photo)
     {
       id: 'round-table-1',
       name: 'Round Table 1',
@@ -115,14 +129,14 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
         { name: 'Emma', mood: '📖', activity: 'Reading book', vibe: 'peaceful' },
         { name: 'James', mood: '☕', activity: 'Enjoying latte', vibe: 'relaxed' }
       ],
-      position: { x: 15, y: 25, width: 18, height: 18 },
+      position: { x: 8, y: 25, width: 15, height: 15 },
       specialFeature: 'Perfect for small groups',
       musicGenre: 'Soft Acoustic',
       ambiance: 'green-natural',
       shape: 'round'
     },
 
-    // Round Table 2 (Left side, lower from image)
+    // Round Table 2 (Left side, lower from photo)
     {
       id: 'round-table-2',
       name: 'Round Table 2',
@@ -135,50 +149,92 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
         { name: 'Chris', mood: '📝', activity: 'Taking notes', vibe: 'studious' },
         { name: 'Sam', mood: '🤔', activity: 'Deep thinking', vibe: 'contemplative' }
       ],
-      position: { x: 15, y: 55, width: 18, height: 18 },
+      position: { x: 8, y: 55, width: 15, height: 15 },
       specialFeature: 'Great for work sessions',
       musicGenre: 'Focus Instrumentals',
       ambiance: 'blue-calm',
       shape: 'round'
     },
 
-    // Lounge Seating (Green chairs from image - middle right area)
+    // Green Lounge Chairs (Middle-right from photo)
     {
-      id: 'lounge-seating',
-      name: 'Lounge Area',
-      theme: 'Comfortable Relaxation',
-      atmosphere: 'cozy',
-      capacity: 6,
-      occupied: 4,
+      id: 'green-lounge-1',
+      name: 'Green Chair 1',
+      theme: 'Comfortable Reading',
+      atmosphere: 'relaxed',
+      capacity: 1,
+      occupied: 1,
       users: [
-        { name: 'Luna', mood: '🌿', activity: 'Reading magazine', vibe: 'relaxed' },
-        { name: 'River', mood: '☕', activity: 'Slow coffee', vibe: 'peaceful' },
-        { name: 'Sage', mood: '🎵', activity: 'Listening to music', vibe: 'content' },
-        { name: 'Ash', mood: '😌', activity: 'People watching', vibe: 'calm' }
+        { name: 'Luna', mood: '🌿', activity: 'Reading magazine', vibe: 'peaceful' }
       ],
-      position: { x: 50, y: 35, width: 25, height: 20 },
-      specialFeature: 'Plush armchairs & sofas',
+      position: { x: 45, y: 30, width: 8, height: 10 },
+      specialFeature: 'Comfortable armchair',
       musicGenre: 'Chill Lounge',
       ambiance: 'green-study',
-      shape: 'rectangle'
+      shape: 'square'
+    },
+    {
+      id: 'green-lounge-2',
+      name: 'Green Chair 2',
+      theme: 'Comfortable Reading',
+      atmosphere: 'relaxed',
+      capacity: 1,
+      occupied: 0,
+      users: [],
+      position: { x: 56, y: 30, width: 8, height: 10 },
+      specialFeature: 'Comfortable armchair',
+      musicGenre: 'Chill Lounge',
+      ambiance: 'green-study',
+      shape: 'square'
+    },
+    {
+      id: 'green-lounge-3',
+      name: 'Green Chair 3',
+      theme: 'Comfortable Reading',
+      atmosphere: 'relaxed',
+      capacity: 1,
+      occupied: 1,
+      users: [
+        { name: 'River', mood: '☕', activity: 'Slow coffee', vibe: 'contemplative' }
+      ],
+      position: { x: 45, y: 45, width: 8, height: 10 },
+      specialFeature: 'Comfortable armchair',
+      musicGenre: 'Chill Lounge',
+      ambiance: 'green-study',
+      shape: 'square'
+    },
+    {
+      id: 'green-lounge-4',
+      name: 'Green Chair 4',
+      theme: 'Comfortable Reading',
+      atmosphere: 'relaxed',
+      capacity: 1,
+      occupied: 1,
+      users: [
+        { name: 'Sage', mood: '🎵', activity: 'Listening to music', vibe: 'content' }
+      ],
+      position: { x: 56, y: 45, width: 8, height: 10 },
+      specialFeature: 'Comfortable armchair',
+      musicGenre: 'Chill Lounge',
+      ambiance: 'green-study',
+      shape: 'square'
     },
 
-    // Rectangular Table (From image layout)
+    // Rectangular Table (Bottom center from photo)
     {
       id: 'rectangular-table',
       name: 'Community Table',
       theme: 'Shared Workspace',
       atmosphere: 'collaborative',
-      capacity: 8,
-      occupied: 5,
+      capacity: 6,
+      occupied: 4,
       users: [
         { name: 'Jordan', mood: '💼', activity: 'Business meeting', vibe: 'professional' },
         { name: 'Taylor', mood: '🗣️', activity: 'Group discussion', vibe: 'engaged' },
         { name: 'Casey', mood: '📊', activity: 'Presentation prep', vibe: 'focused' },
-        { name: 'Alex', mood: '🤝', activity: 'Networking', vibe: 'social' },
         { name: 'Morgan', mood: '💡', activity: 'Brainstorming', vibe: 'creative' }
       ],
-      position: { x: 45, y: 65, width: 30, height: 15 },
+      position: { x: 35, y: 70, width: 25, height: 12 },
       specialFeature: 'Large shared workspace',
       musicGenre: 'Background Jazz',
       ambiance: 'purple-vibrant',
@@ -221,9 +277,9 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
     <div className="relative w-full h-full bg-gradient-to-br from-amber-900 via-orange-900 to-brown-900 p-4 overflow-hidden">
       {/* Café Floor Background */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Main Bar Counter (Top right area) */}
+        {/* Main Bar Counter (Top area from photo) */}
         <div className="absolute bg-gradient-to-t from-amber-800 to-amber-700 rounded-2xl shadow-2xl border-4 border-amber-600"
-             style={{ left: '65%', top: '8%', width: '32%', height: '20%' }}>
+             style={{ left: '60%', top: '5%', width: '32%', height: '18%' }}>
           <div className="text-center pt-3">
             <div className="text-amber-100 font-bold text-xl">☕ ESPRESSO BAR ☕</div>
             <div className="text-amber-200 text-sm">Handcrafted • Fresh • Perfect</div>
@@ -233,7 +289,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
         {/* Barista Working Area (Behind the bar) */}
         <div 
           className="absolute bg-gradient-to-br from-amber-900 to-brown-900 rounded-xl border-4 border-amber-600 shadow-2xl flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300"
-          style={{ left: '72%', top: '30%', width: '18%', height: '15%' }}
+          style={{ left: '65%', top: '25%', width: '20%', height: '12%' }}
           title={`${barista.name} - ${barista.activity} | ${barista.specialty}`}
         >
           <div className="text-center text-white">
@@ -250,18 +306,9 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
           </div>
         </div>
 
-        {/* Coffee Equipment Behind Bar */}
-        <div className="absolute bg-gradient-to-r from-gray-700 to-gray-600 rounded-lg shadow-lg"
-             style={{ left: '68%', top: '30%', width: '6%', height: '12%' }}>
-          <div className="text-center pt-2 text-white text-xs">
-            <div>🔥</div>
-            <div>MACHINE</div>
-          </div>
-        </div>
-
-        {/* Decorative Stone/Water Feature (Bottom right from image) */}
+        {/* Decorative Stone/Water Feature (Bottom right from photo) */}
         <div className="absolute bg-gradient-to-br from-gray-600 to-gray-800 rounded-full shadow-xl border-4 border-gray-500"
-             style={{ left: '78%', top: '75%', width: '18%', height: '20%' }}>
+             style={{ left: '75%', top: '75%', width: '18%', height: '20%' }}>
           <div className="text-center pt-6 text-white">
             <div className="text-2xl mb-2">🪨</div>
             <div className="text-xs">Stone Feature</div>
@@ -333,15 +380,13 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
             onMouseLeave={() => setHoveredZone(null)}
             onClick={() => onSeatSelect(zone.id)}
           >
-            <div className="p-3 h-full flex flex-col justify-between relative overflow-hidden">
+            <div className="p-2 h-full flex flex-col justify-between relative overflow-hidden">
               {/* Zone Header */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-white text-sm">{zone.name}</h3>
+                  <h3 className="font-bold text-white text-xs">{zone.name}</h3>
                 </div>
                 
-                <p className="text-white/80 text-xs italic">"{zone.theme}"</p>
-
                 <div className={`flex items-center gap-1 text-xs ${getOccupancyColor(zone.occupied, zone.capacity)}`}>
                   <Users className="h-3 w-3" />
                   <span className="font-bold">{zone.occupied}/{zone.capacity}</span>
@@ -351,12 +396,12 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
               {/* User Avatars */}
               <div className="space-y-1">
                 <div className="flex flex-wrap gap-1">
-                  {zone.users.slice(0, 3).map((user, index) => (
+                  {zone.users.slice(0, 2).map((user, index) => (
                     <div
                       key={index}
                       className="relative group"
                     >
-                      <div className="w-6 h-6 bg-white/20 backdrop-blur-sm text-white rounded-full flex items-center justify-center text-xs border border-white/30 hover:scale-110 transition-transform">
+                      <div className="w-5 h-5 bg-white/20 backdrop-blur-sm text-white rounded-full flex items-center justify-center text-xs border border-white/30 hover:scale-110 transition-transform">
                         {user.mood}
                       </div>
                       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-1 py-0.5 bg-black/80 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
@@ -364,16 +409,16 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
                       </div>
                     </div>
                   ))}
-                  {zone.users.length > 3 && (
-                    <div className="w-6 h-6 bg-white/30 text-white rounded-full flex items-center justify-center text-xs border border-white/30">
-                      +{zone.users.length - 3}
+                  {zone.users.length > 2 && (
+                    <div className="w-5 h-5 bg-white/30 text-white rounded-full flex items-center justify-center text-xs border border-white/30">
+                      +{zone.users.length - 2}
                     </div>
                   )}
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-white/70">
                   <span>🎵 {zone.atmosphere}</span>
-                  <span>☕ Fresh coffee</span>
+                  <span>☕</span>
                 </div>
               </div>
 
