@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Send, MessageCircle, Users, Smile, Hash } from 'lucide-react';
+import { Send, MessageCircle, Users, Smile, Hash, Wifi } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -32,10 +32,12 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
+  const [onlineCount, setOnlineCount] = useState(onlineUsers.length);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
+  // Real-time messages query with faster refetch
   const { data: messages = [], isLoading, error } = useQuery({
     queryKey: ['area-messages', seatArea],
     queryFn: async () => {
@@ -55,7 +57,7 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
           `)
           .eq('thread_id', `area-${seatArea}`)
           .order('created_at', { ascending: true })
-          .limit(50);
+          .limit(100);
         
         if (error) {
           console.error('Error fetching messages:', error);
@@ -68,12 +70,13 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
         return [];
       }
     },
-    refetchInterval: 3000,
+    refetchInterval: 2000, // Faster refresh for real-time feel
     retry: 3,
   });
 
-  // Real-time subscription for new messages
+  // Enhanced real-time subscription with presence tracking
   useEffect(() => {
+    console.log('Setting up real-time subscription for area:', seatArea);
     setConnectionStatus('connecting');
     
     const channel = supabase
@@ -99,23 +102,49 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
         }
       )
       .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages',
-          filter: `thread_id=eq.area-${seatArea}`
-        },
+        'presence',
+        { event: 'sync' },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['area-messages', seatArea] });
+          const presenceState = channel.presenceState();
+          const userCount = Object.keys(presenceState).length;
+          setOnlineCount(userCount);
+          console.log('Presence sync - users online:', userCount);
         }
       )
-      .subscribe((status) => {
+      .on(
+        'presence',
+        { event: 'join' },
+        ({ key, newPresences }) => {
+          console.log('User joined:', key, newPresences);
+          toast.info(`Someone joined the ${seatArea} area`, { duration: 1000 });
+        }
+      )
+      .on(
+        'presence',
+        { event: 'leave' },
+        ({ key, leftPresences }) => {
+          console.log('User left:', key, leftPresences);
+        }
+      )
+      .subscribe(async (status) => {
         console.log('Chat subscription status:', status);
         setConnectionStatus(status === 'SUBSCRIBED' ? 'connected' : 'disconnected');
+        
+        // Track user presence when connected
+        if (status === 'SUBSCRIBED' && user?.id) {
+          const presenceData = {
+            user_id: user.id,
+            online_at: new Date().toISOString(),
+            area: seatArea
+          };
+          
+          await channel.track(presenceData);
+          console.log('User presence tracked:', presenceData);
+        }
       });
 
     return () => {
+      console.log('Cleaning up chat subscription');
       supabase.removeChannel(channel);
     };
   }, [seatArea, queryClient, user?.id]);
@@ -125,7 +154,7 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Send message mutation with better error handling
+  // Send message mutation with real-time optimization
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
       if (!user?.id) throw new Error('Not authenticated');
@@ -146,7 +175,7 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
     onSuccess: () => {
       setNewMessage('');
       setIsTyping(false);
-      queryClient.invalidateQueries({ queryKey: ['area-messages', seatArea] });
+      // Don't manually invalidate here - let real-time handle it
       toast.success('Message sent!', { duration: 1000 });
     },
     onError: (error: any) => {
@@ -214,13 +243,14 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
         <CardTitle className="flex items-center justify-between text-[#8B4513]">
           <div className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5" />
-            <span>Area Chat</span>
+            <span>Real-Time Area Chat</span>
             <Badge className="bg-[#8B4513]/10 text-[#8B4513]">
               <Users className="h-3 w-3 mr-1" />
-              {onlineUsers.length}
+              {onlineCount} online
             </Badge>
           </div>
           <div className="flex items-center gap-2">
+            <Wifi className={`w-4 h-4 ${connectionStatus === 'connected' ? 'text-green-500' : connectionStatus === 'connecting' ? 'text-yellow-500' : 'text-red-500'}`} />
             <div className={`w-2 h-2 rounded-full ${connectionStatus === 'connected' ? 'bg-green-500' : connectionStatus === 'connecting' ? 'bg-yellow-500' : 'bg-red-500'}`} />
             <span className={`text-xs ${getConnectionStatusColor()}`}>
               {connectionStatus}
@@ -249,7 +279,7 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
             <div className="text-center text-red-500 py-4">
               <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="font-medium">Failed to load messages</p>
-              <p className="text-sm">Please try refreshing the page</p>
+              <p className="text-sm">Real-time connection issue - trying to reconnect...</p>
             </div>
           ) : messages.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
@@ -305,12 +335,12 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
             }}
             placeholder={user ? "Chat with your area..." : "Sign in to chat..."}
             className="flex-1 border-[#8B4513]/20 focus:border-[#8B4513] focus:ring-[#8B4513]/20"
-            disabled={!user || sendMessageMutation.isPending}
+            disabled={!user || sendMessageMutation.isPending || connectionStatus !== 'connected'}
             maxLength={500}
           />
           <Button
             type="submit"
-            disabled={!newMessage.trim() || !user || sendMessageMutation.isPending}
+            disabled={!newMessage.trim() || !user || sendMessageMutation.isPending || connectionStatus !== 'connected'}
             className="bg-[#8B4513] hover:bg-[#8B4513]/90 text-white px-4 shadow-lg"
           >
             {sendMessageMutation.isPending ? (
@@ -323,7 +353,13 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
         
         {!user && (
           <div className="text-center text-gray-500 text-sm bg-gray-50 p-3 rounded-lg">
-            Please sign in to join the conversation
+            Please sign in to join the real-time conversation
+          </div>
+        )}
+        
+        {connectionStatus === 'disconnected' && (
+          <div className="text-center text-red-500 text-sm bg-red-50 p-3 rounded-lg">
+            Real-time connection lost. Attempting to reconnect...
           </div>
         )}
       </CardContent>

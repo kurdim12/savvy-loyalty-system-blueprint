@@ -1,38 +1,23 @@
 
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CoffeeShopSeated } from './CoffeeShopSeated';
-import { EnhancedCommunityChat } from './EnhancedCommunityChat';
-import { CommunityChat } from './CommunityChat';
+import { CoffeeShopExperience } from './CoffeeShopExperience';
 import { RealTimeChat } from './RealTimeChat';
-import { PhysicalCafeChat } from './PhysicalCafeChat';
-import { PrivateChatSystem } from './PrivateChatSystem';
-import { CommunityFeatureTest } from './CommunityFeatureTest';
-import { ProductCatalog } from './commerce/ProductCatalog';
-import { OrderHistory } from './commerce/OrderHistory';
-import { CommerceChat } from './commerce/CommerceChat';
 import { FriendsSystem } from './social/FriendsSystem';
-import { PhotoSharing } from './social/PhotoSharing';
 import { Leaderboard } from './gamification/Leaderboard';
 import { DailyChallenges } from './gamification/DailyChallenges';
 import { EventCalendar } from './practical/EventCalendar';
 import { LivePointsDisplay } from './LivePointsDisplay';
-import { CoffeeActivities } from './CoffeeActivities';
 import { 
   Coffee, 
   MessageCircle, 
   Users, 
-  ShoppingCart, 
   Trophy, 
   Calendar,
-  Settings,
-  Star,
-  Camera,
-  History
+  Target
 } from 'lucide-react';
 
 export const InteractiveCommunityHub = () => {
-  const [showPrivateChat, setShowPrivateChat] = useState(false);
   const [currentSeatId] = useState('window-seat-1');
 
   return (
@@ -44,7 +29,7 @@ export const InteractiveCommunityHub = () => {
             ☕ Community Hub
           </h1>
           <p className="text-gray-600">
-            Connect, chat, order, and enjoy your coffee experience
+            Connect, chat, and enjoy your coffee experience with real-time updates
           </p>
         </div>
 
@@ -52,104 +37,80 @@ export const InteractiveCommunityHub = () => {
         <LivePointsDisplay />
 
         {/* Main Hub */}
-        <Tabs defaultValue="cafe" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 mb-6">
-            <TabsTrigger value="cafe" className="flex items-center gap-2">
+        <Tabs defaultValue="sitting-plan" className="w-full">
+          <TabsList className="grid w-full grid-cols-6 mb-6">
+            <TabsTrigger value="sitting-plan" className="flex items-center gap-2">
               <Coffee className="h-4 w-4" />
-              <span className="hidden sm:inline">Café</span>
+              <span className="hidden sm:inline">Sitting Plan</span>
             </TabsTrigger>
-            <TabsTrigger value="shop" className="flex items-center gap-2">
-              <ShoppingCart className="h-4 w-4" />
-              <span className="hidden sm:inline">Shop</span>
-            </TabsTrigger>
-            <TabsTrigger value="commerce-chat" className="flex items-center gap-2">
+            <TabsTrigger value="chat" className="flex items-center gap-2">
               <MessageCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Commerce</span>
+              <span className="hidden sm:inline">Chat</span>
             </TabsTrigger>
             <TabsTrigger value="social" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Social</span>
             </TabsTrigger>
-            <TabsTrigger value="photos" className="flex items-center gap-2">
-              <Camera className="h-4 w-4" />
-              <span className="hidden sm:inline">Photos</span>
+            <TabsTrigger value="challenges" className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              <span className="hidden sm:inline">Challenges</span>
             </TabsTrigger>
             <TabsTrigger value="leaderboard" className="flex items-center gap-2">
               <Trophy className="h-4 w-4" />
-              <span className="hidden sm:inline">Ranks</span>
+              <span className="hidden sm:inline">Leaderboard</span>
             </TabsTrigger>
             <TabsTrigger value="events" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               <span className="hidden sm:inline">Events</span>
             </TabsTrigger>
-            <TabsTrigger value="system" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">System</span>
-            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="cafe" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <CoffeeShopSeated 
-                seatId={currentSeatId}
-                onLeave={() => console.log('User left seat')}
+          {/* Sitting Plan - Main Feature */}
+          <TabsContent value="sitting-plan" className="space-y-6">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-bold text-[#8B4513] mb-4">Interactive Café Floor Plan</h2>
+              <p className="text-gray-600 mb-6">Choose your seat and connect with other coffee lovers in real-time</p>
+              <CoffeeShopExperience />
+            </div>
+          </TabsContent>
+
+          {/* Real-Time Chat */}
+          <TabsContent value="chat" className="space-y-6">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-bold text-[#8B4513] mb-4">Real-Time Community Chat</h2>
+              <RealTimeChat 
+                seatArea={currentSeatId} 
+                onlineUsers={[
+                  { name: 'Sarah M.', mood: '😊', activity: 'Enjoying espresso' },
+                  { name: 'Mike R.', mood: '💻', activity: 'Working remotely' },
+                  { name: 'Emma L.', mood: '📱', activity: 'Taking photos' }
+                ]} 
               />
-              <div className="space-y-4">
-                <PhysicalCafeChat />
-                <CoffeeActivities />
-              </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="shop" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <ProductCatalog />
-              </div>
-              <div>
-                <OrderHistory />
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="commerce-chat">
-            <CommerceChat />
-          </TabsContent>
-
+          {/* Social Features */}
           <TabsContent value="social" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <FriendsSystem />
-              <div className="space-y-4">
-                <EnhancedCommunityChat title="Social Chat" />
-                <DailyChallenges />
-              </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="photos">
-            <PhotoSharing />
+          {/* Daily Challenges */}
+          <TabsContent value="challenges" className="space-y-6">
+            <DailyChallenges />
           </TabsContent>
 
-          <TabsContent value="leaderboard">
+          {/* Leaderboard */}
+          <TabsContent value="leaderboard" className="space-y-6">
             <Leaderboard />
           </TabsContent>
 
-          <TabsContent value="events">
+          {/* Events Calendar */}
+          <TabsContent value="events" className="space-y-6">
             <EventCalendar />
           </TabsContent>
-
-          <TabsContent value="system">
-            <CommunityFeatureTest />
-          </TabsContent>
         </Tabs>
-
-        {/* Private Chat Overlay */}
-        {showPrivateChat && (
-          <PrivateChatSystem
-            currentSeatId={currentSeatId}
-            onClose={() => setShowPrivateChat(false)}
-          />
-        )}
       </div>
     </div>
   );
