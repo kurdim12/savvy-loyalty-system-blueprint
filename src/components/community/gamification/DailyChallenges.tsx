@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,7 +39,11 @@ export const DailyChallenges = () => {
       
       if (error) throw error;
       
-      if (!user?.id) return challengesData;
+      if (!user?.id) return challengesData.map(challenge => ({
+        ...challenge,
+        completed: false,
+        current_progress: 0
+      })) as ChallengeWithCompletion[];
 
       // Check which challenges the user has completed
       const challengeIds = challengesData.map(c => c.id);
