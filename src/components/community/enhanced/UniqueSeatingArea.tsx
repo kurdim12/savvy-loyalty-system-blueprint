@@ -12,7 +12,7 @@ interface UniqueSeatingAreaProps {
 interface SeatZone {
   id: string;
   name: string;
-  type: 'table-4' | 'bar-stool' | 'green-chair' | 'coffee-table' | 'sofa' | 'bar-counter';
+  type: 'table-4' | 'bar-stool' | 'green-chair' | 'coffee-table' | 'sofa' | 'bar-counter' | 'high-bar' | 'folding-chair';
   capacity: number;
   occupied: number;
   users: Array<{
@@ -43,122 +43,155 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
     };
   }, []);
 
-  // Complete seating zones matching the reference image exactly
+  // Complete seating zones matching your ASCII layout exactly
   const seatingZones: SeatZone[] = [
-    // Left side - Table 1
+    // OUTDOOR AREA
+    // Window Counter Bar Top
     {
-      id: 'table-1',
-      name: 'Table 1',
-      type: 'table-4',
-      capacity: 4,
-      occupied: 2,
+      id: 'outdoor-bar',
+      name: 'Outdoor Bar',
+      type: 'bar-counter',
+      capacity: 2,
+      occupied: 1,
       users: [
-        { name: 'Emma', mood: '☕', activity: 'Morning coffee', status: 'active' },
-        { name: 'Alex', mood: '💻', activity: 'Working', status: 'focused' }
+        { name: 'Alex', mood: '☕', activity: 'Morning coffee', status: 'active' }
       ],
-      position: { x: 8, y: 25, width: 20, height: 15 },
+      position: { x: 15, y: 8, width: 25, height: 8 },
       isAvailable: true
     },
     
-    // Left side - Table 2
+    // Table T3 (Outdoor)
     {
-      id: 'table-2',
-      name: 'Table 2',
+      id: 'table-t3',
+      name: 'Table T3',
       type: 'table-4',
-      capacity: 4,
-      occupied: 3,
-      users: [
-        { name: 'Maya', mood: '🗣️', activity: 'Team meeting', status: 'active' },
-        { name: 'Sam', mood: '📝', activity: 'Taking notes', status: 'focused' },
-        { name: 'Jordan', mood: '☕', activity: 'Coffee break', status: 'active' }
-      ],
-      position: { x: 8, y: 55, width: 20, height: 15 },
-      isAvailable: true
-    },
-
-    // Top right - Bar Counter
-    {
-      id: 'bar-counter',
-      name: 'Bar Counter',
-      type: 'bar-counter',
-      capacity: 6,
-      occupied: 4,
-      users: [
-        { name: 'Chris', mood: '👨‍🍳', activity: 'Watching coffee craft', status: 'active' },
-        { name: 'Luna', mood: '😊', activity: 'Barista chat', status: 'active' },
-        { name: 'River', mood: '☕', activity: 'Quick espresso', status: 'active' },
-        { name: 'Sky', mood: '📱', activity: 'Social media', status: 'active' }
-      ],
-      position: { x: 55, y: 15, width: 30, height: 12 },
-      isAvailable: true
-    },
-
-    // Bar Stool 1
-    {
-      id: 'bar-stool-1',
-      name: 'Bar Stool',
-      type: 'bar-stool',
-      capacity: 1,
-      occupied: 1,
-      users: [
-        { name: 'Ocean', mood: '🎵', activity: 'Listening to music', status: 'focused' }
-      ],
-      position: { x: 60, y: 35, width: 8, height: 8 },
-      isAvailable: false
-    },
-
-    // Bar Stool 2
-    {
-      id: 'bar-stool-2',
-      name: 'Bar Stool',
-      type: 'bar-stool',
-      capacity: 1,
-      occupied: 0,
-      users: [],
-      position: { x: 72, y: 35, width: 8, height: 8 },
-      isAvailable: true
-    },
-
-    // Coffee Table
-    {
-      id: 'coffee-table',
-      name: 'Coffee Table',
-      type: 'coffee-table',
       capacity: 4,
       occupied: 2,
       users: [
-        { name: 'Pine', mood: '📖', activity: 'Reading', status: 'focused' },
-        { name: 'Cedar', mood: '✍️', activity: 'Writing', status: 'focused' }
+        { name: 'Emma', mood: '🌞', activity: 'Outdoor breakfast', status: 'active' },
+        { name: 'Sam', mood: '📖', activity: 'Reading outside', status: 'focused' }
       ],
-      position: { x: 60, y: 50, width: 18, height: 10 },
+      position: { x: 8, y: 20, width: 18, height: 12 },
       isAvailable: true
     },
 
-    // Small Table
+    // Folding Chair Pair (Outdoor)
     {
-      id: 'small-table',
-      name: 'Small Table',
+      id: 'folding-chairs',
+      name: 'Folding Chairs',
+      type: 'folding-chair',
+      capacity: 2,
+      occupied: 0,
+      users: [],
+      position: { x: 50, y: 22, width: 12, height: 8 },
+      isAvailable: true
+    },
+
+    // INDOOR AREA
+    // High Bar Table (Against back wall)
+    {
+      id: 'high-bar-table',
+      name: 'High Bar Table',
+      type: 'high-bar',
+      capacity: 2,
+      occupied: 1,
+      users: [
+        { name: 'Jordan', mood: '💻', activity: 'Working under LED', status: 'focused' }
+      ],
+      position: { x: 15, y: 50, width: 35, height: 10 },
+      isAvailable: true
+    },
+
+    // Table T1 (Small table & 2 chairs)
+    {
+      id: 'table-t1',
+      name: 'Table T1',
+      type: 'table-4',
+      capacity: 2,
+      occupied: 1,
+      users: [
+        { name: 'Maya', mood: '☕', activity: 'Quiet work', status: 'focused' }
+      ],
+      position: { x: 15, y: 68, width: 15, height: 10 },
+      isAvailable: true
+    },
+
+    // Leather Sofa + Low Table T2
+    {
+      id: 'leather-sofa',
+      name: 'Leather Sofa',
+      type: 'sofa',
+      capacity: 3,
+      occupied: 2,
+      users: [
+        { name: 'Chris', mood: '📱', activity: 'Relaxing', status: 'active' },
+        { name: 'Luna', mood: '🎵', activity: 'Listening music', status: 'active' }
+      ],
+      position: { x: 40, y: 70, width: 20, height: 12 },
+      isAvailable: true
+    },
+
+    // Low Coffee Table T2
+    {
+      id: 'table-t2',
+      name: 'Table T2',
       type: 'coffee-table',
       capacity: 2,
-      occupied: 1,
-      users: [
-        { name: 'Sage', mood: '🤔', activity: 'Deep thinking', status: 'focused' }
-      ],
-      position: { x: 60, y: 68, width: 15, height: 8 },
+      occupied: 0,
+      users: [],
+      position: { x: 42, y: 84, width: 8, height: 6 },
       isAvailable: true
     },
 
-    // Plant Lounge (right side green area)
+    // Green Lounge Chair C1
     {
-      id: 'plant-lounge',
-      name: 'Plant Lounge',
-      type: 'sofa',
-      capacity: 2,
+      id: 'green-chair-c1',
+      name: 'Chair C1',
+      type: 'green-chair',
+      capacity: 1,
       occupied: 1,
       users: [
-        { name: 'Ivy', mood: '🌱', activity: 'Nature vibes', status: 'active' }
+        { name: 'River', mood: '📖', activity: 'Reading', status: 'focused' }
       ],
-      position: { x: 82, y: 45, width: 12, height: 25 },
+      position: { x: 8, y: 85, width: 12, height: 8 },
+      isAvailable: false
+    },
+
+    // Green Lounge Chair C2
+    {
+      id: 'green-chair-c2',
+      name: 'Chair C2',
+      type: 'green-chair',
+      capacity: 1,
+      occupied: 0,
+      users: [],
+      position: { x: 25, y: 85, width: 12, height: 8 },
+      isAvailable: true
+    },
+
+    // Green Lounge Chair T4
+    {
+      id: 'table-t4',
+      name: 'Table T4',
+      type: 'green-chair',
+      capacity: 1,
+      occupied: 1,
+      users: [
+        { name: 'Sky', mood: '✍️', activity: 'Writing', status: 'focused' }
+      ],
+      position: { x: 68, y: 85, width: 12, height: 8 },
+      isAvailable: false
+    },
+
+    // Green Lounge Chair T5
+    {
+      id: 'table-t5',
+      name: 'Table T5',
+      type: 'green-chair',
+      capacity: 1,
+      occupied: 0,
+      users: [],
+      position: { x: 82, y: 85, width: 12, height: 8 },
       isAvailable: true
     }
   ];
@@ -171,14 +204,15 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       ? 'ring-2 ring-blue-400/60 z-20'
       : 'hover:scale-[1.02] hover:shadow-xl z-10';
     
-    // Exact colors from the reference image
     const typeStyles = {
       'table-4': 'bg-orange-200/90 border-orange-600 rounded-lg',
       'bar-stool': 'bg-orange-300/90 border-orange-700 rounded-full',
       'bar-counter': 'bg-orange-100/90 border-orange-600 rounded-lg',
+      'high-bar': 'bg-purple-200/90 border-purple-600 rounded-lg',
       'green-chair': 'bg-green-500/90 border-green-700 rounded-lg',
       'coffee-table': 'bg-orange-200/90 border-orange-600 rounded-lg',
-      'sofa': 'bg-green-400/90 border-green-600 rounded-lg'
+      'sofa': 'bg-blue-400/90 border-blue-600 rounded-lg',
+      'folding-chair': 'bg-yellow-300/90 border-yellow-600 rounded-lg'
     };
 
     return `${baseClasses} ${hoverClasses} ${typeStyles[zone.type]}`;
@@ -190,9 +224,11 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       case 'table-4': return <Coffee className={iconClass} />;
       case 'bar-stool': return <ChefHat className={iconClass} />;
       case 'bar-counter': return <ChefHat className={iconClass} />;
+      case 'high-bar': return <Wifi className={iconClass} />;
       case 'green-chair': return <Armchair className={iconClass} />;
       case 'coffee-table': return <Coffee className={iconClass} />;
-      case 'sofa': return <Trees className={iconClass} />;
+      case 'sofa': return <Sofa className={iconClass} />;
+      case 'folding-chair': return <Trees className={iconClass} />;
       default: return <Coffee className={iconClass} />;
     }
   };
@@ -211,49 +247,71 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
 
   return (
     <div className="relative w-full h-screen bg-gray-100 overflow-hidden">
-      {/* Simplified Header - more space for floor plan */}
+      {/* Header */}
       <div className={`absolute top-2 left-4 right-4 z-40`}>
         <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-200">
           <h1 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-gray-800`}>
-            Café Floor Plan
+            Complete Café Floor Plan
           </h1>
         </div>
       </div>
 
-      {/* Main Floor Plan Container - Using more vertical space */}
+      {/* Main Floor Plan Container - Full space usage */}
       <div 
         className="absolute bg-gray-200 border-4 border-gray-800 shadow-2xl"
         style={{ 
-          left: '5%', 
-          top: '12%', 
-          width: '90%', 
-          height: '80%' 
+          left: '2%', 
+          top: '10%', 
+          width: '96%', 
+          height: '85%' 
         }}
       >
-        {/* Left Gray Zone (Kitchen/Service area) */}
+        {/* OUTDOOR AREA - Top Section */}
         <div 
-          className="absolute bg-gray-300 border-r-2 border-gray-800"
+          className="absolute bg-green-100 border-b-4 border-gray-800"
           style={{ 
             left: '0', 
             top: '0', 
-            width: '45%', 
-            height: '100%' 
+            width: '100%', 
+            height: '40%' 
           }}
-        />
+        >
+          {/* Outdoor Area Label */}
+          <div className="absolute top-2 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+            OUTDOOR AREA
+          </div>
+        </div>
 
-        {/* Right side colored zones */}
+        {/* Arch Opening Indicator */}
         <div 
-          className="absolute bg-yellow-200 border-2 border-gray-800"
+          className="absolute bg-gradient-to-b from-gray-400 to-gray-600 rounded-t-full border-x-2 border-t-2 border-gray-800"
           style={{ 
-            right: '0', 
-            bottom: '0', 
-            width: '25%', 
-            height: '50%',
-            clipPath: 'polygon(0 30%, 50% 0%, 100% 20%, 100% 100%, 0 100%)'
+            left: '45%', 
+            top: '38%', 
+            width: '10%', 
+            height: '4%' 
           }}
-        />
+        >
+          <div className="text-center text-xs text-white font-bold mt-1">ARCH</div>
+        </div>
 
-        {/* Interactive Seating Zones - All zones now properly positioned */}
+        {/* INDOOR AREA - Bottom Section */}
+        <div 
+          className="absolute bg-amber-50"
+          style={{ 
+            left: '0', 
+            top: '40%', 
+            width: '100%', 
+            height: '60%' 
+          }}
+        >
+          {/* Indoor Area Label */}
+          <div className="absolute top-2 left-4 bg-amber-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+            INDOOR AREA
+          </div>
+        </div>
+
+        {/* Interactive Seating Zones - All zones properly positioned */}
         {seatingZones.map((zone) => (
           <div
             key={zone.id}
@@ -299,19 +357,6 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
             </div>
           </div>
         ))}
-
-        {/* Chair representations for tables */}
-        {/* Table 1 chairs */}
-        <div className="absolute w-2 h-2 bg-gray-800 rounded" style={{ left: '5%', top: '28%' }} />
-        <div className="absolute w-2 h-2 bg-gray-800 rounded" style={{ left: '5%', top: '35%' }} />
-        <div className="absolute w-2 h-2 bg-gray-800 rounded" style={{ left: '30%', top: '28%' }} />
-        <div className="absolute w-2 h-2 bg-gray-800 rounded" style={{ left: '30%', top: '35%' }} />
-
-        {/* Table 2 chairs */}
-        <div className="absolute w-2 h-2 bg-gray-800 rounded" style={{ left: '5%', top: '58%' }} />
-        <div className="absolute w-2 h-2 bg-gray-800 rounded" style={{ left: '5%', top: '65%' }} />
-        <div className="absolute w-2 h-2 bg-gray-800 rounded" style={{ left: '30%', top: '58%' }} />
-        <div className="absolute w-2 h-2 bg-gray-800 rounded" style={{ left: '30%', top: '65%' }} />
       </div>
 
       {/* Zone Details Popup */}
@@ -372,7 +417,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
         </div>
       )}
 
-      {/* Simplified Status Bar */}
+      {/* Status Bar */}
       <div className={`absolute ${isMobile ? 'bottom-20 left-2 right-2' : 'top-16 left-1/2 transform -translate-x-1/2'} z-30`}>
         <div className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-white/50">
           <div className={`flex items-center justify-center gap-${isMobile ? '3' : '6'} text-gray-700 font-semibold ${isMobile ? 'text-xs' : 'text-sm'}`}>
