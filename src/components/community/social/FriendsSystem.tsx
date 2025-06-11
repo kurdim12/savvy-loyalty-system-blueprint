@@ -38,11 +38,13 @@ export const FriendsSystem = () => {
   const [activeTab, setActiveTab] = useState<'friends' | 'search'>('friends');
   const queryClient = useQueryClient();
 
-  // Fetch user's connections
-  const { data: connections = [] } = useQuery({
+  // Fetch user's connections with proper error handling
+  const { data: connections = [], isLoading: connectionsLoading } = useQuery({
     queryKey: ['connections', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
+      
+      console.log('Fetching connections for user:', user.id);
       
       const { data, error } = await supabase
         .from('user_connections')
@@ -63,18 +65,23 @@ export const FriendsSystem = () => {
       
       if (error) {
         console.error('Error fetching connections:', error);
+        toast.error('Failed to load friends list');
         return [];
       }
+      
+      console.log('Connections fetched:', data?.length || 0);
       return (data || []) as Connection[];
     },
     enabled: !!user?.id,
   });
 
-  // Search users
-  const { data: searchResults = [] } = useQuery({
+  // Search users with improved logic
+  const { data: searchResults = [], isLoading: searchLoading } = useQuery({
     queryKey: ['user-search', searchQuery],
     queryFn: async () => {
       if (!searchQuery.trim() || !user?.id) return [];
+      
+      console.log('Searching for users with query:', searchQuery);
       
       const { data, error } = await supabase
         .from('profiles')
@@ -90,15 +97,20 @@ export const FriendsSystem = () => {
       
       // Filter out users who are already connected
       const connectedUserIds = connections.map(c => c.connected_user_id);
-      return (data || []).filter(profile => !connectedUserIds.includes(profile.id)) as SearchProfile[];
+      const filteredResults = (data || []).filter(profile => !connectedUserIds.includes(profile.id));
+      
+      console.log('Search results:', filteredResults.length);
+      return filteredResults as SearchProfile[];
     },
     enabled: !!searchQuery.trim() && !!user?.id,
   });
 
-  // Add connection
+  // Add connection with proper error handling
   const addConnection = useMutation({
     mutationFn: async (targetUserId: string) => {
       if (!user?.id) throw new Error('Not authenticated');
+      
+      console.log('Adding connection between', user.id, 'and', targetUserId);
       
       const { error } = await supabase
         .from('user_connections')
@@ -113,6 +125,8 @@ export const FriendsSystem = () => {
         console.error('Error adding connection:', error);
         throw error;
       }
+      
+      console.log('Connection added successfully');
     },
     onSuccess: () => {
       toast.success('Friend added!');
@@ -184,7 +198,14 @@ export const FriendsSystem = () => {
             </div>
             
             <div className="space-y-2">
-              {searchResults.map((profile) => (
+              {searchLoading && searchQuery && (
+                <div className="text-center text-muted-foreground py-4">
+                  <Search className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+                  Searching...
+                </div>
+              )}
+              
+              {!searchLoading && searchResults.map((profile) => (
                 <div key={profile.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <Avatar>
@@ -208,9 +229,15 @@ export const FriendsSystem = () => {
                 </div>
               ))}
               
-              {searchQuery && searchResults.length === 0 && (
+              {searchQuery && !searchLoading && searchResults.length === 0 && (
                 <p className="text-center text-muted-foreground py-4">
                   No users found matching "{searchQuery}"
+                </p>
+              )}
+              
+              {!searchQuery && (
+                <p className="text-center text-muted-foreground py-4">
+                  Type a name to search for coffee lovers
                 </p>
               )}
             </div>
@@ -219,29 +246,34 @@ export const FriendsSystem = () => {
 
         {activeTab === 'friends' && (
           <div className="space-y-2">
-            {connections.map((connection) => (
-              <div key={connection.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarFallback className="bg-[#8B4513] text-white">
-                      {getInitials(connection.profiles.first_name, connection.profiles.last_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{connection.profiles.first_name} {connection.profiles.last_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Friends since {new Date(connection.first_met_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <Button size="sm" variant="outline">
-                  <MessageCircle className="h-4 w-4 mr-1" />
-                  Chat
-                </Button>
+            {connectionsLoading ? (
+              <div className="text-center text-muted-foreground py-4">
+                <Users className="h-8 w-8 mx-auto mb-2 animate-pulse" />
+                Loading friends...
               </div>
-            ))}
-            
-            {connections.length === 0 && (
+            ) : connections.length > 0 ? (
+              connections.map((connection) => (
+                <div key={connection.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback className="bg-[#8B4513] text-white">
+                        {getInitials(connection.profiles.first_name, connection.profiles.last_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{connection.profiles.first_name} {connection.profiles.last_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Friends since {new Date(connection.first_met_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline">
+                    <MessageCircle className="h-4 w-4 mr-1" />
+                    Chat
+                  </Button>
+                </div>
+              ))
+            ) : (
               <p className="text-center text-muted-foreground py-4">
                 No friends yet. Use the search tab to find coffee lovers to connect with!
               </p>

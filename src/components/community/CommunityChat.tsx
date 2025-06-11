@@ -18,7 +18,7 @@ interface Message {
   profiles: {
     first_name: string;
     last_name: string;
-  };
+  } | null;
 }
 
 export const CommunityChat = () => {
@@ -28,9 +28,14 @@ export const CommunityChat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
+  // Use a fixed thread_id for community chat
+  const communityThreadId = 'community-general';
+
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ['community-messages'],
     queryFn: async () => {
+      console.log('Fetching community messages');
+      
       const { data, error } = await supabase
         .from('messages')
         .select(`
@@ -43,17 +48,28 @@ export const CommunityChat = () => {
             last_name
           )
         `)
+        .eq('thread_id', communityThreadId)
         .order('created_at', { ascending: true })
         .limit(50);
       
-      if (error) throw error;
-      return data as Message[];
+      if (error) {
+        console.error('Error fetching community messages:', error);
+        throw error;
+      }
+      
+      console.log('Community messages fetched:', data?.length || 0);
+      return (data || []) as Message[];
     },
     refetchInterval: 5000,
+    enabled: !!user?.id,
   });
 
   // Real-time subscription for new messages
   useEffect(() => {
+    if (!user?.id) return;
+
+    console.log('Setting up community chat real-time subscription');
+    
     const channel = supabase
       .channel('community-chat')
       .on(
@@ -61,18 +77,21 @@ export const CommunityChat = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'messages'
+          table: 'messages',
+          filter: `thread_id=eq.${communityThreadId}`
         },
-        () => {
+        (payload) => {
+          console.log('New community message received:', payload);
           queryClient.invalidateQueries({ queryKey: ['community-messages'] });
         }
       )
       .subscribe();
 
     return () => {
+      console.log('Cleaning up community chat subscription');
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, user?.id]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -83,22 +102,33 @@ export const CommunityChat = () => {
     mutationFn: async (messageText: string) => {
       if (!user?.id) throw new Error('Not authenticated');
       
+      console.log('Sending community message');
+      
       // First, send the message
       const { error: messageError } = await supabase
         .from('messages')
         .insert({
           body: messageText,
-          user_id: user.id
+          user_id: user.id,
+          thread_id: communityThreadId
         });
       
-      if (messageError) throw messageError;
+      if (messageError) {
+        console.error('Error sending community message:', messageError);
+        throw messageError;
+      }
       
       // Then, award XP points
-      const { data: pointsData, error: pointsError } = await supabase.functions.invoke('earn-points', {
-        body: { type: 'chat', points: 1 }
-      });
-      
-      return { pointsData, pointsError };
+      try {
+        const { data: pointsData, error: pointsError } = await supabase.functions.invoke('earn-points', {
+          body: { type: 'chat', points: 1 }
+        });
+        
+        return { pointsData, pointsError };
+      } catch (pointsError) {
+        console.log('XP function call failed:', pointsError);
+        return { pointsData: null, pointsError };
+      }
     },
     onSuccess: ({ pointsData, pointsError }) => {
       setNewMessage('');
@@ -156,11 +186,14 @@ export const CommunityChat = () => {
           <div className="flex-1 overflow-y-auto space-y-3 pr-2">
             {isLoading ? (
               <div className="text-center text-[#95A5A6] py-8">
+                <MessageCircle className="h-8 w-8 mx-auto mb-2 animate-pulse" />
                 Loading messages...
               </div>
             ) : messages.length === 0 ? (
               <div className="text-center text-[#95A5A6] py-8">
-                No messages yet. Start the conversation!
+                <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                <p className="text-lg font-medium mb-2">No messages yet</p>
+                <p className="text-sm">Start the conversation!</p>
               </div>
             ) : (
               messages.map((message) => (
@@ -201,7 +234,11 @@ export const CommunityChat = () => {
               disabled={!newMessage.trim() || !user || sendMessageMutation.isPending}
               className="bg-[#8B4513] hover:bg-[#8B4513]/90 text-white px-4"
             >
-              <Send className="h-4 w-4" />
+              {sendMessageMutation.isPending ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
           </form>
           

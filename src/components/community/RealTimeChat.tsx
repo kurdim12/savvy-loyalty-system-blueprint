@@ -37,11 +37,16 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
   const queryClient = useQueryClient();
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Real-time messages query
+  // Create thread_id for area chat - using text format
+  const threadId = `area-${seatArea}`;
+
+  // Real-time messages query - fixed to work with text thread_id
   const { data: messages = [], isLoading, error } = useQuery({
     queryKey: ['area-messages', seatArea],
     queryFn: async () => {
       try {
+        console.log('Fetching messages for thread_id:', threadId);
+        
         const { data, error } = await supabase
           .from('messages')
           .select(`
@@ -55,7 +60,7 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
               last_name
             )
           `)
-          .eq('thread_id', `area-${seatArea}`)
+          .eq('thread_id', threadId)
           .order('created_at', { ascending: true })
           .limit(100);
         
@@ -64,6 +69,7 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
           throw error;
         }
         
+        console.log('Messages fetched successfully:', data?.length || 0);
         return (data || []) as ChatMessage[];
       } catch (err) {
         console.error('Failed to fetch messages:', err);
@@ -90,7 +96,7 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `thread_id=eq.area-${seatArea}`
+          filter: `thread_id=eq.${threadId}`
         },
         (payload) => {
           console.log('New message received:', payload);
@@ -150,35 +156,40 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
       console.log('Cleaning up chat subscription');
       supabase.removeChannel(channel);
     };
-  }, [seatArea, queryClient, user?.id]);
+  }, [seatArea, queryClient, user?.id, threadId]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Send message mutation
+  // Send message mutation - fixed to use text thread_id
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
       if (!user?.id) throw new Error('Not authenticated');
+      
+      console.log('Sending message to thread_id:', threadId);
       
       const { error } = await supabase
         .from('messages')
         .insert({
           body: messageText,
           user_id: user.id,
-          thread_id: `area-${seatArea}`
+          thread_id: threadId
         });
       
       if (error) {
         console.error('Error sending message:', error);
         throw error;
       }
+      
+      console.log('Message sent successfully');
     },
     onSuccess: () => {
       setNewMessage('');
       setIsTyping(false);
       toast.success('Message sent!', { duration: 1000 });
+      queryClient.invalidateQueries({ queryKey: ['area-messages', seatArea] });
     },
     onError: (error: any) => {
       console.error('Failed to send message:', error);
