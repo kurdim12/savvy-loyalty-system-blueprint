@@ -22,32 +22,21 @@ export const CommunityFeatureTest = () => {
     queryFn: async () => {
       const tests: FeatureTest[] = [];
 
-      // Test each feature/table
+      // Test existing features/tables only
       const featureTests = [
-        { name: 'User Connections/Friends', table: 'user_connections', description: 'Friend system and social connections' },
-        { name: 'Direct Messages', table: 'direct_messages', description: 'Private messaging between users' },
-        { name: 'Photo Sharing', table: 'photo_shares', description: 'Share and like coffee photos' },
-        { name: 'Photo Likes', table: 'photo_likes', description: 'Like system for shared photos' },
-        { name: 'Check-ins', table: 'checkins', description: 'Location-based check-ins' },
-        { name: 'Badges System', table: 'badges', description: 'Achievement badges and rewards' },
-        { name: 'User Badges', table: 'user_badges', description: 'User-earned achievements' },
-        { name: 'Leaderboards', table: 'leaderboard_entries', description: 'Competition rankings' },
-        { name: 'Daily Challenges', table: 'daily_challenges', description: 'Daily tasks and challenges' },
-        { name: 'Challenge Completions', table: 'user_challenge_completions', description: 'Track completed challenges' },
-        { name: 'Event Calendar', table: 'cafe_events', description: 'Community events and workshops' },
-        { name: 'Event Attendees', table: 'event_attendees', description: 'Event registration system' },
-        { name: 'Table Reservations', table: 'table_reservations', description: 'Reserve specific tables' },
-        { name: 'Coffee Reviews', table: 'coffee_reviews', description: 'Rate and review coffee' },
-        { name: 'Community Polls', table: 'polls', description: 'Community voting and polls' },
-        { name: 'Poll Votes', table: 'poll_votes', description: 'Vote tracking for polls' },
-        { name: 'User Streaks', table: 'user_streaks', description: 'Track activity streaks' },
-        { name: 'Notifications', table: 'notifications', description: 'System notifications' }
+        { name: 'User Profiles', table: 'profiles', description: 'User authentication and profiles' },
+        { name: 'Messages/Chat', table: 'messages', description: 'Community messaging system' },
+        { name: 'Transactions', table: 'transactions', description: 'Points and rewards system' },
+        { name: 'Rewards', table: 'rewards', description: 'Available rewards catalog' },
+        { name: 'Drinks Menu', table: 'drinks', description: 'Available drinks for ordering' },
+        { name: 'Community Goals', table: 'community_goals', description: 'Shared community objectives' },
+        { name: 'Notifications', table: 'notifications', description: 'User notifications system' }
       ];
 
       for (const feature of featureTests) {
         try {
           const { data, error } = await supabase
-            .from(feature.table)
+            .from(feature.table as any)
             .select('*', { count: 'exact', head: true })
             .limit(1);
 
@@ -75,7 +64,7 @@ export const CommunityFeatureTest = () => {
 
       return tests;
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
   });
 
   const getStatusIcon = (status: string) => {
@@ -106,13 +95,12 @@ export const CommunityFeatureTest = () => {
 
   const workingCount = testResults.filter(t => t.status === 'working').length;
   const errorCount = testResults.filter(t => t.status === 'error').length;
-  const warningCount = testResults.filter(t => t.status === 'warning').length;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between text-[#8B4513]">
-          <span>Community Features Status</span>
+          <span>System Status</span>
           <div className="flex gap-2">
             <Badge className="bg-green-100 text-green-800">
               ✅ {workingCount} Working
@@ -122,11 +110,6 @@ export const CommunityFeatureTest = () => {
                 ❌ {errorCount} Errors
               </Badge>
             )}
-            {warningCount > 0 && (
-              <Badge className="bg-yellow-100 text-yellow-800">
-                ⚠️ {warningCount} Warnings
-              </Badge>
-            )}
           </div>
         </CardTitle>
       </CardHeader>
@@ -134,27 +117,21 @@ export const CommunityFeatureTest = () => {
       <CardContent className="space-y-4">
         {isLoading ? (
           <p className="text-center text-muted-foreground py-4">
-            Testing community features...
+            Testing system components...
           </p>
         ) : (
           <>
-            {/* Summary */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <p className="text-2xl font-bold text-green-600">{workingCount}</p>
-                <p className="text-sm text-green-800">Features Working</p>
-              </div>
-              <div className="text-center p-4 bg-red-50 rounded-lg">
-                <p className="text-2xl font-bold text-red-600">{errorCount}</p>
-                <p className="text-sm text-red-800">Errors Found</p>
+                <p className="text-sm text-green-800">Components Working</p>
               </div>
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <p className="text-2xl font-bold text-blue-600">{testResults.length}</p>
-                <p className="text-sm text-blue-800">Total Features</p>
+                <p className="text-sm text-blue-800">Total Components</p>
               </div>
             </div>
 
-            {/* Detailed Results */}
             <div className="space-y-3">
               {testResults.map((test, index) => (
                 <div key={index} className="flex items-center gap-4 p-4 border rounded-lg">
@@ -178,47 +155,18 @@ export const CommunityFeatureTest = () => {
                       </p>
                     )}
                   </div>
-                  
-                  <div className="text-xs text-muted-foreground">
-                    Table: {test.table}
-                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Authentication Status */}
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-medium text-blue-800 mb-2">Authentication Status</h4>
-              {user ? (
+            {user && (
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-medium text-blue-800 mb-2">Authentication Status</h4>
                 <p className="text-sm text-blue-700">
-                  ✅ Authenticated as: {user.email} 
-                  {user.user_metadata?.first_name && ` (${user.user_metadata.first_name})`}
+                  ✅ Authenticated as: {user.email}
                 </p>
-              ) : (
-                <p className="text-sm text-blue-700">
-                  ❌ Not authenticated - Some features may be limited
-                </p>
-              )}
-            </div>
-
-            {/* System Health */}
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-medium text-gray-800 mb-2">System Health</h4>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-600">Database Connection:</p>
-                  <p className={errorCount === 0 ? 'text-green-600' : 'text-red-600'}>
-                    {errorCount === 0 ? '✅ Healthy' : '❌ Issues Detected'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Feature Coverage:</p>
-                  <p className="text-blue-600">
-                    ✅ {Math.round((workingCount / testResults.length) * 100)}% Complete
-                  </p>
-                </div>
               </div>
-            </div>
+            )}
           </>
         )}
       </CardContent>
