@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-interface Challenge {
+interface ChallengeWithCompletion {
   id: string;
   title: string;
   description: string;
@@ -57,7 +56,7 @@ export const DailyChallenges = () => {
         ...challenge,
         completed: participationMap.get(challenge.id)?.completed || false,
         current_progress: participationMap.get(challenge.id)?.current_progress || 0
-      })) as Challenge[];
+      })) as ChallengeWithCompletion[];
     },
     enabled: !!user?.id,
   });

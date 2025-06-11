@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 interface CoffeePhoto {
   id: string;
   user_id: string;
-  created_at: string;
+  tried_at: string;
   drink_name: string;
   notes: string;
   origin?: string;
@@ -53,7 +53,7 @@ export const PhotoSharing = () => {
             avatar_url
           )
         `)
-        .order('created_at', { ascending: false })
+        .order('tried_at', { ascending: false })
         .limit(20);
       
       if (error) throw error;
@@ -200,7 +200,7 @@ export const PhotoSharing = () => {
                   )}
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {formatTimeAgo(photo.created_at)}
+                  {formatTimeAgo(photo.tried_at)}
                 </span>
               </div>
 

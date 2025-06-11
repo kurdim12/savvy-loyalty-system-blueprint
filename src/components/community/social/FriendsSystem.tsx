@@ -10,17 +10,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+interface ConnectionProfile {
+  first_name: string;
+  last_name: string;
+  avatar_url?: string;
+}
+
 interface Connection {
   id: string;
   user_id: string;
   connected_user_id: string;
   connection_type: string;
   first_met_at: string;
-  profiles: {
-    first_name: string;
-    last_name: string;
-    avatar_url?: string;
-  };
+  profiles: ConnectionProfile;
 }
 
 export const FriendsSystem = () => {
@@ -38,8 +40,12 @@ export const FriendsSystem = () => {
       const { data, error } = await supabase
         .from('user_connections')
         .select(`
-          *,
-          profiles:connected_user_id (
+          id,
+          user_id,
+          connected_user_id,
+          connection_type,
+          first_met_at,
+          profiles!user_connections_connected_user_id_fkey (
             first_name,
             last_name,
             avatar_url
