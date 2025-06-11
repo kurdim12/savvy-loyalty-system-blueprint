@@ -43,20 +43,19 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
     };
   }, []);
 
-  // Complete seating zones matching your ASCII layout exactly
+  // Seating zones matching the ASCII layout exactly
   const seatingZones: SeatZone[] = [
-    // OUTDOOR AREA
-    // Window Counter Bar Top
+    // OUTDOOR AREA - Window Counter Bar Top
     {
       id: 'outdoor-bar',
-      name: 'Outdoor Bar',
+      name: 'Bar Top',
       type: 'bar-counter',
       capacity: 2,
       occupied: 1,
       users: [
         { name: 'Alex', mood: '☕', activity: 'Morning coffee', status: 'active' }
       ],
-      position: { x: 15, y: 8, width: 25, height: 8 },
+      position: { x: 5, y: 5, width: 20, height: 6 },
       isAvailable: true
     },
     
@@ -71,7 +70,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
         { name: 'Emma', mood: '🌞', activity: 'Outdoor breakfast', status: 'active' },
         { name: 'Sam', mood: '📖', activity: 'Reading outside', status: 'focused' }
       ],
-      position: { x: 8, y: 20, width: 18, height: 12 },
+      position: { x: 5, y: 15, width: 12, height: 8 },
       isAvailable: true
     },
 
@@ -83,12 +82,11 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       capacity: 2,
       occupied: 0,
       users: [],
-      position: { x: 50, y: 22, width: 12, height: 8 },
+      position: { x: 30, y: 15, width: 8, height: 6 },
       isAvailable: true
     },
 
-    // INDOOR AREA
-    // High Bar Table (Against back wall)
+    // INDOOR AREA - High Bar Table
     {
       id: 'high-bar-table',
       name: 'High Bar Table',
@@ -98,7 +96,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       users: [
         { name: 'Jordan', mood: '💻', activity: 'Working under LED', status: 'focused' }
       ],
-      position: { x: 15, y: 50, width: 35, height: 10 },
+      position: { x: 5, y: 35, width: 25, height: 6 },
       isAvailable: true
     },
 
@@ -112,11 +110,11 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       users: [
         { name: 'Maya', mood: '☕', activity: 'Quiet work', status: 'focused' }
       ],
-      position: { x: 15, y: 68, width: 15, height: 10 },
+      position: { x: 5, y: 45, width: 10, height: 6 },
       isAvailable: true
     },
 
-    // Leather Sofa + Low Table T2
+    // Leather Sofa
     {
       id: 'leather-sofa',
       name: 'Leather Sofa',
@@ -127,7 +125,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
         { name: 'Chris', mood: '📱', activity: 'Relaxing', status: 'active' },
         { name: 'Luna', mood: '🎵', activity: 'Listening music', status: 'active' }
       ],
-      position: { x: 40, y: 70, width: 20, height: 12 },
+      position: { x: 20, y: 45, width: 15, height: 8 },
       isAvailable: true
     },
 
@@ -139,7 +137,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       capacity: 2,
       occupied: 0,
       users: [],
-      position: { x: 42, y: 84, width: 8, height: 6 },
+      position: { x: 20, y: 55, width: 6, height: 4 },
       isAvailable: true
     },
 
@@ -153,7 +151,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       users: [
         { name: 'River', mood: '📖', activity: 'Reading', status: 'focused' }
       ],
-      position: { x: 8, y: 85, width: 12, height: 8 },
+      position: { x: 5, y: 65, width: 8, height: 6 },
       isAvailable: false
     },
 
@@ -165,7 +163,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       capacity: 1,
       occupied: 0,
       users: [],
-      position: { x: 25, y: 85, width: 12, height: 8 },
+      position: { x: 15, y: 65, width: 8, height: 6 },
       isAvailable: true
     },
 
@@ -179,7 +177,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       users: [
         { name: 'Sky', mood: '✍️', activity: 'Writing', status: 'focused' }
       ],
-      position: { x: 68, y: 85, width: 12, height: 8 },
+      position: { x: 30, y: 65, width: 8, height: 6 },
       isAvailable: false
     },
 
@@ -191,7 +189,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       capacity: 1,
       occupied: 0,
       users: [],
-      position: { x: 82, y: 85, width: 12, height: 8 },
+      position: { x: 40, y: 65, width: 8, height: 6 },
       isAvailable: true
     }
   ];
@@ -219,7 +217,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
   };
 
   const getZoneIcon = (type: string) => {
-    const iconClass = `h-${isMobile ? '3' : '4'} w-${isMobile ? '3' : '4'} text-gray-800`;
+    const iconClass = `h-4 w-4 text-gray-800`;
     switch(type) {
       case 'table-4': return <Coffee className={iconClass} />;
       case 'bar-stool': return <ChefHat className={iconClass} />;
@@ -246,48 +244,48 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
   };
 
   return (
-    <div className="relative w-full h-screen bg-gray-100 overflow-hidden">
+    <div className="relative w-full h-screen bg-gray-100 overflow-auto">
       {/* Header */}
-      <div className={`absolute top-2 left-4 right-4 z-40`}>
+      <div className="absolute top-2 left-4 right-4 z-40">
         <div className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-200">
-          <h1 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-gray-800`}>
+          <h1 className="text-xl font-bold text-gray-800">
             Complete Café Floor Plan
           </h1>
         </div>
       </div>
 
-      {/* Main Floor Plan Container - Full space usage */}
+      {/* Main Floor Plan Container - FIXED SIZE TO SHOW EVERYTHING */}
       <div 
         className="absolute bg-gray-200 border-4 border-gray-800 shadow-2xl"
         style={{ 
-          left: '2%', 
-          top: '10%', 
-          width: '96%', 
-          height: '85%' 
+          left: '5%', 
+          top: '15%', 
+          width: '90%', 
+          height: '80%',
+          minHeight: '600px'
         }}
       >
-        {/* OUTDOOR AREA - Top Section */}
+        {/* OUTDOOR AREA - Top 30% */}
         <div 
           className="absolute bg-green-100 border-b-4 border-gray-800"
           style={{ 
             left: '0', 
             top: '0', 
             width: '100%', 
-            height: '40%' 
+            height: '30%' 
           }}
         >
-          {/* Outdoor Area Label */}
           <div className="absolute top-2 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold">
             OUTDOOR AREA
           </div>
         </div>
 
-        {/* Arch Opening Indicator */}
+        {/* Arch Opening */}
         <div 
           className="absolute bg-gradient-to-b from-gray-400 to-gray-600 rounded-t-full border-x-2 border-t-2 border-gray-800"
           style={{ 
             left: '45%', 
-            top: '38%', 
+            top: '28%', 
             width: '10%', 
             height: '4%' 
           }}
@@ -295,23 +293,22 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
           <div className="text-center text-xs text-white font-bold mt-1">ARCH</div>
         </div>
 
-        {/* INDOOR AREA - Bottom Section */}
+        {/* INDOOR AREA - Bottom 70% */}
         <div 
           className="absolute bg-amber-50"
           style={{ 
             left: '0', 
-            top: '40%', 
+            top: '30%', 
             width: '100%', 
-            height: '60%' 
+            height: '70%' 
           }}
         >
-          {/* Indoor Area Label */}
           <div className="absolute top-2 left-4 bg-amber-600 text-white px-3 py-1 rounded-full text-sm font-bold">
             INDOOR AREA
           </div>
         </div>
 
-        {/* Interactive Seating Zones - All zones properly positioned */}
+        {/* Interactive Seating Zones */}
         {seatingZones.map((zone) => (
           <div
             key={zone.id}
@@ -326,30 +323,30 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
             onMouseLeave={() => setHoveredZone(null)}
             onClick={() => handleZoneClick(zone.id)}
           >
-            <div className={`p-${isMobile ? '1' : '2'} h-full flex flex-col justify-between`}>
+            <div className="p-2 h-full flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 {getZoneIcon(zone.type)}
                 <div className={`flex items-center gap-1 ${getOccupancyColor(zone.occupied, zone.capacity)}`}>
-                  <Users className={`h-${isMobile ? '2' : '3'} w-${isMobile ? '2' : '3'}`} />
-                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold`}>
+                  <Users className="h-3 w-3" />
+                  <span className="text-sm font-bold">
                     {zone.occupied}/{zone.capacity}
                   </span>
                 </div>
               </div>
 
               <div className="text-center">
-                <h4 className={`font-bold text-gray-800 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                <h4 className="font-bold text-gray-800 text-sm">
                   {zone.name}
                 </h4>
               </div>
 
               <div className="text-center">
                 {zone.isAvailable ? (
-                  <div className={`bg-green-600 text-white rounded-full px-1 py-1 ${isMobile ? 'text-xs' : 'text-sm'} font-semibold`}>
+                  <div className="bg-green-600 text-white rounded-full px-2 py-1 text-xs font-semibold">
                     Available
                   </div>
                 ) : (
-                  <div className={`bg-red-600 text-white rounded-full px-1 py-1 ${isMobile ? 'text-xs' : 'text-sm'} font-semibold`}>
+                  <div className="bg-red-600 text-white rounded-full px-2 py-1 text-xs font-semibold">
                     Full
                   </div>
                 )}
@@ -361,21 +358,21 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
 
       {/* Zone Details Popup */}
       {hoveredZone && (
-        <div className={`absolute ${isMobile ? 'bottom-4 left-2 right-2' : 'bottom-4 left-4 right-4'} z-50 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-2xl border border-gray-200`}>
+        <div className="absolute bottom-4 left-4 right-4 z-50 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-2xl border border-gray-200">
           {(() => {
             const zone = seatingZones.find(z => z.id === hoveredZone);
             if (!zone) return null;
             
             return (
               <>
-                <div className={`flex items-center justify-between mb-3 ${isMobile ? 'flex-col space-y-2' : ''}`}>
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     {getZoneIcon(zone.type)}
                     <div>
-                      <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-gray-800`}>
+                      <h3 className="text-xl font-bold text-gray-800">
                         {zone.name}
                       </h3>
-                      <p className={`text-gray-600 ${isMobile ? 'text-sm' : ''}`}>
+                      <p className="text-gray-600">
                         Capacity: {zone.capacity} • {zone.type.replace('-', ' ')}
                       </p>
                     </div>
@@ -388,12 +385,12 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
                 
                 {zone.users.length > 0 && (
                   <div className="mb-4">
-                    <h4 className={`font-semibold text-gray-700 mb-2 ${isMobile ? 'text-sm' : ''}`}>
+                    <h4 className="font-semibold text-gray-700 mb-2">
                       Current Users:
                     </h4>
                     <div className="space-y-1">
                       {zone.users.map((user, index) => (
-                        <div key={index} className={`flex items-center gap-2 ${isMobile ? 'text-sm' : 'text-sm'} text-gray-600`}>
+                        <div key={index} className="flex items-center gap-2 text-sm text-gray-600">
                           <span className="text-lg">{user.mood}</span>
                           <span className="font-medium">{user.name}</span>
                           <span className="text-xs opacity-75">• {user.activity}</span>
@@ -405,7 +402,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
                 
                 <Button 
                   onClick={() => handleZoneClick(zone.id)}
-                  className={`w-full bg-gray-700 hover:bg-gray-800 text-white ${isMobile ? 'text-sm py-2' : 'py-3'}`}
+                  className="w-full bg-gray-700 hover:bg-gray-800 text-white py-3"
                   disabled={!zone.isAvailable}
                 >
                   <Coffee className="h-4 w-4 mr-2" />
@@ -418,9 +415,9 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       )}
 
       {/* Status Bar */}
-      <div className={`absolute ${isMobile ? 'bottom-20 left-2 right-2' : 'top-16 left-1/2 transform -translate-x-1/2'} z-30`}>
+      <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-30">
         <div className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-white/50">
-          <div className={`flex items-center justify-center gap-${isMobile ? '3' : '6'} text-gray-700 font-semibold ${isMobile ? 'text-xs' : 'text-sm'}`}>
+          <div className="flex items-center justify-center gap-6 text-gray-700 font-semibold text-sm">
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               <span>{seatingZones.reduce((acc, zone) => acc + zone.occupied, 0)} people here</span>
