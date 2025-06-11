@@ -37,7 +37,7 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
   const queryClient = useQueryClient();
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Real-time messages query with faster refetch
+  // Real-time messages query
   const { data: messages = [], isLoading, error } = useQuery({
     queryKey: ['area-messages', seatArea],
     queryFn: async () => {
@@ -70,12 +70,15 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
         return [];
       }
     },
-    refetchInterval: 2000, // Faster refresh for real-time feel
+    refetchInterval: 2000,
     retry: 3,
+    enabled: !!user?.id,
   });
 
   // Enhanced real-time subscription with presence tracking
   useEffect(() => {
+    if (!user?.id) return;
+
     console.log('Setting up real-time subscription for area:', seatArea);
     setConnectionStatus('connecting');
     
@@ -154,7 +157,7 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Send message mutation with real-time optimization
+  // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
       if (!user?.id) throw new Error('Not authenticated');
@@ -175,7 +178,6 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
     onSuccess: () => {
       setNewMessage('');
       setIsTyping(false);
-      // Don't manually invalidate here - let real-time handle it
       toast.success('Message sent!', { duration: 1000 });
     },
     onError: (error: any) => {
@@ -236,6 +238,20 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
       default: return 'text-gray-500';
     }
   };
+
+  if (!user) {
+    return (
+      <Card className="h-full flex flex-col bg-white/95 backdrop-blur-sm border-[#8B4513]/20">
+        <CardContent className="flex-1 flex items-center justify-center p-8">
+          <div className="text-center text-gray-500">
+            <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-30" />
+            <p className="text-lg font-medium mb-2">Sign in to Chat</p>
+            <p className="text-sm">Join the conversation with other coffee lovers!</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="h-full flex flex-col bg-white/95 backdrop-blur-sm border-[#8B4513]/20">
@@ -333,14 +349,14 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
               setNewMessage(e.target.value);
               handleTyping();
             }}
-            placeholder={user ? "Chat with your area..." : "Sign in to chat..."}
+            placeholder="Chat with your area..."
             className="flex-1 border-[#8B4513]/20 focus:border-[#8B4513] focus:ring-[#8B4513]/20"
-            disabled={!user || sendMessageMutation.isPending || connectionStatus !== 'connected'}
+            disabled={sendMessageMutation.isPending || connectionStatus !== 'connected'}
             maxLength={500}
           />
           <Button
             type="submit"
-            disabled={!newMessage.trim() || !user || sendMessageMutation.isPending || connectionStatus !== 'connected'}
+            disabled={!newMessage.trim() || sendMessageMutation.isPending || connectionStatus !== 'connected'}
             className="bg-[#8B4513] hover:bg-[#8B4513]/90 text-white px-4 shadow-lg"
           >
             {sendMessageMutation.isPending ? (
@@ -350,12 +366,6 @@ export const RealTimeChat = ({ seatArea, onlineUsers }: RealTimeChatProps) => {
             )}
           </Button>
         </form>
-        
-        {!user && (
-          <div className="text-center text-gray-500 text-sm bg-gray-50 p-3 rounded-lg">
-            Please sign in to join the real-time conversation
-          </div>
-        )}
         
         {connectionStatus === 'disconnected' && (
           <div className="text-center text-red-500 text-sm bg-red-50 p-3 rounded-lg">

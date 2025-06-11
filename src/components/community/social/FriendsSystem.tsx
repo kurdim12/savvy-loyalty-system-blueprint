@@ -25,6 +25,13 @@ interface Connection {
   profiles: ConnectionProfile;
 }
 
+interface SearchProfile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  avatar_url?: string;
+}
+
 export const FriendsSystem = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,8 +61,11 @@ export const FriendsSystem = () => {
         .eq('user_id', user.id)
         .eq('connection_type', 'friend');
       
-      if (error) throw error;
-      return data as Connection[];
+      if (error) {
+        console.error('Error fetching connections:', error);
+        return [];
+      }
+      return (data || []) as Connection[];
     },
     enabled: !!user?.id,
   });
@@ -73,8 +83,14 @@ export const FriendsSystem = () => {
         .or(`first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%`)
         .limit(10);
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Error searching users:', error);
+        return [];
+      }
+      
+      // Filter out users who are already connected
+      const connectedUserIds = connections.map(c => c.connected_user_id);
+      return (data || []).filter(profile => !connectedUserIds.includes(profile.id)) as SearchProfile[];
     },
     enabled: !!searchQuery.trim() && !!user?.id,
   });
@@ -89,10 +105,14 @@ export const FriendsSystem = () => {
         .insert({
           user_id: user.id,
           connected_user_id: targetUserId,
-          connection_type: 'friend'
+          connection_type: 'friend',
+          first_met_at: new Date().toISOString()
         });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding connection:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success('Friend added!');
@@ -100,13 +120,28 @@ export const FriendsSystem = () => {
       queryClient.invalidateQueries({ queryKey: ['user-search'] });
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to add friend');
+      console.error('Failed to add friend:', error);
+      toast.error('Failed to add friend. Please try again.');
     }
   });
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
   };
+
+  if (!user) {
+    return (
+      <Card>
+        <CardContent className="text-center py-8">
+          <Users className="h-12 w-12 mx-auto mb-4 opacity-30" />
+          <p className="text-lg font-medium mb-2">Sign in to Connect</p>
+          <p className="text-sm text-muted-foreground">
+            Join the community to find and connect with other coffee lovers!
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -168,7 +203,7 @@ export const FriendsSystem = () => {
                     className="bg-[#8B4513] hover:bg-[#8B4513]/90"
                   >
                     <UserPlus className="h-4 w-4 mr-1" />
-                    Add Friend
+                    {addConnection.isPending ? 'Adding...' : 'Add Friend'}
                   </Button>
                 </div>
               ))}
