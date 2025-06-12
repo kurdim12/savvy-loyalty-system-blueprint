@@ -104,7 +104,6 @@ export const CommunityChat = () => {
       
       console.log('Sending community message');
       
-      // First, send the message
       const { error: messageError } = await supabase
         .from('messages')
         .insert({
@@ -118,7 +117,7 @@ export const CommunityChat = () => {
         throw messageError;
       }
       
-      // Then, award XP points
+      // Try to award XP points
       try {
         const { data: pointsData, error: pointsError } = await supabase.functions.invoke('earn-points', {
           body: { type: 'chat', points: 1 }
@@ -134,12 +133,8 @@ export const CommunityChat = () => {
       setNewMessage('');
       
       if (!pointsError && pointsData) {
-        // Show XP toast
         setShowXPToast(true);
         console.log('💬 Chat XP earned:', pointsData);
-      } else if (pointsError?.message?.includes('Rate limited')) {
-        // Don't show error for rate limiting on chat
-        console.log('⏰ Chat XP rate limited');
       }
       
       queryClient.invalidateQueries({ queryKey: ['community-messages'] });

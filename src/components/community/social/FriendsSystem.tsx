@@ -38,7 +38,7 @@ export const FriendsSystem = () => {
   const [activeTab, setActiveTab] = useState<'friends' | 'search'>('friends');
   const queryClient = useQueryClient();
 
-  // Fetch user's connections with proper error handling
+  // Fetch user's connections
   const { data: connections = [], isLoading: connectionsLoading } = useQuery({
     queryKey: ['connections', user?.id],
     queryFn: async () => {
@@ -65,7 +65,6 @@ export const FriendsSystem = () => {
       
       if (error) {
         console.error('Error fetching connections:', error);
-        toast.error('Failed to load friends list');
         return [];
       }
       
@@ -75,7 +74,7 @@ export const FriendsSystem = () => {
     enabled: !!user?.id,
   });
 
-  // Search users with improved logic
+  // Search users
   const { data: searchResults = [], isLoading: searchLoading } = useQuery({
     queryKey: ['user-search', searchQuery],
     queryFn: async () => {
@@ -105,7 +104,7 @@ export const FriendsSystem = () => {
     enabled: !!searchQuery.trim() && !!user?.id,
   });
 
-  // Add connection with proper error handling
+  // Add connection
   const addConnection = useMutation({
     mutationFn: async (targetUserId: string) => {
       if (!user?.id) throw new Error('Not authenticated');
