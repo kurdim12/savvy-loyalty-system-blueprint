@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { CafeIconMarker } from "./CafeIconMarker";
 
-const GRID_SIZE = 50;
+const GRID_SIZE = 80; // Increased from 50 to 80 for better visibility
 const GRID_W = 24;
 const GRID_H = 16;
 
@@ -39,26 +39,26 @@ export const CafeOfficialSeatingPlan: React.FC<{
 
   const getSeatStyle = (seatId: string) => ({
     cursor: 'pointer',
-    transform: hoveredSeat === seatId ? 'scale(1.1)' : 'scale(1)',
+    transform: hoveredSeat === seatId ? 'scale(1.2)' : 'scale(1)', // Increased scale for better visibility
     transition: 'transform 0.2s ease',
-    filter: selectedSeat === seatId ? 'drop-shadow(0 0 8px #f59e0b)' : 'none'
+    filter: selectedSeat === seatId ? 'drop-shadow(0 0 12px #f59e0b)' : 'none'
   });
 
   return (
-    <div className="w-full h-screen bg-gradient-to-br from-stone-100 to-amber-50 p-4">
-      {/* Header */}
-      <div className="text-center mb-4">
-        <h2 className="text-3xl font-bold text-stone-800 mb-2">RAW SMITH CAFÉ</h2>
-        <p className="text-stone-600">Authentic Cave Experience - Click any seat to join</p>
+    <div className="w-full min-h-screen bg-gradient-to-br from-stone-100 to-amber-50 p-2">
+      {/* Header - Made more compact */}
+      <div className="text-center mb-3">
+        <h2 className="text-2xl font-bold text-stone-800 mb-1">RAW SMITH CAFÉ</h2>
+        <p className="text-sm text-stone-600">Authentic Cave Experience - Click any seat to join</p>
       </div>
 
-      {/* Main Floor Plan Container */}
+      {/* Main Floor Plan Container - Much larger and uses more screen space */}
       <div
         className="relative w-full mx-auto border-2 border-stone-400 rounded-xl shadow-2xl"
         style={{
           aspectRatio: `${GRID_W / GRID_H}`,
-          maxWidth: "95vw",
-          height: "calc(100vh - 200px)",
+          maxWidth: "98vw", // Use almost full width
+          height: "calc(100vh - 120px)", // Use most of the screen height
           background: "linear-gradient(135deg, #f5f0e8 0%, #e8ddd4 100%)",
           overflow: "hidden"
         }}
@@ -76,7 +76,7 @@ export const CafeOfficialSeatingPlan: React.FC<{
             pointerEvents: "none"
           }}
         >
-          <span className="absolute left-3 top-2 text-stone-700 font-bold text-sm bg-stone-100/90 px-2 py-1 rounded">
+          <span className="absolute left-3 top-2 text-stone-700 font-bold text-base bg-stone-100/90 px-3 py-2 rounded">
             🕳️ Cave Interior
           </span>
         </div>
@@ -94,7 +94,7 @@ export const CafeOfficialSeatingPlan: React.FC<{
             pointerEvents: "none"
           }}
         >
-          <span className="absolute left-2 top-2 text-green-700 font-bold text-sm bg-green-100/90 px-2 py-1 rounded">
+          <span className="absolute left-2 top-2 text-green-700 font-bold text-base bg-green-100/90 px-3 py-2 rounded">
             🌿 Outdoor Terrace
           </span>
         </div>
@@ -111,8 +111,8 @@ export const CafeOfficialSeatingPlan: React.FC<{
             border: "3px solid #92400e"
           }}
         />
-        <div className="absolute left-4 top-2 text-amber-100 font-bold text-xs bg-amber-800/80 px-2 py-1 rounded" 
-             style={{ left: snap(4.5) * GRID_SIZE, top: snap(3.2) * GRID_SIZE, zIndex: 30 }}>
+        <div className="absolute text-amber-100 font-bold text-sm bg-amber-800/80 px-3 py-2 rounded" 
+             style={{ left: snap(4.5) * GRID_SIZE, top: snap(3.3) * GRID_SIZE, zIndex: 30 }}>
           ☕ Coffee Cupping Station
         </div>
 
@@ -282,7 +282,7 @@ export const CafeOfficialSeatingPlan: React.FC<{
             zIndex: 30
           }}
         />
-        <div className="absolute text-amber-800 font-bold text-xs bg-amber-100 px-1 py-0.5 rounded" 
+        <div className="absolute text-amber-800 font-bold text-sm bg-amber-100 px-2 py-1 rounded" 
              style={{ left: snap(2.6) * GRID_SIZE, top: snap(2.7) * GRID_SIZE, zIndex: 35 }}>
           ☕ Coffee Display
         </div>
@@ -299,44 +299,44 @@ export const CafeOfficialSeatingPlan: React.FC<{
           zIndex={35}
         />
 
-        {/* Raw Smith Branding */}
+        {/* Raw Smith Branding - Larger and more visible */}
         <div
           className="absolute font-black tracking-widest text-center pointer-events-none"
           style={{
             left: snap((GRID_W/2 - 4) * GRID_SIZE),
             top: snap(0.5 * GRID_SIZE),
-            fontSize: "2rem",
+            fontSize: "3rem", // Increased from 2rem
             color: "#451a03",
             zIndex: 40,
-            width: 200,
+            width: 300, // Increased width
             textShadow: "2px 2px 4px rgba(255,255,255,0.8)"
           }}
         >
           RAW SMITH
         </div>
 
-        {/* Legend */}
-        <div className="absolute bottom-4 right-4 bg-white/95 p-3 rounded-lg shadow-lg text-xs">
-          <div className="font-semibold mb-2">Seating Areas</div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-3 h-3 bg-stone-300 rounded"></div>
+        {/* Legend - Larger and more readable */}
+        <div className="absolute bottom-4 right-4 bg-white/95 p-4 rounded-lg shadow-lg text-sm">
+          <div className="font-semibold mb-3 text-base">Seating Areas</div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-4 h-4 bg-stone-300 rounded"></div>
             <span>Cave Interior</span>
           </div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-3 h-3 bg-green-300 rounded"></div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-4 h-4 bg-green-300 rounded"></div>
             <span>Outdoor Terrace</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-amber-300 rounded"></div>
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 bg-amber-300 rounded"></div>
             <span>Coffee Cupping</span>
           </div>
         </div>
 
-        {/* Seat Info Panel */}
+        {/* Seat Info Panel - Larger and more visible */}
         {hoveredSeat && (
-          <div className="absolute top-4 left-4 bg-white/95 p-3 rounded-lg shadow-lg text-sm max-w-xs">
-            <div className="font-semibold text-stone-800">{hoveredSeat}</div>
-            <div className="text-stone-600 text-xs mt-1">
+          <div className="absolute top-4 left-4 bg-white/95 p-4 rounded-lg shadow-lg text-base max-w-sm">
+            <div className="font-semibold text-stone-800 text-lg">{hoveredSeat}</div>
+            <div className="text-stone-600 text-sm mt-2">
               {hoveredSeat.includes('green-armchair') && "🛋️ Signature green leather seating"}
               {hoveredSeat.includes('cave-table') && "🕳️ Intimate cave atmosphere"}
               {hoveredSeat.includes('outdoor') && "🌿 Fresh air & street views"}
