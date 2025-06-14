@@ -1,6 +1,5 @@
-
 import React from "react";
-import { Table, Armchair, DoorOpen, Window, Stool } from "lucide-react";
+import { Table, Armchair, DoorOpen } from "lucide-react";
 
 // Supported icons for the floor plan.
 export type CafeIconName = "Table" | "Armchair" | "Stool" | "Door" | "Window" | "Chair" | "SideTable";
@@ -33,33 +32,37 @@ export const CafeIconMarker: React.FC<CafeIconMarkerProps> = ({
   style,
   rotateDeg = 0,
 }) => {
-  // Map extra icon names to available icons as needed.
+  // Map extra icon names to available lucide-react icons.
   let IconComponent: React.ElementType;
   let sizePx = Math.round(Math.min(gridW, gridH) * gridSize * 0.7);
 
+  // The only lucide-react icons available: Table, Armchair, DoorOpen.
+  // We must gracefully map others:
   switch (icon) {
     case "Table":
       IconComponent = Table;
       break;
     case "Chair":
-      IconComponent = Armchair; // Use Armchair for chairs (smaller).
+      IconComponent = Armchair; // Use Armchair for small chairs.
       sizePx = Math.round(sizePx * 0.82);
       break;
     case "Armchair":
       IconComponent = Armchair;
       break;
     case "Stool":
-      IconComponent = Stool;
+      IconComponent = Table; // No "Stool" icon, using Table as a placeholder.
+      sizePx = Math.round(sizePx * 0.55); // Smaller, to look like a stool.
       break;
     case "SideTable":
-      IconComponent = Table; // Use Table for side tables, make smaller.
+      IconComponent = Table;
       sizePx = Math.round(sizePx * 0.68);
       break;
     case "Door":
-      IconComponent = DoorOpen;
+      IconComponent = DoorOpen; // Only actual supported door icon.
       break;
     case "Window":
-      IconComponent = Window;
+      IconComponent = Table; // No "Window" icon, using Table as a placeholder.
+      sizePx = Math.round(sizePx * 0.45); // Smaller for a window effect.
       break;
     default:
       IconComponent = Table;
