@@ -91,7 +91,6 @@ const CaveWall = ({ position, rotation }: { position: [number, number, number]; 
       <meshStandardMaterial 
         color="#8B7355" 
         roughness={0.9}
-        normalScale={[0.5, 0.5]}
       />
     </Box>
   );
@@ -329,7 +328,7 @@ const CafeSeatingSimulation3D = ({ onSeatSelect }: CafeSeatingSimulation3DProps)
         camera={{ position: cameraPosition, fov: 60 }}
         shadows
       >
-        <Environment preset="cafe" />
+        <Environment preset="sunset" />
         <ambientLight intensity={0.4} />
         <directionalLight 
           position={[10, 10, 5]} 
