@@ -1,8 +1,9 @@
 
+// Only import icons that actually exist in the installed lucide-react package!
 import React from "react";
-import { Table, Armchair, DoorOpen, BarStool, SideTable, Chair, Planter } from "lucide-react";
+import { Table, Armchair, DoorOpen } from "lucide-react";
 
-// Supported icons strictly as allowed.
+// Supported ux map. These types are ok to define! (You may want to display 'BarStool', etc in your UI)
 export type CafeIconName = "Table" | "Armchair" | "BarStool" | "Door" | "Chair" | "SideTable" | "Planter";
 
 // Accepts "icon", grid position (x, y, width, height) in meters, optional label and size/hints.
@@ -20,7 +21,7 @@ export interface CafeIconMarkerProps {
   rotateDeg?: number;
 }
 
-// Proper icon mapping.
+// Map all icons to only available ones; fallbacks for missing icons as needed
 export const CafeIconMarker: React.FC<CafeIconMarkerProps> = ({
   icon,
   gridX,
@@ -34,37 +35,43 @@ export const CafeIconMarker: React.FC<CafeIconMarkerProps> = ({
   style,
   rotateDeg = 0,
 }) => {
-  let IconComponent: React.ElementType;
+  let IconComponent: React.ElementType = Table; // default
   let sizePx = Math.round(Math.min(gridW, gridH) * gridSize * 0.7);
 
   switch (icon) {
     case "Table":
       IconComponent = Table;
       break;
-    case "Chair":
-      IconComponent = Chair;
-      sizePx = Math.round(sizePx * 0.82);
-      break;
     case "Armchair":
       IconComponent = Armchair;
       break;
     case "BarStool":
-      IconComponent = BarStool;
-      sizePx = Math.round(sizePx * 0.66);
+      // No BarStool icon, fallback to Table smaller, add comment
+      IconComponent = Table;
+      sizePx = Math.round(sizePx * 0.45);
+      break;
+    case "Chair":
+      // No Chair icon, fallback to Armchair slightly smaller
+      IconComponent = Armchair;
+      sizePx = Math.round(sizePx * 0.65);
       break;
     case "SideTable":
-      IconComponent = SideTable;
-      sizePx = Math.round(sizePx * 0.7);
+      // No SideTable icon, fallback to Table even smaller
+      IconComponent = Table;
+      sizePx = Math.round(sizePx * 0.35);
       break;
     case "Planter":
-      IconComponent = Planter;
-      sizePx = Math.round(sizePx * 1.0);
+      // No Planter icon, fallback to Table with green color
+      IconComponent = Table;
+      iconColor = "#3d7e38";
+      sizePx = Math.round(sizePx * 0.45);
       break;
     case "Door":
       IconComponent = DoorOpen;
       break;
     default:
       IconComponent = Table;
+      break;
   }
   return (
     <div
