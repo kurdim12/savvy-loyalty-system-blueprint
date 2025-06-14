@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import clsx from "clsx";
 import { Card } from "@/components/ui/card";
@@ -8,6 +7,16 @@ interface CafeOfficialSeatingPlanProps {
   selectedSeat?: string | null;
   hideHeader?: boolean;
 }
+
+// Add a type for Chair placements
+type ChairPlacement = {
+  table: string;
+  seat: number;
+  x: number;
+  y: number;
+  isArmchair?: boolean;
+  isBarstool?: boolean;
+};
 
 const TABLES = [
   // Indoor Central Tables (relative coordinates for isometric layout)
@@ -26,7 +35,8 @@ const TABLES = [
   { id: "lounge", x: 18, y: 82, type: "lounge", label: "Lounge" },
 ];
 
-const CHAIRS = [
+// Modify the CHAIRS array to use the type
+const CHAIRS: ChairPlacement[] = [
   // Indoor tables (4 per table, isometric fans)
   ...[0, 1, 2, 3].map(i => ({
     table: "indoor-1",
