@@ -65,9 +65,7 @@ interface CommunityMessage {
     last_name: string;
     email: string;
   };
-  threads: {
-    title: string;
-  };
+  thread_title?: string;
 }
 
 const CommunityControl = () => {
@@ -106,7 +104,7 @@ const CommunityControl = () => {
     },
   });
 
-  // Fetch recent community messages
+  // Fetch recent community messages - simplified to avoid join issues
   const { data: recentMessages, isLoading: messagesLoading } = useQuery({
     queryKey: ['community-messages'],
     queryFn: async () => {
@@ -118,14 +116,39 @@ const CommunityControl = () => {
           created_at,
           user_id,
           thread_id,
-          profiles (first_name, last_name, email),
-          threads (title)
+          profiles (first_name, last_name, email)
         `)
         .order('created_at', { ascending: false })
         .limit(20);
 
       if (error) throw error;
-      return data as CommunityMessage[];
+      
+      // Get thread titles separately if needed
+      const messagesWithThreadInfo = await Promise.all(
+        data.map(async (message) => {
+          let thread_title = 'General Chat';
+          
+          // Try to get thread title if thread_id exists and looks like a UUID
+          if (message.thread_id && message.thread_id.length === 36) {
+            const { data: threadData } = await supabase
+              .from('threads')
+              .select('title')
+              .eq('id', message.thread_id)
+              .maybeSingle();
+            
+            if (threadData) {
+              thread_title = threadData.title;
+            }
+          }
+          
+          return {
+            ...message,
+            thread_title
+          };
+        })
+      );
+
+      return messagesWithThreadInfo as CommunityMessage[];
     },
   });
 
@@ -414,7 +437,7 @@ const CommunityControl = () => {
                         </span>
                         <Badge variant="outline">{message.profiles.email}</Badge>
                         <span className="text-sm text-muted-foreground">
-                          in "{message.threads.title}"
+                          in "{message.thread_title}"
                         </span>
                       </div>
                       <p className="text-sm">{message.body}</p>
