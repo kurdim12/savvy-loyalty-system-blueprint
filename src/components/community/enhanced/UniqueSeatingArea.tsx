@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, Coffee, Music, Wifi, ArrowLeft, MapPin, Maximize2 } from 'lucide-react';
 import { Enhanced3DSeatingView } from './Enhanced3DSeatingView';
+import { CafeOfficialSeatingPlan } from "./CafeOfficialSeatingPlan";
 
 interface SeatArea {
   id: string;
@@ -167,9 +168,7 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
     return 'text-red-400';
   };
 
-  if (show3DView) {
-    return <Enhanced3DSeatingView onBack={() => setShow3DView(false)} />;
-  }
+  const [floorPlanMode, setFloorPlanMode] = useState<"official" | "3d">("official");
 
   return (
     <div className="relative w-full h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 overflow-hidden">
@@ -186,17 +185,25 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
             <p className="text-white/80 text-sm">Each zone offers unique vibes and community</p>
           </CardContent>
         </Card>
-        
         <div className="flex gap-2">
           <Button
-            onClick={() => setShow3DView(true)}
+            onClick={() => setFloorPlanMode(floorPlanMode === "official" ? "3d" : "official")}
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
           >
-            <Maximize2 className="h-4 w-4 mr-2" />
-            3D View
+            {floorPlanMode === "official" ? (
+              <>
+                <Maximize2 className="h-4 w-4 mr-2" />
+                3D View
+              </>
+            ) : (
+              <>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Official Plan
+              </>
+            )}
           </Button>
           <Button
-            onClick={() => onViewChange('overview')}
+            onClick={() => onViewChange("overview")}
             variant="outline"
             className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
           >
@@ -209,78 +216,14 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
       {/* Main Floor Plan */}
       <div className="absolute inset-0 pt-24 pb-4 px-4">
         <div className="relative w-full h-full">
-          {/* Ambient Background Effects */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-indigo-900/20 rounded-lg" />
-          
-          {/* Seat Areas */}
-          {seatAreas.map((area) => (
-            <div
-              key={area.id}
-              className={`absolute cursor-pointer transition-all duration-500 rounded-xl border-2 ${
-                area.theme.gradient
-              } ${area.theme.accent} backdrop-blur-sm ${
-                hoveredSeat === area.id 
-                  ? 'scale-105 shadow-2xl shadow-purple-500/20 z-10' 
-                  : 'hover:scale-[1.02] hover:shadow-lg'
-              }`}
-              style={{
-                left: `${area.position.x}%`,
-                top: `${area.position.y}%`,
-                width: `${area.position.width}%`,
-                height: `${area.position.height}%`
-              }}
-              onMouseEnter={() => setHoveredSeat(area.id)}
-              onMouseLeave={() => setHoveredSeat(null)}
-              onClick={() => onSeatSelect(area.id)}
-            >
-              {/* Area Content */}
-              <div className="p-4 h-full flex flex-col justify-between">
-                <div>
-                  <h3 className="text-white font-bold text-lg mb-2">{area.name}</h3>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className={`flex items-center gap-1 text-sm ${getOccupancyColor(area.occupied, area.capacity)}`}>
-                      <Users className="h-4 w-4" />
-                      <span>{area.occupied}/{area.capacity}</span>
-                    </div>
-                    {area.type === 'workspace' && <Wifi className="h-4 w-4 text-blue-400" />}
-                    <Music className="h-4 w-4 text-purple-400" />
-                  </div>
-                  <div className="text-xs text-white/70 mb-2">{area.theme.music}</div>
-                </div>
-
-                {/* User Avatars */}
-                <div className="flex flex-wrap gap-1">
-                  {area.users.slice(0, 4).map((user, index) => (
-                    <div
-                      key={index}
-                      className="w-8 h-8 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full flex items-center justify-center text-sm"
-                      title={`${user.name} - ${user.activity}`}
-                    >
-                      {user.mood}
-                    </div>
-                  ))}
-                  {area.users.length > 4 && (
-                    <div className="w-8 h-8 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-xs text-white">
-                      +{area.users.length - 4}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Hover Effects */}
-              {hoveredSeat === area.id && (
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-xl pointer-events-none" />
-              )}
-            </div>
-          ))}
-
-          {/* Floor Plan Labels */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/60 text-sm">
-            Coffee Shop Floor Plan • Click any area to join • Try 3D View for immersive experience
-          </div>
+          {floorPlanMode === "official" ? (
+            <CafeOfficialSeatingPlan onSeatSelect={onSeatSelect} />
+          ) : (
+            // Fallback to previous immersive 3D
+            <Enhanced3DSeatingView onBack={() => setFloorPlanMode("official")} />
+          )}
         </div>
       </div>
-
       {/* Area Details Popup */}
       {hoveredSeat && (
         <div className="absolute bottom-20 left-8 z-30 max-w-sm">
