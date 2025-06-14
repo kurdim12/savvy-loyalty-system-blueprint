@@ -101,7 +101,6 @@ export const CafeOfficialSeatingPlan: React.FC<{
         />
       ))}
 
-
       {/* --- 4. Furniture (INDOOR) --- */}
       {/* -- Bar counter (8m, 4 stools, top wall) -- */}
       <div className="absolute"
@@ -139,7 +138,7 @@ export const CafeOfficialSeatingPlan: React.FC<{
       {/* -- Lounge nook, top left -- */}
       <CafeIconMarker icon="Armchair" gridX={1} gridY={1} gridW={1} gridH={1} gridSize={GRID_SIZE} iconColor="#25653d" zIndex={44}/>
       <CafeIconMarker icon="Armchair" gridX={2} gridY={2} gridW={1} gridH={1} gridSize={GRID_SIZE} iconColor="#25653d" zIndex={44}/>
-      <CafeIconMarker icon="Side Table" gridX={1.6} gridY={1.5} gridW={1} gridH={1} gridSize={GRID_SIZE} iconColor="#222" zIndex={44}/>
+      <CafeIconMarker icon="SideTable" gridX={1.6} gridY={1.5} gridW={1} gridH={1} gridSize={GRID_SIZE} iconColor="#222" zIndex={44}/>
 
       {/* -- Main indoor seating: 2x2 tables, each with 2 chairs -- */}
       {[
