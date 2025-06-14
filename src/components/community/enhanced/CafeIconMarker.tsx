@@ -1,10 +1,11 @@
+
 import React from "react";
-import { Table, Armchair, DoorOpen } from "lucide-react";
+import { Table, Armchair, DoorOpen, BarStool, SideTable, Chair, Planter } from "lucide-react";
 
-// Supported icons for the floor plan.
-export type CafeIconName = "Table" | "Armchair" | "Stool" | "Door" | "Window" | "Chair" | "SideTable";
+// Supported icons strictly as allowed.
+export type CafeIconName = "Table" | "Armchair" | "BarStool" | "Door" | "Chair" | "SideTable" | "Planter";
 
-// Accepts "icon" ("Table", "Armchair", "Stool", "Door", "Window", "Chair", "SideTable"), grid position (x, y, width, height) in meters, optional label and size/hints.
+// Accepts "icon", grid position (x, y, width, height) in meters, optional label and size/hints.
 export interface CafeIconMarkerProps {
   icon: CafeIconName;
   gridX: number;
@@ -19,6 +20,7 @@ export interface CafeIconMarkerProps {
   rotateDeg?: number;
 }
 
+// Proper icon mapping.
 export const CafeIconMarker: React.FC<CafeIconMarkerProps> = ({
   icon,
   gridX,
@@ -32,37 +34,34 @@ export const CafeIconMarker: React.FC<CafeIconMarkerProps> = ({
   style,
   rotateDeg = 0,
 }) => {
-  // Map extra icon names to available lucide-react icons.
   let IconComponent: React.ElementType;
   let sizePx = Math.round(Math.min(gridW, gridH) * gridSize * 0.7);
 
-  // The only lucide-react icons available: Table, Armchair, DoorOpen.
-  // We must gracefully map others:
   switch (icon) {
     case "Table":
       IconComponent = Table;
       break;
     case "Chair":
-      IconComponent = Armchair; // Use Armchair for small chairs.
+      IconComponent = Chair;
       sizePx = Math.round(sizePx * 0.82);
       break;
     case "Armchair":
       IconComponent = Armchair;
       break;
-    case "Stool":
-      IconComponent = Table; // No "Stool" icon, using Table as a placeholder.
-      sizePx = Math.round(sizePx * 0.55); // Smaller, to look like a stool.
+    case "BarStool":
+      IconComponent = BarStool;
+      sizePx = Math.round(sizePx * 0.66);
       break;
     case "SideTable":
-      IconComponent = Table;
-      sizePx = Math.round(sizePx * 0.68);
+      IconComponent = SideTable;
+      sizePx = Math.round(sizePx * 0.7);
+      break;
+    case "Planter":
+      IconComponent = Planter;
+      sizePx = Math.round(sizePx * 1.0);
       break;
     case "Door":
-      IconComponent = DoorOpen; // Only actual supported door icon.
-      break;
-    case "Window":
-      IconComponent = Table; // No "Window" icon, using Table as a placeholder.
-      sizePx = Math.round(sizePx * 0.45); // Smaller for a window effect.
+      IconComponent = DoorOpen;
       break;
     default:
       IconComponent = Table;
@@ -78,6 +77,7 @@ export const CafeIconMarker: React.FC<CafeIconMarkerProps> = ({
         zIndex,
         ...style,
       }}
+      draggable={false}
     >
       <div
         style={{
@@ -90,10 +90,10 @@ export const CafeIconMarker: React.FC<CafeIconMarkerProps> = ({
           transform: `rotate(${rotateDeg}deg)`,
         }}
       >
-        <IconComponent size={sizePx} color={iconColor} strokeWidth={2.3} />
+        <IconComponent size={sizePx} color={iconColor} strokeWidth={2.1} />
       </div>
       {label && (
-        <span className="text-xs mt-1 font-semibold tracking-tight text-neutral-700 drop-shadow bg-white/90 rounded px-1 py-0.5">{label}</span>
+        <span className="text-xs mt-1 font-semibold tracking-tight text-neutral-700 bg-white/90 rounded px-1 py-0.5">{label}</span>
       )}
     </div>
   );
