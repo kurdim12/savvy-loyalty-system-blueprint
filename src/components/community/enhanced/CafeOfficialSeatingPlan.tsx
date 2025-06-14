@@ -2,62 +2,67 @@
 import React from "react";
 import { CafeIconMarker } from "./CafeIconMarker";
 
-const GRID_SIZE = 56; // px per 1m
-const GRID_W = 20;
-const GRID_H = 15;
-const SIDE_MARGIN = 5;
-// USE the user-uploaded floor plan image.
-const BACKGROUND_IMAGE = "/lovable-uploads/c997f6ab-0f6d-4528-aedf-ca1401ad2e6d.png";
+const GRID_SIZE = 48; // Reduced for better fit
+const GRID_W = 16; // Reduced width
+const GRID_H = 12; // Reduced height
+const SIDE_MARGIN = 1;
 
-const COLOR_INDOOR = "rgba(245,245,245,0.05)";
-const COLOR_OUTDOOR = "rgba(245,230,210,0.02)";
+// Updated background image reference
+const BACKGROUND_IMAGE = "/lovable-uploads/d6d50dca-17f8-4715-bb02-fa8c3aead240.png";
+
+const COLOR_INDOOR = "rgba(240,240,240,0.08)";
+const COLOR_OUTDOOR = "rgba(220,200,180,0.05)";
 
 export const CafeOfficialSeatingPlan: React.FC<{
   onSeatSelect?: (seatId: string) => void;
   selectedSeat?: string | null;
   hideHeader?: boolean;
-}> = () => {
-  // Helper grid snap
-  const snap = (n: number) => Math.round(n);
+}> = ({ onSeatSelect }) => {
+  const snap = (n: number) => Math.round(n * 2) / 2; // 0.5m precision
 
-  // Zones
+  // Adjusted zones to match reference image proportions
   const indoorZone = {
-    x: SIDE_MARGIN,
+    x: 0,
     y: 0,
-    w: GRID_W - 2 * SIDE_MARGIN,
-    h: Math.round(GRID_H * 2 / 3)
+    w: GRID_W,
+    h: Math.round(GRID_H * 0.75) // 75% indoor
   };
+  
   const outdoorZone = {
-    x: SIDE_MARGIN,
-    y: Math.round(GRID_H * 2 / 3),
-    w: GRID_W - 2 * SIDE_MARGIN,
-    h: GRID_H - Math.round(GRID_H * 2 / 3)
+    x: 0,
+    y: Math.round(GRID_H * 0.75),
+    w: GRID_W,
+    h: GRID_H - Math.round(GRID_H * 0.75) // 25% outdoor
   };
 
-  // TERRACE railing workaround: just a styled div, full width.
-  const railingHeight = 0.25;
+  const handleSeatClick = (seatId: string) => {
+    if (onSeatSelect) {
+      onSeatSelect(seatId);
+    }
+  };
 
   return (
     <div
-      className="relative w-full h-full"
+      className="relative w-full mx-auto"
       style={{
         aspectRatio: `${GRID_W / GRID_H}`,
-        minHeight: 480,
-        overflow: "hidden",
-        background: "#f2e8db"
+        maxWidth: "100%",
+        height: "auto",
+        minHeight: 400,
+        maxHeight: "80vh",
+        background: "#f5f0e8"
       }}
     >
-      {/* === 1. BG PLAN IMAGE (fit → cover, locked, no white margins) === */}
+      {/* Background Image - Isometric reference */}
       <img
         src={BACKGROUND_IMAGE}
-        alt="RAW SMITH Café plan"
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+        alt="RAW SMITH Café reference"
+        className="absolute inset-0 w-full h-full object-contain opacity-20 pointer-events-none select-none"
         style={{ zIndex: 1 }}
         draggable={false}
       />
 
-      {/* === 2. ZONES overlays (no margins) === */}
-      {/* Indoor */}
+      {/* Zone Overlays */}
       <div
         className="absolute"
         style={{
@@ -66,27 +71,27 @@ export const CafeOfficialSeatingPlan: React.FC<{
           width: indoorZone.w * GRID_SIZE,
           height: indoorZone.h * GRID_SIZE,
           background: COLOR_INDOOR,
-          zIndex: 10,
+          zIndex: 5,
           pointerEvents: "none"
         }}
       >
         <span
           style={{
             position: "absolute",
-            left: 6,
-            top: 7,
-            color: "#444",
+            left: 8,
+            top: 8,
+            color: "#333",
             fontWeight: 600,
-            fontSize: 16,
-            background: "rgba(255,255,255, 0.35)",
-            padding: "0.18em 0.55em",
-            borderRadius: 6,
+            fontSize: 14,
+            background: "rgba(255,255,255,0.7)",
+            padding: "0.2em 0.5em",
+            borderRadius: 4,
           }}
         >
           Indoor
         </span>
       </div>
-      {/* Outdoor */}
+
       <div
         className="absolute"
         style={{
@@ -95,195 +100,314 @@ export const CafeOfficialSeatingPlan: React.FC<{
           width: outdoorZone.w * GRID_SIZE,
           height: outdoorZone.h * GRID_SIZE,
           background: COLOR_OUTDOOR,
-          zIndex: 10,
+          zIndex: 5,
           pointerEvents: "none"
         }}
       >
         <span
           style={{
             position: "absolute",
-            left: 6,
-            top: 7,
-            color: "#554e34",
+            left: 8,
+            top: 8,
+            color: "#5a4a3a",
             fontWeight: 600,
-            fontSize: 16,
-            background: "rgba(255,245,230, 0.18)",
-            padding: "0.17em 0.56em",
-            borderRadius: 6,
+            fontSize: 14,
+            background: "rgba(255,245,230,0.7)",
+            padding: "0.2em 0.5em",
+            borderRadius: 4,
           }}
         >
           Outdoor
         </span>
       </div>
 
-      {/* === 3. 1m GRID LINES === */}
+      {/* Grid Lines */}
       {[...Array(GRID_H + 1)].map((_, i) => (
         <div
           key={"row-" + i}
-          className="absolute left-0 w-full border-t border-black/20"
+          className="absolute left-0 w-full border-t border-black/10"
           style={{
             top: i * GRID_SIZE,
-            zIndex: 20
+            zIndex: 10
           }}
         />
       ))}
       {[...Array(GRID_W + 1)].map((_, i) => (
         <div
           key={"col-" + i}
-          className="absolute top-0 h-full border-l border-black/15"
+          className="absolute top-0 h-full border-l border-black/10"
           style={{
             left: i * GRID_SIZE,
-            zIndex: 20
+            zIndex: 10
           }}
         />
       ))}
 
-      {/* Bar counter (rectangle against top wall, dark color) */}
-      <div className="absolute"
+      {/* Bar Counter - Back Wall */}
+      <div 
+        className="absolute"
         style={{
-          left: snap(GRID_W / 2 - 4) * GRID_SIZE,
-          top: snap(0.3 * GRID_SIZE),
-          width: 8 * GRID_SIZE,
-          height: 1.2 * GRID_SIZE,
-          background: "#18181a",
-          borderRadius: 14,
-          border: "3.5px solid #111",
-          zIndex: 41,
-          boxShadow: "0 2px 10px #0002"
+          left: snap(GRID_W * 0.25) * GRID_SIZE,
+          top: snap(0.5) * GRID_SIZE,
+          width: snap(GRID_W * 0.5) * GRID_SIZE,
+          height: snap(1) * GRID_SIZE,
+          background: "#2a2a2a",
+          borderRadius: 8,
+          border: "2px solid #1a1a1a",
+          zIndex: 25,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
         }}
       />
 
-      {/* Bar Stools (4) evenly spaced */}
+      {/* Bar Stools - 4 across the counter */}
       {[0, 1, 2, 3].map(i => (
-        <CafeIconMarker
-          key={"barstool-" + i}
-          icon="BarStool"
-          gridX={snap(GRID_W / 2 - 2.5 + i * 1.75)}
-          gridY={snap(1.25)}
-          gridW={1}
-          gridH={1}
-          gridSize={GRID_SIZE}
-          iconColor="#111"
-          zIndex={45}
-        />
+        <div
+          key={`barstool-${i}`}
+          onClick={() => handleSeatClick(`barstool-${i}`)}
+          style={{ cursor: 'pointer' }}
+        >
+          <CafeIconMarker
+            icon="BarStool"
+            gridX={snap(GRID_W * 0.3 + i * 1.5)}
+            gridY={snap(1.8)}
+            gridSize={GRID_SIZE}
+            iconColor="#2a2a2a"
+            zIndex={30}
+          />
+        </div>
       ))}
 
-      {/* Lounge nook: 2x Armchair, 1x SideTable */}
-      <CafeIconMarker
-        icon="Armchair"
-        gridX={SIDE_MARGIN + 1}
-        gridY={1}
-        gridW={1}
-        gridH={1}
-        gridSize={GRID_SIZE}
-        iconColor="#316452"
-        zIndex={44}
-      />
-      <CafeIconMarker
-        icon="Armchair"
-        gridX={SIDE_MARGIN + 2}
-        gridY={2}
-        gridW={1}
-        gridH={1}
-        gridSize={GRID_SIZE}
-        iconColor="#316452"
-        zIndex={44}
-      />
+      {/* Left Corner - Green Armchairs and Side Table (matching reference) */}
+      <div
+        onClick={() => handleSeatClick('lounge-chair-1')}
+        style={{ cursor: 'pointer' }}
+      >
+        <CafeIconMarker
+          icon="Armchair"
+          gridX={snap(1.5)}
+          gridY={snap(2.5)}
+          gridSize={GRID_SIZE}
+          iconColor="#2d5a3d"
+          zIndex={25}
+        />
+      </div>
+      
+      <div
+        onClick={() => handleSeatClick('lounge-chair-2')}
+        style={{ cursor: 'pointer' }}
+      >
+        <CafeIconMarker
+          icon="Armchair"
+          gridX={snap(1.5)}
+          gridY={snap(4)}
+          gridSize={GRID_SIZE}
+          iconColor="#2d5a3d"
+          zIndex={25}
+        />
+      </div>
+
       <CafeIconMarker
         icon="SideTable"
-        gridX={SIDE_MARGIN + 1.6}
-        gridY={1.48}
-        gridW={1}
-        gridH={1}
+        gridX={snap(2.8)}
+        gridY={snap(3.2)}
         gridSize={GRID_SIZE}
-        iconColor="#222"
-        zIndex={44}
+        iconColor="#8B4513"
+        zIndex={25}
       />
 
-      {/* Center 2x2 tables each with 2 chairs */}
+      {/* Main Dining Tables - Arranged as in reference image */}
       {[
-        { x: snap(GRID_W/2 - 3), y: snap(indoorZone.h / 2 - 1.3) },
-        { x: snap(GRID_W/2 + 1.5), y: snap(indoorZone.h / 2 - 1.3) },
-        { x: snap(GRID_W/2 - 3), y: snap(indoorZone.h / 2 + 1.3) },
-        { x: snap(GRID_W/2 + 1.5), y: snap(indoorZone.h / 2 + 1.3) }
-      ].map((pos, idx) => (
-        <React.Fragment key={"central-table-" + idx}>
-          <CafeIconMarker icon="Table" gridX={pos.x} gridY={pos.y} gridW={1} gridH={1} gridSize={GRID_SIZE} zIndex={42} />
-          {/* Each table: 2 chairs, left and right */}
-          <CafeIconMarker icon="Chair" gridX={pos.x - 0.85} gridY={pos.y + 0.2} gridW={1} gridH={1} gridSize={GRID_SIZE} zIndex={42} />
-          <CafeIconMarker icon="Chair" gridX={pos.x + 0.85} gridY={pos.y + 0.2} gridW={1} gridH={1} gridSize={GRID_SIZE} zIndex={42} />
+        { x: 5, y: 3, id: 'table-1' },
+        { x: 8.5, y: 3, id: 'table-2' },
+        { x: 12, y: 3, id: 'table-3' },
+        { x: 5, y: 5.5, id: 'table-4' },
+        { x: 8.5, y: 5.5, id: 'table-5' },
+        { x: 12, y: 5.5, id: 'table-6' }
+      ].map((table, idx) => (
+        <React.Fragment key={table.id}>
+          <div
+            onClick={() => handleSeatClick(table.id)}
+            style={{ cursor: 'pointer' }}
+          >
+            <CafeIconMarker 
+              icon="Table" 
+              gridX={snap(table.x)} 
+              gridY={snap(table.y)} 
+              gridSize={GRID_SIZE} 
+              iconColor="#8B4513"
+              zIndex={20} 
+            />
+          </div>
+          
+          {/* Two chairs per table */}
+          <div
+            onClick={() => handleSeatClick(`${table.id}-chair-1`)}
+            style={{ cursor: 'pointer' }}
+          >
+            <CafeIconMarker 
+              icon="Chair" 
+              gridX={snap(table.x - 0.8)} 
+              gridY={snap(table.y + 0.1)} 
+              gridSize={GRID_SIZE} 
+              iconColor="#333"
+              zIndex={20} 
+            />
+          </div>
+          
+          <div
+            onClick={() => handleSeatClick(`${table.id}-chair-2`)}
+            style={{ cursor: 'pointer' }}
+          >
+            <CafeIconMarker 
+              icon="Chair" 
+              gridX={snap(table.x + 0.8)} 
+              gridY={snap(table.y + 0.1)} 
+              gridSize={GRID_SIZE} 
+              iconColor="#333"
+              zIndex={20} 
+            />
+          </div>
         </React.Fragment>
       ))}
 
-      {/* --- OUTDOOR --- */}
-      {/* Terrace railing across dividing line */}
-      <div className="absolute"
+      {/* Outdoor Terrace Section */}
+      {/* Terrace Railing */}
+      <div 
+        className="absolute"
         style={{
-          left: outdoorZone.x * GRID_SIZE,
-          top: (outdoorZone.y - railingHeight) * GRID_SIZE,
-          width: outdoorZone.w * GRID_SIZE,
-          height: railingHeight * GRID_SIZE,
-          background: "#23201c",
-          borderRadius: 7,
-          border: "2px solid #222",
-          zIndex: 36,
-          boxShadow: "0 2px 9px #0003",
+          left: 0,
+          top: (outdoorZone.y - 0.15) * GRID_SIZE,
+          width: GRID_W * GRID_SIZE,
+          height: 0.3 * GRID_SIZE,
+          background: "#1a1a1a",
+          borderRadius: 4,
+          zIndex: 30,
         }}
       />
 
-      {/* Four outdoor tables (evenly spaced horizontally) */}
-      {[0, 1, 2, 3].map(idx => {
-        const outdoorTableX = SIDE_MARGIN + 2.3 + idx * 3.8;
-        const outdoorTableY = outdoorZone.y + 2.9;
-        return (
-          <React.Fragment key={"outdoor-table-" + idx}>
-            <CafeIconMarker icon="Table" gridX={outdoorTableX} gridY={outdoorTableY} gridW={1} gridH={1} gridSize={GRID_SIZE} zIndex={33} />
-            {/* Each table: 2 chairs, left/right (facing inward) */}
-            <CafeIconMarker icon="Chair" gridX={outdoorTableX - 0.75} gridY={outdoorTableY + 0.18} gridW={1} gridH={1} gridSize={GRID_SIZE} zIndex={33} />
-            <CafeIconMarker icon="Chair" gridX={outdoorTableX + 0.75} gridY={outdoorTableY + 0.18} gridW={1} gridH={1} gridSize={GRID_SIZE} zIndex={33} />
-          </React.Fragment>
-        );
-      })}
+      {/* Outdoor Tables - 3 tables as shown in reference */}
+      {[
+        { x: 3, y: outdoorZone.y + 1.5, id: 'outdoor-1' },
+        { x: 7, y: outdoorZone.y + 1.5, id: 'outdoor-2' },
+        { x: 11, y: outdoorZone.y + 1.5, id: 'outdoor-3' }
+      ].map((table) => (
+        <React.Fragment key={table.id}>
+          <div
+            onClick={() => handleSeatClick(table.id)}
+            style={{ cursor: 'pointer' }}
+          >
+            <CafeIconMarker 
+              icon="Table" 
+              gridX={snap(table.x)} 
+              gridY={snap(table.y)} 
+              gridSize={GRID_SIZE} 
+              iconColor="#8B4513"
+              zIndex={15} 
+            />
+          </div>
+          
+          <div
+            onClick={() => handleSeatClick(`${table.id}-chair-1`)}
+            style={{ cursor: 'pointer' }}
+          >
+            <CafeIconMarker 
+              icon="Chair" 
+              gridX={snap(table.x - 0.7)} 
+              gridY={snap(table.y + 0.1)} 
+              gridSize={GRID_SIZE} 
+              iconColor="#333"
+              zIndex={15} 
+            />
+          </div>
+          
+          <div
+            onClick={() => handleSeatClick(`${table.id}-chair-2`)}
+            style={{ cursor: 'pointer' }}
+          >
+            <CafeIconMarker 
+              icon="Chair" 
+              gridX={snap(table.x + 0.7)} 
+              gridY={snap(table.y + 0.1)} 
+              gridSize={GRID_SIZE} 
+              iconColor="#333"
+              zIndex={15} 
+            />
+          </div>
+        </React.Fragment>
+      ))}
 
-      {/* Planter icons in each outdoor slab corner */}
-      <CafeIconMarker icon="Planter" gridX={SIDE_MARGIN + 0.1} gridY={outdoorZone.y + 0.1} gridW={1} gridH={1.2} gridSize={GRID_SIZE} iconColor="#365531" zIndex={40} />
-      <CafeIconMarker icon="Planter" gridX={SIDE_MARGIN + outdoorZone.w - 1.2} gridY={outdoorZone.y + 0.1} gridW={1} gridH={1.2} gridSize={GRID_SIZE} iconColor="#365531" zIndex={40} />
-      <CafeIconMarker icon="Planter" gridX={SIDE_MARGIN + 0.1} gridY={outdoorZone.y + outdoorZone.h - 1.2} gridW={1} gridH={1.2} gridSize={GRID_SIZE} iconColor="#365531" zIndex={40} />
-      <CafeIconMarker icon="Planter" gridX={SIDE_MARGIN + outdoorZone.w - 1.2} gridY={outdoorZone.y + outdoorZone.h - 1.2} gridW={1} gridH={1.2} gridSize={GRID_SIZE} iconColor="#365531" zIndex={40} />
+      {/* Corner Planters */}
+      <CafeIconMarker 
+        icon="Planter" 
+        gridX={snap(0.5)} 
+        gridY={snap(outdoorZone.y + 0.5)} 
+        gridSize={GRID_SIZE} 
+        iconColor="#2d5a3d"
+        zIndex={20} 
+      />
+      
+      <CafeIconMarker 
+        icon="Planter" 
+        gridX={snap(GRID_W - 1.5)} 
+        gridY={snap(outdoorZone.y + 0.5)} 
+        gridSize={GRID_SIZE} 
+        iconColor="#2d5a3d"
+        zIndex={20} 
+      />
 
-      {/* Sliding-door (entrance) */}
+      <CafeIconMarker 
+        icon="Planter" 
+        gridX={snap(0.5)} 
+        gridY={snap(GRID_H - 1)} 
+        gridSize={GRID_SIZE} 
+        iconColor="#2d5a3d"
+        zIndex={20} 
+      />
+      
+      <CafeIconMarker 
+        icon="Planter" 
+        gridX={snap(GRID_W - 1.5)} 
+        gridY={snap(GRID_H - 1)} 
+        gridSize={GRID_SIZE} 
+        iconColor="#2d5a3d"
+        zIndex={20} 
+      />
+
+      {/* Entrance Door */}
       <CafeIconMarker
         icon="Door"
         gridX={snap(GRID_W/2 - 1)}
-        gridY={indoorZone.h - 0.82}
+        gridY={snap(indoorZone.h - 0.5)}
         gridW={2}
-        gridH={0.7}
+        gridH={0.5}
         gridSize={GRID_SIZE}
-        zIndex={99}
         label="Entrance"
+        zIndex={35}
       />
-      {/* Fold-up window (bar window) */}
+
+      {/* Bar Window */}
       <CafeIconMarker
         icon="Door"
-        gridX={snap(GRID_W/2 - 5)}
-        gridY={indoorZone.h - 0.55}
-        gridW={3}
-        gridH={0.6}
+        gridX={snap(GRID_W * 0.15)}
+        gridY={snap(indoorZone.h - 0.3)}
+        gridW={2.5}
+        gridH={0.4}
         gridSize={GRID_SIZE}
-        zIndex={99}
         label="Bar Window"
+        zIndex={35}
       />
 
       {/* RAW SMITH Branding */}
       <div
-        className="absolute font-black tracking-widest drop-shadow text-center"
+        className="absolute font-black tracking-widest text-center"
         style={{
-          left: snap((GRID_W/2 - 3.5) * GRID_SIZE),
-          top: snap((indoorZone.h - 2.0) * GRID_SIZE),
-          fontSize: "2.1rem",
-          color: "#111",
-          zIndex: 120,
-          width: 220,
+          left: snap((GRID_W/2 - 2.5) * GRID_SIZE),
+          top: snap((indoorZone.h - 2.5) * GRID_SIZE),
+          fontSize: "1.8rem",
+          color: "#1a1a1a",
+          zIndex: 40,
+          width: 200,
+          textShadow: "1px 1px 2px rgba(255,255,255,0.8)"
         }}
       >
         RAW SMITH
