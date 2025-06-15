@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,10 +9,11 @@ import { SpatialAudioChat } from './immersive/SpatialAudioChat';
 import { HolographicInterface } from './immersive/HolographicInterface';
 import { AIAtmosphereController } from './immersive/AIAtmosphereController';
 import { CommunityGameification } from './immersive/CommunityGameification';
+import { GameStudioCafeExperience } from './immersive/GameStudioCafeExperience';
 import { toast } from 'sonner';
 
 export const CinematicCommunityHub = () => {
-  const [currentView, setCurrentView] = useState<'landing' | 'customization' | 'cafe3d'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'customization' | 'cafe3d' | 'gameStudio'>('landing');
   const [userAvatar, setUserAvatar] = useState(null);
   const [immersiveMode, setImmersiveMode] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
@@ -46,6 +46,22 @@ export const CinematicCommunityHub = () => {
       setCurrentView('cafe3d');
       setImmersiveMode(true);
     }, 2000);
+  };
+
+  const handleEnterGameStudioExperience = () => {
+    if (!userAvatar) {
+      setCurrentView('customization');
+      return;
+    }
+    
+    toast("🎮 Launching Game Studio Experience...", {
+      description: "Prepare for the ultimate café simulation",
+      duration: 3000
+    });
+    
+    setTimeout(() => {
+      setCurrentView('gameStudio');
+    }, 3000);
   };
 
   const enableVoiceChat = async () => {
@@ -104,6 +120,16 @@ export const CinematicCommunityHub = () => {
           onReputationChange={setUserReputation}
         />
       </div>
+    );
+  }
+
+  if (currentView === 'gameStudio') {
+    return (
+      <GameStudioCafeExperience
+        onExitExperience={() => setCurrentView('landing')}
+        userAvatar={userAvatar}
+        voiceEnabled={voiceEnabled}
+      />
     );
   }
 
@@ -196,13 +222,21 @@ export const CinematicCommunityHub = () => {
         <div className="text-center">
           <div className="inline-flex flex-col sm:flex-row gap-4 items-center">
             <Button
-              onClick={handleEnterCafe}
+              onClick={handleEnterGameStudioExperience}
               size="lg"
               className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 hover:from-purple-700 hover:via-pink-700 hover:to-blue-700 text-white px-12 py-6 text-xl font-bold rounded-full transform hover:scale-110 transition-all duration-300 shadow-2xl animate-pulse"
             >
               <Coffee className="h-8 w-8 mr-3" />
-              Enter the Future Café
+              Enter Game Studio Experience
               <Sparkles className="h-8 w-8 ml-3" />
+            </Button>
+            
+            <Button
+              onClick={handleEnterCafe}
+              variant="outline"
+              className="border-white/30 text-white bg-white/10 backdrop-blur-sm hover:bg-white/20 px-8 py-4 text-lg"
+            >
+              Classic 3D Experience
             </Button>
             
             <div className="flex gap-3">
