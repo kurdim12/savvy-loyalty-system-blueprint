@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Table, Armchair, DoorOpen, Stool, Sprout, Circle } from "lucide-react";
+import { Table, Armchair, DoorOpen, Square, Sprout, Circle } from "lucide-react";
 
 // Supported ux map. These types are ok to define! (You may want to display 'BarStool', etc in your UI)
 export type CafeIconName = "Table" | "Armchair" | "BarStool" | "Door" | "Chair" | "SideTable" | "Planter";
@@ -50,8 +50,8 @@ export const CafeIconMarker: React.FC<CafeIconMarkerProps> = ({
       sizePx = Math.round(sizePx * 0.6);
       break;
     case "Chair":
-      // Use Stool as a fallback since Chair icon is unavailable
-      IconComponent = Stool;
+      // Use Square as a fallback since Chair/Stool icons are unavailable
+      IconComponent = Square;
       sizePx = Math.round(sizePx * 0.85);
       break;
     case "SideTable":
