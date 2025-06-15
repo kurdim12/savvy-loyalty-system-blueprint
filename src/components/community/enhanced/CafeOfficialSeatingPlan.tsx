@@ -30,7 +30,7 @@ const SEATING_ZONES = [
   { id: 'lounge-chair-1', x: 60, y: 35, w: 5, h: 5, type: 'lounge', zone: 'lounge' },
   { id: 'lounge-chair-2', x: 68, y: 35, w: 5, h: 5, type: 'lounge', zone: 'lounge' },
   { id: 'lounge-chair-3', x: 60, y: 45, w: 5, h: 5, type: 'lounge', zone: 'lounge' },
-  { id: 'lounge-chair-4', x: 68, y: 45, w: 5, h, 5, type: 'lounge', zone: 'lounge' },
+  { id: 'lounge-chair-4', x: 68, y: 45, w: 5, h: 5, type: 'lounge', zone: 'lounge' },
   
   // Corner Booth
   { id: 'corner-booth', x: 60, y: 60, w: 12, h: 8, type: 'booth', zone: 'lounge', capacity: 6 }
