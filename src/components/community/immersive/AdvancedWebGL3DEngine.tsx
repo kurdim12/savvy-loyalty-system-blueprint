@@ -1,17 +1,9 @@
-
 import { useRef, useEffect, useState } from 'react';
-import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { 
   OrbitControls, 
   Environment, 
   PerspectiveCamera,
-  EffectComposer,
-  Bloom,
-  DepthOfField,
-  Noise,
-  Vignette,
-  SSAO,
-  ToneMapping,
   useGLTF,
   Text3D,
   MeshReflectorMaterial,
@@ -56,6 +48,7 @@ const PhotorealisticCafe = () => {
           maxDepthThreshold={1.4}
           color="#3a2317"
           metalness={0.5}
+          mirror={0.8}
         />
       </mesh>
 
@@ -508,8 +501,7 @@ export const AdvancedWebGL3DEngine = ({
         gl={{ 
           antialias: true, 
           alpha: true,
-          powerPreference: "high-performance",
-          shadowMap: true
+          powerPreference: "high-performance"
         }}
         className="w-full h-full"
       >
@@ -553,16 +545,6 @@ export const AdvancedWebGL3DEngine = ({
           emotion="happy"
           activity="exploring"
         />
-
-        {/* Post-Processing Effects */}
-        <EffectComposer multisampling={8}>
-          <Bloom intensity={0.3} width={300} height={300} kernelSize={5} luminanceThreshold={0.15} luminanceSmoothing={0.025} />
-          <DepthOfField focusDistance={0} focalLength={0.02} bokehScale={2} height={480} />
-          <Noise opacity={0.025} />
-          <Vignette eskil={false} offset={0.1} darkness={0.1} />
-          <SSAO samples={30} radius={5} intensity={0.1} luminanceInfluence={0.6} color="black" />
-          <ToneMapping adaptive={true} resolution={256} middleGrey={0.6} maxLuminance={16.0} averageLuminance={1.0} adaptationRate={1.0} />
-        </EffectComposer>
 
         <OrbitControls
           enabled={cameraMode === "free"}
