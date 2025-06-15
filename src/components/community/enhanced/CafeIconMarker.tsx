@@ -1,7 +1,5 @@
-
-// Only import icons that actually exist in the installed lucide-react package!
 import React from "react";
-import { Table, Armchair, DoorOpen } from "lucide-react";
+import { Table, Armchair, DoorOpen, Chair, Sprout, Circle } from "lucide-react";
 
 // Supported ux map. These types are ok to define! (You may want to display 'BarStool', etc in your UI)
 export type CafeIconName = "Table" | "Armchair" | "BarStool" | "Door" | "Chair" | "SideTable" | "Planter";
@@ -46,25 +44,24 @@ export const CafeIconMarker: React.FC<CafeIconMarkerProps> = ({
       IconComponent = Armchair;
       break;
     case "BarStool":
-      // No BarStool icon, fallback to Table smaller, add comment
-      IconComponent = Table;
-      sizePx = Math.round(sizePx * 0.45);
+      // Use Circle for a better stool representation
+      IconComponent = Circle;
+      sizePx = Math.round(sizePx * 0.6);
       break;
     case "Chair":
-      // No Chair icon, fallback to Armchair slightly smaller
-      IconComponent = Armchair;
-      sizePx = Math.round(sizePx * 0.65);
+      // Use the actual Chair icon now
+      IconComponent = Chair;
+      sizePx = Math.round(sizePx * 0.85);
       break;
     case "SideTable":
-      // No SideTable icon, fallback to Table even smaller
+      // Fallback to a smaller Table for side tables
       IconComponent = Table;
-      sizePx = Math.round(sizePx * 0.35);
+      sizePx = Math.round(sizePx * 0.45);
       break;
     case "Planter":
-      // No Planter icon, fallback to Table with green color
-      IconComponent = Table;
-      iconColor = "#3d7e38";
-      sizePx = Math.round(sizePx * 0.45);
+      // Use Sprout for a more accurate plant icon
+      IconComponent = Sprout;
+      iconColor = "#16a34a"; // Keep green color for planters
       break;
     case "Door":
       IconComponent = DoorOpen;
