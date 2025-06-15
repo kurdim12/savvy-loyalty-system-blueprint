@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Coffee, Users, MapPin, ArrowLeft } from 'lucide-react';
+import { Coffee, Users, MapPin, ArrowLeft, Zap } from 'lucide-react';
 import { UniqueSeatingArea } from './enhanced/UniqueSeatingArea';
 import { SeatedPerspectiveView } from './enhanced/SeatedPerspectiveView';
 
@@ -38,18 +38,18 @@ export const PhysicalCafeFloorPlan = () => {
           <div className="flex items-center gap-3">
             <MapPin className="h-6 w-6 text-stone-600" />
             <div>
-              <span className="text-xl">Your Café Floor Plan</span>
-              <div className="text-sm text-stone-600 font-normal">Find your perfect spot</div>
+              <span className="text-xl">Interactive Café Seating</span>
+              <div className="text-sm text-stone-600 font-normal">Click any seat to join area conversations</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Badge className="bg-green-500 text-white">
               <Users className="h-3 w-3 mr-1" />
-              Live View
+              Live Presence
             </Badge>
             <Badge className="bg-amber-600 text-white">
-              <Coffee className="h-3 w-3 mr-1" />
-              Now Open
+              <Zap className="h-3 w-3 mr-1" />
+              Real-time Chat
             </Badge>
           </div>
         </CardTitle>
