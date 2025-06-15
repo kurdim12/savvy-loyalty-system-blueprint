@@ -4,11 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Coffee, Users, MessageSquare, Music, MapPin, Calendar } from 'lucide-react';
+import { Coffee, Users, MessageSquare, MapPin, Calendar } from 'lucide-react';
 import { CommunityChat } from './CommunityChat';
 import { CommunityEvents } from './CommunityEvents';
 import { CommunityMembers } from './CommunityMembers';
-import { CommunityMusic } from './CommunityMusic';
 import { CommunitySpaces } from './CommunitySpaces';
 import { CafeEntranceTransition } from './CafeEntranceTransition';
 import { CoffeeShopExperience } from './CoffeeShopExperience';
@@ -62,7 +61,7 @@ export const InteractiveCommunityHub = () => {
         </CardHeader>
         
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
             <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
               <Users className="h-8 w-8 mx-auto mb-2" />
               <div className="text-2xl font-bold">127</div>
@@ -79,12 +78,6 @@ export const InteractiveCommunityHub = () => {
               <Calendar className="h-8 w-8 mx-auto mb-2" />
               <div className="text-2xl font-bold">5</div>
               <div className="text-sm opacity-90">Events This Week</div>
-            </div>
-            
-            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
-              <Music className="h-8 w-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">Live</div>
-              <div className="text-sm opacity-90">Music Playing</div>
             </div>
           </div>
 
@@ -107,7 +100,7 @@ export const InteractiveCommunityHub = () => {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 bg-white shadow-lg">
+        <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg">
           <TabsTrigger 
             value="spaces" 
             className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white"
@@ -136,13 +129,6 @@ export const InteractiveCommunityHub = () => {
             <Calendar className="h-4 w-4" />
             Events
           </TabsTrigger>
-          <TabsTrigger 
-            value="music" 
-            className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white"
-          >
-            <Music className="h-4 w-4" />
-            Music
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="spaces" className="mt-6">
@@ -159,10 +145,6 @@ export const InteractiveCommunityHub = () => {
 
         <TabsContent value="events" className="mt-6">
           <CommunityEvents />
-        </TabsContent>
-
-        <TabsContent value="music" className="mt-6">
-          <CommunityMusic />
         </TabsContent>
       </Tabs>
     </div>
