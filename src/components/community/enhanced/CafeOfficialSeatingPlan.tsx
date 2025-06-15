@@ -16,19 +16,26 @@ export const CafeOfficialSeatingPlan: React.FC<{
   
   const snap = (n: number) => Math.round(n);
 
-  // Define zones based on specifications
+  // Define zones based on the new isometric layout
   const indoorZone = {
-    x: 0,
-    y: 0,
-    w: GRID_W,
-    h: Math.floor(GRID_H * 2/3), // Top 2/3
+    x: 2,
+    y: 2,
+    w: 20,
+    h: 14,
   };
   
   const outdoorZone = {
-    x: 0,
-    y: Math.floor(GRID_H * 2/3),
-    w: GRID_W,
-    h: Math.floor(GRID_H * 1/3), // Bottom 1/3
+    x: 2,
+    y: 16,
+    w: 20,
+    h: 6,
+  };
+
+  const loungeZone = {
+    x: 24,
+    y: 16,
+    w: 6,
+    h: 6,
   };
 
   const handleSeatClick = (seatId: string) => {
@@ -49,8 +56,8 @@ export const CafeOfficialSeatingPlan: React.FC<{
       {/* Header */}
       {!hideHeader && (
         <div className="text-center py-4">
-          <h2 className="text-2xl font-bold text-stone-800 mb-2">RAW SMITH CAFÉ - SEATING PLAN</h2>
-          <p className="text-sm text-stone-600">Professional Layout with Grid Snapping</p>
+          <h2 className="text-2xl font-bold text-stone-800 mb-2">RAW SMITH CAFÉ - ISOMETRIC LAYOUT</h2>
+          <p className="text-sm text-stone-600">Interactive Seating Plan - Click any seat to join the area chat</p>
         </div>
       )}
 
@@ -60,82 +67,69 @@ export const CafeOfficialSeatingPlan: React.FC<{
         style={{
           aspectRatio: `${GRID_W / GRID_H}`,
           maxWidth: "95vw",
-          height: hideHeader ? "60vh" : "calc(100vh - 120px)",
-          backgroundImage: "url('/lovable-uploads/okay,where.JPG')",
+          height: hideHeader ? "70vh" : "calc(100vh - 120px)",
+          backgroundImage: "url('/lovable-uploads/7ddcf203-b9d9-4773-bf53-d70372417ee7.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat"
         }}
       >
-        {/* Grid Overlay for Snap-to-Grid */}
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, #666 1px, transparent 1px),
-              linear-gradient(to bottom, #666 1px, transparent 1px)
-            `,
-            backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`
-          }}
-        />
-
         {/* Indoor Zone */}
         <div
-          className="absolute border-2 border-stone-600"
+          className="absolute border-2 border-amber-600 rounded-lg"
           style={{
             left: indoorZone.x * GRID_SIZE,
             top: indoorZone.y * GRID_SIZE,
             width: indoorZone.w * GRID_SIZE,
             height: indoorZone.h * GRID_SIZE,
-            backgroundColor: "rgba(224, 223, 220, 0.3)",
+            backgroundColor: "rgba(139, 69, 19, 0.1)",
             zIndex: 5,
             pointerEvents: "none"
           }}
         >
-          <span className="absolute left-4 top-2 text-stone-700 font-bold text-lg bg-white/90 px-3 py-2 rounded">
-            🏠 Indoor
+          <span className="absolute left-4 top-2 text-amber-800 font-bold text-sm bg-white/90 px-3 py-2 rounded shadow">
+            🏠 Indoor Café
           </span>
         </div>
 
         {/* Outdoor Terrace Zone */}
         <div
-          className="absolute border-2 border-green-600"
+          className="absolute border-2 border-green-600 rounded-lg"
           style={{
             left: outdoorZone.x * GRID_SIZE,
             top: outdoorZone.y * GRID_SIZE,
             width: outdoorZone.w * GRID_SIZE,
             height: outdoorZone.h * GRID_SIZE,
-            backgroundColor: "rgba(231, 239, 233, 0.3)",
+            backgroundColor: "rgba(34, 197, 94, 0.1)",
             zIndex: 5,
             pointerEvents: "none"
           }}
         >
-          <span className="absolute left-4 top-2 text-green-700 font-bold text-lg bg-white/90 px-3 py-2 rounded">
+          <span className="absolute left-4 top-2 text-green-800 font-bold text-sm bg-white/90 px-3 py-2 rounded shadow">
             🌿 Outdoor Terrace
           </span>
         </div>
 
-        {/* RAW SMITH CAFÉ Title - Repositioned to match image */}
+        {/* Lounge Zone */}
         <div
-          className="absolute font-black text-center pointer-events-none"
+          className="absolute border-2 border-purple-600 rounded-lg"
           style={{
-            left: snap(GRID_W/2 - 6) * GRID_SIZE, // Centered more accurately
-            top: snap(0.5) * GRID_SIZE, // Moved up
-            fontSize: "32px",
-            color: "#451a03",
-            zIndex: 50,
-            width: 480,
-            textShadow: "2px 2px 4px rgba(255,255,255,0.9)",
-            letterSpacing: "0.1em"
+            left: loungeZone.x * GRID_SIZE,
+            top: loungeZone.y * GRID_SIZE,
+            width: loungeZone.w * GRID_SIZE,
+            height: loungeZone.h * GRID_SIZE,
+            backgroundColor: "rgba(147, 51, 234, 0.1)",
+            zIndex: 5,
+            pointerEvents: "none"
           }}
         >
-          RAW SMITH CAFÉ
+          <span className="absolute left-2 top-2 text-purple-800 font-bold text-xs bg-white/90 px-2 py-1 rounded shadow">
+            🛋️ Lounge
+          </span>
         </div>
 
-        {/* INDOOR FURNITURE - Adjusted layout to match reference photo */}
-        
-        {/* Bar Counter - 4 Stools along top wall */}
-        {[8, 11, 14, 17].map((x, idx) => (
+        {/* Bar Counter - Top area with stools */}
+        {[6, 8, 10, 12, 14, 16, 18].map((x, idx) => (
           <div
             key={`bar-stool-${idx}`}
             onClick={() => handleSeatClick(`bar-stool-${idx + 1}`)}
@@ -146,7 +140,7 @@ export const CafeOfficialSeatingPlan: React.FC<{
             <CafeIconMarker
               icon="BarStool"
               gridX={snap(x)}
-              gridY={snap(3.5)}
+              gridY={snap(5)}
               gridSize={GRID_SIZE}
               iconColor="#3d2c24"
               zIndex={30}
@@ -154,105 +148,14 @@ export const CafeOfficialSeatingPlan: React.FC<{
           </div>
         ))}
 
-        {/* Lounge Nook - Top-left corner, tighter layout */}
-        {/* Armchair 1 */}
-        <div
-          onClick={() => handleSeatClick('lounge-armchair-1')}
-          onMouseEnter={() => setHoveredSeat('lounge-armchair-1')}
-          onMouseLeave={() => setHoveredSeat(null)}
-          style={getSeatStyle('lounge-armchair-1')}
-        >
-          <CafeIconMarker
-            icon="Armchair"
-            gridX={snap(1.5)}
-            gridY={snap(5)}
-            gridSize={GRID_SIZE}
-            iconColor="#166534"
-            zIndex={25}
-          />
-        </div>
-        {/* Armchair 2 */}
-        <div
-          onClick={() => handleSeatClick('lounge-armchair-2')}
-          onMouseEnter={() => setHoveredSeat('lounge-armchair-2')}
-          onMouseLeave={() => setHoveredSeat(null)}
-          style={getSeatStyle('lounge-armchair-2')}
-        >
-          <CafeIconMarker
-            icon="Armchair"
-            gridX={snap(1.5)}
-            gridY={snap(7.5)}
-            gridSize={GRID_SIZE}
-            iconColor="#166534"
-            zIndex={25}
-          />
-        </div>
-        {/* Side Table between armchairs */}
-        <CafeIconMarker
-          icon="SideTable"
-          gridX={snap(3.5)}
-          gridY={snap(6.25)}
-          gridSize={GRID_SIZE}
-          iconColor="#3d2c24"
-          zIndex={20}
-        />
-        
-        {/* Single Indoor Table - replaced 2x2 grid */}
-        <React.Fragment>
-          <div
-              onClick={() => handleSeatClick('indoor-table-1')}
-              onMouseEnter={() => setHoveredSeat('indoor-table-1')}
-              onMouseLeave={() => setHoveredSeat(null)}
-              style={getSeatStyle('indoor-table-1')}
-            >
-              <CafeIconMarker 
-                icon="Table" 
-                gridX={snap(7)} 
-                gridY={snap(7)} 
-                gridSize={GRID_SIZE} 
-                iconColor="#451a03"
-                zIndex={20} 
-              />
-            </div>
-            <div
-                key={`indoor-table-1-chair-1`}
-                onClick={() => handleSeatClick(`indoor-table-1-chair-1`)}
-                onMouseEnter={() => setHoveredSeat(`indoor-table-1-chair-1`)}
-                onMouseLeave={() => setHoveredSeat(null)}
-                style={getSeatStyle(`indoor-table-1-chair-1`)}
-              >
-                <CafeIconMarker 
-                  icon="Chair" 
-                  gridX={snap(7)} 
-                  gridY={snap(8)} 
-                  gridSize={GRID_SIZE} 
-                  iconColor="#1a1a1a"
-                  zIndex={20} 
-                />
-              </div>
-        </React.Fragment>
-
-        {/* OUTDOOR FURNITURE - Adjusted layout to match reference photo */}
-
-        {/* Terrace Railing - using a div for better representation */}
-        <div className="absolute pointer-events-none" style={{
-            left: snap(5) * GRID_SIZE,
-            top: snap(indoorZone.h) * GRID_SIZE,
-            width: (GRID_W - 10) * GRID_SIZE,
-            height: '48px',
-            zIndex: 15,
-          }}>
-           <div className="absolute bg-neutral-800 w-full" style={{ height: '8px', top: 0}} />
-           <div className="absolute bg-neutral-800 w-full" style={{ height: '8px', top: '20px' }} />
-           <div className="absolute bg-neutral-800 w-full" style={{ height: '8px', top: '40px' }} />
-         </div>
-
-        {/* Outdoor Tables - 2x2 grid to match photo */}
+        {/* Indoor Tables - 2x2 grid layout */}
         {[
-          { x: 7, y: 15, id: 'outdoor-table-1' },
-          { x: 17, y: 15, id: 'outdoor-table-2' },
-          { x: 7, y: 18, id: 'outdoor-table-3' },
-          { x: 17, y: 18, id: 'outdoor-table-4' }
+          { x: 6, y: 8, id: 'indoor-table-1' },
+          { x: 12, y: 8, id: 'indoor-table-2' },
+          { x: 18, y: 8, id: 'indoor-table-3' },
+          { x: 6, y: 12, id: 'indoor-table-4' },
+          { x: 12, y: 12, id: 'indoor-table-5' },
+          { x: 18, y: 12, id: 'indoor-table-6' }
         ].map((table) => (
           <React.Fragment key={table.id}>
             {/* Table */}
@@ -267,85 +170,183 @@ export const CafeOfficialSeatingPlan: React.FC<{
                 gridX={snap(table.x)} 
                 gridY={snap(table.y)} 
                 gridSize={GRID_SIZE} 
-                iconColor="#451a03"
-                zIndex={15} 
+                iconColor="#D2691E"
+                zIndex={25} 
               />
             </div>
             
-            {/* 2 Chairs on opposite sides */}
-            {[-1.5, 1.5].map((offset, idx) => (
+            {/* 4 Chairs around each table */}
+            {[
+              { x: table.x - 1, y: table.y, chairId: 1 },
+              { x: table.x + 1, y: table.y, chairId: 2 },
+              { x: table.x, y: table.y - 1, chairId: 3 },
+              { x: table.x, y: table.y + 1, chairId: 4 }
+            ].map((chair) => (
               <div
-                key={`${table.id}-chair-${idx}`}
-                onClick={() => handleSeatClick(`${table.id}-chair-${idx + 1}`)}
-                onMouseEnter={() => setHoveredSeat(`${table.id}-chair-${idx + 1}`)}
+                key={`${table.id}-chair-${chair.chairId}`}
+                onClick={() => handleSeatClick(`${table.id}-chair-${chair.chairId}`)}
+                onMouseEnter={() => setHoveredSeat(`${table.id}-chair-${chair.chairId}`)}
                 onMouseLeave={() => setHoveredSeat(null)}
-                style={getSeatStyle(`${table.id}-chair-${idx + 1}`)}
+                style={getSeatStyle(`${table.id}-chair-${chair.chairId}`)}
               >
                 <CafeIconMarker 
                   icon="Chair" 
-                  gridX={snap(table.x + offset)} 
-                  gridY={snap(table.y)} 
+                  gridX={snap(chair.x)} 
+                  gridY={snap(chair.y)} 
                   gridSize={GRID_SIZE} 
-                  iconColor="#1a1a1a"
-                  zIndex={15} 
+                  iconColor="#2c1810"
+                  zIndex={25} 
                 />
               </div>
             ))}
           </React.Fragment>
         ))}
 
-        {/* Planters - Two planters on the right side */}
+        {/* Green Lounge Chairs - Left side indoor */}
         {[
-          { x: 25, y: 14 },
-          { x: 25, y: 18 },
+          { x: 4, y: 7, id: 'lounge-chair-1' },
+          { x: 4, y: 9, id: 'lounge-chair-2' },
+          { x: 4, y: 11, id: 'lounge-chair-3' }
+        ].map((chair) => (
+          <div
+            key={chair.id}
+            onClick={() => handleSeatClick(chair.id)}
+            onMouseEnter={() => setHoveredSeat(chair.id)}
+            onMouseLeave={() => setHoveredSeat(null)}
+            style={getSeatStyle(chair.id)}
+          >
+            <CafeIconMarker
+              icon="Armchair"
+              gridX={snap(chair.x)}
+              gridY={snap(chair.y)}
+              gridSize={GRID_SIZE}
+              iconColor="#228B22"
+              zIndex={25}
+            />
+          </div>
+        ))}
+
+        {/* Outdoor Terrace Tables */}
+        {[
+          { x: 6, y: 18, id: 'outdoor-table-1' },
+          { x: 12, y: 18, id: 'outdoor-table-2' },
+          { x: 18, y: 18, id: 'outdoor-table-3' }
+        ].map((table) => (
+          <React.Fragment key={table.id}>
+            {/* Table */}
+            <div
+              onClick={() => handleSeatClick(table.id)}
+              onMouseEnter={() => setHoveredSeat(table.id)}
+              onMouseLeave={() => setHoveredSeat(null)}
+              style={getSeatStyle(table.id)}
+            >
+              <CafeIconMarker 
+                icon="Table" 
+                gridX={snap(table.x)} 
+                gridY={snap(table.y)} 
+                gridSize={GRID_SIZE} 
+                iconColor="#CD853F"
+                zIndex={20} 
+              />
+            </div>
+            
+            {/* 2 Chairs per outdoor table */}
+            {[
+              { x: table.x - 1, y: table.y, chairId: 1 },
+              { x: table.x + 1, y: table.y, chairId: 2 }
+            ].map((chair) => (
+              <div
+                key={`${table.id}-chair-${chair.chairId}`}
+                onClick={() => handleSeatClick(`${table.id}-chair-${chair.chairId}`)}
+                onMouseEnter={() => setHoveredSeat(`${table.id}-chair-${chair.chairId}`)}
+                onMouseLeave={() => setHoveredSeat(null)}
+                style={getSeatStyle(`${table.id}-chair-${chair.chairId}`)}
+              >
+                <CafeIconMarker 
+                  icon="Chair" 
+                  gridX={snap(chair.x)} 
+                  gridY={snap(chair.y)} 
+                  gridSize={GRID_SIZE} 
+                  iconColor="#2c1810"
+                  zIndex={20} 
+                />
+              </div>
+            ))}
+          </React.Fragment>
+        ))}
+
+        {/* Separate Lounge Area */}
+        {[
+          { x: 25, y: 18, id: 'separate-lounge-1' },
+          { x: 27, y: 18, id: 'separate-lounge-2' },
+          { x: 25, y: 20, id: 'separate-lounge-3' },
+          { x: 27, y: 20, id: 'separate-lounge-4' }
+        ].map((chair) => (
+          <div
+            key={chair.id}
+            onClick={() => handleSeatClick(chair.id)}
+            onMouseEnter={() => setHoveredSeat(chair.id)}
+            onMouseLeave={() => setHoveredSeat(null)}
+            style={getSeatStyle(chair.id)}
+          >
+            <CafeIconMarker
+              icon="Armchair"
+              gridX={snap(chair.x)}
+              gridY={snap(chair.y)}
+              gridSize={GRID_SIZE}
+              iconColor="#228B22"
+              zIndex={20}
+            />
+          </div>
+        ))}
+
+        {/* Plants and Decorations */}
+        {[
+          { x: 3, y: 6 },
+          { x: 21, y: 6 },
+          { x: 23, y: 19 }
         ].map((plant, idx) => (
           <CafeIconMarker 
-            key={`planter-${idx}`}
+            key={`plant-${idx}`}
             icon="Planter" 
             gridX={snap(plant.x)} 
             gridY={snap(plant.y)} 
             gridSize={GRID_SIZE} 
-            zIndex={20} 
+            iconColor="#228B22"
+            zIndex={15} 
           />
         ))}
 
-        {/* Entrance Door - Moved to the right */}
+        {/* Entrance */}
         <CafeIconMarker
           icon="Door"
-          gridX={snap(21)}
-          gridY={snap(indoorZone.h - 2.5)}
+          gridX={snap(22)}
+          gridY={snap(13)}
           gridW={2}
-          gridH={2.5}
+          gridH={2}
           gridSize={GRID_SIZE}
           label="Entrance"
           zIndex={35}
         />
 
-        {/* Bar Window Label - updated text */}
-        <div className="absolute text-stone-800 font-bold text-sm bg-white/90 px-3 py-2 rounded shadow-lg" 
-             style={{ 
-               left: snap(12) * GRID_SIZE, 
-               top: snap(2) * GRID_SIZE, 
-               zIndex: 40 
-             }}>
-          Bar Counter / Service Window
-        </div>
-
         {/* Legend */}
         <div className="absolute bottom-4 right-4 bg-white/95 p-4 rounded-lg shadow-lg text-sm max-w-xs">
-          <div className="font-semibold mb-3 text-base">Layout Legend</div>
+          <div className="font-semibold mb-3 text-base">Area Chat Zones</div>
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="w-4 h-4 bg-stone-300 rounded"></div>
-              <span>Indoor Zone</span>
+              <div className="w-4 h-4 bg-amber-200 border border-amber-600 rounded"></div>
+              <span>Indoor Café</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-4 h-4 bg-green-300 rounded"></div>
+              <div className="w-4 h-4 bg-green-200 border border-green-600 rounded"></div>
               <span>Outdoor Terrace</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-4 h-4 bg-amber-300 rounded"></div>
-              <span>Grid: 1m × 1m</span>
+              <div className="w-4 h-4 bg-purple-200 border border-purple-600 rounded"></div>
+              <span>Lounge Area</span>
+            </div>
+            <div className="text-xs text-gray-600 mt-2">
+              Click any seat to join that area's chat
             </div>
           </div>
         </div>
@@ -355,18 +356,20 @@ export const CafeOfficialSeatingPlan: React.FC<{
           <div className="absolute top-4 left-4 bg-white/95 p-4 rounded-lg shadow-lg text-base max-w-sm">
             <div className="font-semibold text-stone-800 text-lg">{hoveredSeat}</div>
             <div className="text-stone-600 text-sm mt-2">
-              {hoveredSeat.includes('bar-stool') && "🪑 Bar counter seating"}
-              {hoveredSeat.includes('lounge-armchair') && "🛋️ Comfortable lounge seating"}
-              {hoveredSeat.includes('main-table') && "🪑 Main dining area"}
-              {hoveredSeat.includes('outdoor-table') && "🌿 Outdoor terrace dining"}
-              <br />Grid-snapped positioning for professional layout
+              {hoveredSeat.includes('bar-stool') && "🪑 Bar counter seating - Perfect for quick coffee and socializing"}
+              {hoveredSeat.includes('lounge-chair') && "🛋️ Comfortable lounge seating - Great for relaxed conversations"}
+              {hoveredSeat.includes('indoor-table') && "☕ Indoor dining - Ideal for meetings and focused work"}
+              {hoveredSeat.includes('outdoor-table') && "🌿 Outdoor terrace - Fresh air and casual dining"}
+              {hoveredSeat.includes('separate-lounge') && "🏝️ Private lounge - Quiet space for intimate conversations"}
+              <br />
+              <span className="text-amber-600 font-medium">Click to join this area's chat!</span>
             </div>
           </div>
         )}
 
-        {/* Export Quality Indicator */}
-        <div className="absolute top-4 right-4 bg-green-600/90 text-white px-3 py-2 rounded-lg text-sm font-semibold">
-          📐 Professional Layout - Export Ready
+        {/* Live Status Indicator */}
+        <div className="absolute top-4 right-4 bg-green-600/90 text-white px-3 py-2 rounded-lg text-sm font-semibold animate-pulse">
+          🟢 Live Interactive Layout
         </div>
       </div>
     </div>
