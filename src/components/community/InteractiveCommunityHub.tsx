@@ -1,138 +1,122 @@
 
 import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CoffeeShopExperience } from './CoffeeShopExperience';
-import { RealTimeChat } from './RealTimeChat';
-import { FriendsSystem } from './social/FriendsSystem';
-import { Leaderboard } from './gamification/Leaderboard';
-import { DailyChallenges } from './gamification/DailyChallenges';
-import { EventCalendar } from './practical/EventCalendar';
-import { LivePointsDisplay } from './LivePointsDisplay';
-import { RealTimeUserPresence } from './RealTimeUserPresence';
-import { RealTimeActivityFeed } from './RealTimeActivityFeed';
-import { 
-  Coffee, 
-  MessageCircle, 
-  Users, 
-  Trophy, 
-  Calendar,
-  Target,
-  Activity
-} from 'lucide-react';
+import { Coffee, Users, MessageSquare, Music, MapPin, Calendar } from 'lucide-react';
+import { CommunityChat } from './CommunityChat';
+import { CommunityEvents } from './CommunityEvents';
+import { CommunityMembers } from './CommunityMembers';
+import { CommunityMusic } from './CommunityMusic';
+import { CommunitySpaces } from './CommunitySpaces';
 
 export const InteractiveCommunityHub = () => {
-  const [currentSeatId] = useState('window-seat-1');
+  const [activeTab, setActiveTab] = useState('spaces');
 
   return (
-    <div className="min-h-screen p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-[#8B4513] mb-2">
-            ☕ Community Hub
-          </h1>
-          <p className="text-gray-600">
-            Connect, chat, and enjoy your coffee experience with real-time updates
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Community Header */}
+      <Card className="bg-gradient-to-r from-[#8B4513] to-[#D2B48C] text-white border-0">
+        <CardHeader className="text-center">
+          <CardTitle className="text-3xl font-bold flex items-center justify-center gap-3">
+            <Coffee className="h-8 w-8" />
+            Raw Smith Café Community
+          </CardTitle>
+          <p className="text-white/90 text-lg">
+            Connect, collaborate, and create in our virtual coffee space
           </p>
-        </div>
-
-        {/* Live Points Display */}
-        <LivePointsDisplay />
-
-        {/* Real-time Components Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <RealTimeUserPresence />
-          <RealTimeActivityFeed />
-        </div>
-
-        {/* Main Hub */}
-        <Tabs defaultValue="sitting-plan" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-6">
-            <TabsTrigger value="sitting-plan" className="flex items-center gap-2">
-              <Coffee className="h-4 w-4" />
-              <span className="hidden sm:inline">Sitting Plan</span>
-            </TabsTrigger>
-            <TabsTrigger value="chat" className="flex items-center gap-2">
-              <MessageCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Chat</span>
-            </TabsTrigger>
-            <TabsTrigger value="social" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Social</span>
-            </TabsTrigger>
-            <TabsTrigger value="challenges" className="flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              <span className="hidden sm:inline">Challenges</span>
-            </TabsTrigger>
-            <TabsTrigger value="leaderboard" className="flex items-center gap-2">
-              <Trophy className="h-4 w-4" />
-              <span className="hidden sm:inline">Leaderboard</span>
-            </TabsTrigger>
-            <TabsTrigger value="events" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Events</span>
-            </TabsTrigger>
-            <TabsTrigger value="activity" className="flex items-center gap-2">
-              <Activity className="h-4 w-4" />
-              <span className="hidden sm:inline">Activity</span>
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Sitting Plan - Main Feature */}
-          <TabsContent value="sitting-plan" className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-[#8B4513] mb-4">Interactive Café Floor Plan</h2>
-              <p className="text-gray-600 mb-6">Choose your seat and connect with other coffee lovers in real-time</p>
-              <CoffeeShopExperience />
+        </CardHeader>
+        
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
+              <Users className="h-8 w-8 mx-auto mb-2" />
+              <div className="text-2xl font-bold">127</div>
+              <div className="text-sm opacity-90">Members Online</div>
             </div>
-          </TabsContent>
-
-          {/* Real-Time Chat */}
-          <TabsContent value="chat" className="space-y-6">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-[#8B4513] mb-4">Real-Time Community Chat</h2>
-              <RealTimeChat 
-                seatArea={currentSeatId} 
-                onlineUsers={[
-                  { name: 'Sarah M.', mood: '😊', activity: 'Enjoying espresso' },
-                  { name: 'Mike R.', mood: '💻', activity: 'Working remotely' },
-                  { name: 'Emma L.', mood: '📱', activity: 'Taking photos' }
-                ]} 
-              />
+            
+            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
+              <MessageSquare className="h-8 w-8 mx-auto mb-2" />
+              <div className="text-2xl font-bold">1.2k</div>
+              <div className="text-sm opacity-90">Messages Today</div>
             </div>
-          </TabsContent>
-
-          {/* Social Features */}
-          <TabsContent value="social" className="space-y-6">
-            <div className="grid grid-cols-1 gap-6">
-              <FriendsSystem />
+            
+            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
+              <Calendar className="h-8 w-8 mx-auto mb-2" />
+              <div className="text-2xl font-bold">5</div>
+              <div className="text-sm opacity-90">Events This Week</div>
             </div>
-          </TabsContent>
-
-          {/* Daily Challenges */}
-          <TabsContent value="challenges" className="space-y-6">
-            <DailyChallenges />
-          </TabsContent>
-
-          {/* Leaderboard */}
-          <TabsContent value="leaderboard" className="space-y-6">
-            <Leaderboard />
-          </TabsContent>
-
-          {/* Events Calendar */}
-          <TabsContent value="events" className="space-y-6">
-            <EventCalendar />
-          </TabsContent>
-
-          {/* Activity Feed */}
-          <TabsContent value="activity" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <RealTimeUserPresence />
-              <RealTimeActivityFeed />
+            
+            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
+              <Music className="h-8 w-8 mx-auto mb-2" />
+              <div className="text-2xl font-bold">Live</div>
+              <div className="text-sm opacity-90">Music Playing</div>
             </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Main Content Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-5 bg-white shadow-lg">
+          <TabsTrigger 
+            value="spaces" 
+            className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white"
+          >
+            <MapPin className="h-4 w-4" />
+            Spaces
+          </TabsTrigger>
+          <TabsTrigger 
+            value="chat" 
+            className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white"
+          >
+            <MessageSquare className="h-4 w-4" />
+            Chat
+          </TabsTrigger>
+          <TabsTrigger 
+            value="members" 
+            className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white"
+          >
+            <Users className="h-4 w-4" />
+            Members
+          </TabsTrigger>
+          <TabsTrigger 
+            value="events" 
+            className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white"
+          >
+            <Calendar className="h-4 w-4" />
+            Events
+          </TabsTrigger>
+          <TabsTrigger 
+            value="music" 
+            className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white"
+          >
+            <Music className="h-4 w-4" />
+            Music
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="spaces" className="mt-6">
+          <CommunitySpaces />
+        </TabsContent>
+
+        <TabsContent value="chat" className="mt-6">
+          <CommunityChat />
+        </TabsContent>
+
+        <TabsContent value="members" className="mt-6">
+          <CommunityMembers />
+        </TabsContent>
+
+        <TabsContent value="events" className="mt-6">
+          <CommunityEvents />
+        </TabsContent>
+
+        <TabsContent value="music" className="mt-6">
+          <CommunityMusic />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
