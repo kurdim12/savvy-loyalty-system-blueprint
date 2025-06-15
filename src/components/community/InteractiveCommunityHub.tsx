@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import { CommunityEvents } from './CommunityEvents';
 import { CommunityMembers } from './CommunityMembers';
 import { CommunitySpaces } from './CommunitySpaces';
 import { CafeEntranceTransition } from './CafeEntranceTransition';
-import { CoffeeShopExperience } from './CoffeeShopExperience';
+import { Enhanced3DSeatingView } from './enhanced/Enhanced3DSeatingView';
 
 export const InteractiveCommunityHub = () => {
   const [activeTab, setActiveTab] = useState('spaces');
@@ -36,14 +35,14 @@ export const InteractiveCommunityHub = () => {
     return (
       <CafeEntranceTransition
         onEnter={handleEntranceComplete}
-        SeatingPlan={<CoffeeShopExperience onBack={handleBackToHub} />}
+        SeatingPlan={<Enhanced3DSeatingView onBack={handleBackToHub} />}
       />
     );
   }
 
   // Show café experience
   if (showCafeExperience) {
-    return <CoffeeShopExperience onBack={handleBackToHub} />;
+    return <Enhanced3DSeatingView onBack={handleBackToHub} />;
   }
 
   return (
