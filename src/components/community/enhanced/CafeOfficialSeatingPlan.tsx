@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { CafeIconMarker } from "./CafeIconMarker";
 
@@ -44,7 +45,7 @@ export const CafeOfficialSeatingPlan: React.FC<{
   });
 
   return (
-    <div className="w-full min-h-screen" style={{ backgroundColor: '#f5f0e7' }}>
+    <div className="w-full" style={{ backgroundColor: '#f5f0e7' }}>
       {/* Header */}
       {!hideHeader && (
         <div className="text-center py-4">
@@ -59,7 +60,7 @@ export const CafeOfficialSeatingPlan: React.FC<{
         style={{
           aspectRatio: `${GRID_W / GRID_H}`,
           maxWidth: "95vw",
-          height: hideHeader ? "100vh" : "calc(100vh - 120px)",
+          height: hideHeader ? "60vh" : "calc(100vh - 120px)",
           backgroundImage: "url('/lovable-uploads/okay,where.JPG')",
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -371,3 +372,4 @@ export const CafeOfficialSeatingPlan: React.FC<{
     </div>
   );
 };
+
