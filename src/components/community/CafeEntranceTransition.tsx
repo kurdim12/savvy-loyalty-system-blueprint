@@ -50,7 +50,7 @@ export const CafeEntranceTransition: React.FC<CafeEntranceTransitionProps> = ({
         >
           {/* Static entrance image */}
           <img
-            src="/lovable-uploads/acc54590-cab4-4492-8dee-c6c8a5c60d44.png"
+            src="/lovable-uploads/4fba4e0f-0dfa-43ef-a304-3b94769f0351.png"
             alt="Raw Smith Café Entrance"
             className="w-full h-full object-cover object-center"
             draggable={false}
@@ -97,4 +97,3 @@ export const CafeEntranceTransition: React.FC<CafeEntranceTransitionProps> = ({
 };
 
 export default CafeEntranceTransition;
-
