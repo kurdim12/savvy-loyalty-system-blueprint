@@ -11,8 +11,7 @@ export const CafeOfficialSeatingPlan: React.FC<{
   onSeatSelect?: (seatId: string) => void;
   selectedSeat?: string | null;
   hideHeader?: boolean;
-  exportMode?: boolean;
-}> = ({ onSeatSelect, selectedSeat, hideHeader, exportMode = false }) => {
+}> = ({ onSeatSelect, selectedSeat, hideHeader }) => {
   const [hoveredSeat, setHoveredSeat] = useState<string | null>(null);
   
   const snap = (n: number) => Math.round(n);
@@ -46,9 +45,9 @@ export const CafeOfficialSeatingPlan: React.FC<{
   });
 
   return (
-    <div className="w-full h-full" style={{ backgroundColor: '#f5f0e7' }}>
+    <div className="w-full" style={{ backgroundColor: '#f5f0e7' }}>
       {/* Header */}
-      {!hideHeader && !exportMode && (
+      {!hideHeader && (
         <div className="text-center py-4">
           <h2 className="text-2xl font-bold text-stone-800 mb-2">RAW SMITH CAFÉ - SEATING PLAN</h2>
           <p className="text-sm text-stone-600">Professional Layout with Grid Snapping</p>
@@ -57,15 +56,11 @@ export const CafeOfficialSeatingPlan: React.FC<{
 
       {/* Main Canvas Container */}
       <div
-        className="relative mx-auto overflow-hidden"
+        className="relative w-full mx-auto border-2 border-stone-400 rounded-lg shadow-2xl overflow-hidden"
         style={{
-          width: exportMode ? '100%' : 'auto',
-          height: exportMode ? '100%' : (hideHeader ? "60vh" : "calc(100vh - 120px)"),
-          maxWidth: exportMode ? 'none' : "95vw",
           aspectRatio: `${GRID_W / GRID_H}`,
-          border: exportMode ? 'none' : '2px solid #a8a29e',
-          borderRadius: exportMode ? '0' : '0.5rem',
-          boxShadow: exportMode ? 'none' : '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          maxWidth: "95vw",
+          height: hideHeader ? "60vh" : "calc(100vh - 120px)",
           backgroundImage: "url('/lovable-uploads/okay,where.JPG')",
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -337,28 +332,26 @@ export const CafeOfficialSeatingPlan: React.FC<{
         </div>
 
         {/* Legend */}
-        {!exportMode && (
-          <div className="absolute bottom-4 right-4 bg-white/95 p-4 rounded-lg shadow-lg text-sm max-w-xs">
-            <div className="font-semibold mb-3 text-base">Layout Legend</div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-stone-300 rounded"></div>
-                <span>Indoor Zone</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-green-300 rounded"></div>
-                <span>Outdoor Terrace</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-amber-300 rounded"></div>
-                <span>Grid: 1m × 1m</span>
-              </div>
+        <div className="absolute bottom-4 right-4 bg-white/95 p-4 rounded-lg shadow-lg text-sm max-w-xs">
+          <div className="font-semibold mb-3 text-base">Layout Legend</div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="w-4 h-4 bg-stone-300 rounded"></div>
+              <span>Indoor Zone</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-4 h-4 bg-green-300 rounded"></div>
+              <span>Outdoor Terrace</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-4 h-4 bg-amber-300 rounded"></div>
+              <span>Grid: 1m × 1m</span>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Seat Info Panel */}
-        {hoveredSeat && !exportMode && (
+        {hoveredSeat && (
           <div className="absolute top-4 left-4 bg-white/95 p-4 rounded-lg shadow-lg text-base max-w-sm">
             <div className="font-semibold text-stone-800 text-lg">{hoveredSeat}</div>
             <div className="text-stone-600 text-sm mt-2">
@@ -372,12 +365,11 @@ export const CafeOfficialSeatingPlan: React.FC<{
         )}
 
         {/* Export Quality Indicator */}
-        {!exportMode && (
-          <div className="absolute top-4 right-4 bg-green-600/90 text-white px-3 py-2 rounded-lg text-sm font-semibold">
-            📐 Professional Layout - Export Ready
-          </div>
-        )}
+        <div className="absolute top-4 right-4 bg-green-600/90 text-white px-3 py-2 rounded-lg text-sm font-semibold">
+          📐 Professional Layout - Export Ready
+        </div>
       </div>
     </div>
   );
 };
+
