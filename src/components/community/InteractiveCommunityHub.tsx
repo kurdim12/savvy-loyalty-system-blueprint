@@ -10,9 +10,42 @@ import { CommunityEvents } from './CommunityEvents';
 import { CommunityMembers } from './CommunityMembers';
 import { CommunityMusic } from './CommunityMusic';
 import { CommunitySpaces } from './CommunitySpaces';
+import { CafeEntranceTransition } from './CafeEntranceTransition';
+import { CoffeeShopExperience } from './CoffeeShopExperience';
 
 export const InteractiveCommunityHub = () => {
   const [activeTab, setActiveTab] = useState('spaces');
+  const [showCafeExperience, setShowCafeExperience] = useState(false);
+  const [showEntranceTransition, setShowEntranceTransition] = useState(false);
+
+  const handleEnterCafe = () => {
+    setShowEntranceTransition(true);
+  };
+
+  const handleEntranceComplete = () => {
+    setShowEntranceTransition(false);
+    setShowCafeExperience(true);
+  };
+
+  const handleBackToHub = () => {
+    setShowCafeExperience(false);
+    setShowEntranceTransition(false);
+  };
+
+  // Show entrance transition
+  if (showEntranceTransition) {
+    return (
+      <CafeEntranceTransition
+        onEnter={handleEntranceComplete}
+        SeatingPlan={<CoffeeShopExperience onBack={handleBackToHub} />}
+      />
+    );
+  }
+
+  // Show café experience
+  if (showCafeExperience) {
+    return <CoffeeShopExperience onBack={handleBackToHub} />;
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -29,7 +62,7 @@ export const InteractiveCommunityHub = () => {
         </CardHeader>
         
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
               <Users className="h-8 w-8 mx-auto mb-2" />
               <div className="text-2xl font-bold">127</div>
@@ -53,6 +86,21 @@ export const InteractiveCommunityHub = () => {
               <div className="text-2xl font-bold">Live</div>
               <div className="text-sm opacity-90">Music Playing</div>
             </div>
+          </div>
+
+          {/* Café Experience Entry Button */}
+          <div className="text-center">
+            <Button
+              onClick={handleEnterCafe}
+              size="lg"
+              className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-4 text-lg font-semibold shadow-xl"
+            >
+              <MapPin className="h-6 w-6 mr-3" />
+              Enter Physical Café Experience
+            </Button>
+            <p className="text-white/80 text-sm mt-2">
+              Join the real-time seating plan and chat with people around you
+            </p>
           </div>
         </CardContent>
       </Card>
