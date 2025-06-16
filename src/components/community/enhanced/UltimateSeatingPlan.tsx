@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,8 +16,8 @@ import { DynamicEnvironment } from './DynamicEnvironment';
 import { PersonalWorkspace } from './PersonalWorkspace';
 import { CommunityFeatures } from './CommunityFeatures';
 
-// Enhanced Coffee Bean Icon Component with woody theme
-const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 32, seatType }: { 
+// Clean Coffee Bean Icon Component
+const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 24, seatType }: { 
   isOccupied: boolean; 
   isSelected: boolean; 
   isHovered: boolean; 
@@ -29,15 +30,12 @@ const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 32, seatType }: 
   
   return (
     <div 
-      className={`relative transition-all duration-500 ${
-        !isOccupied ? 'animate-pulse' : ''
-      }`}
+      className={`relative transition-all duration-300 ${!isOccupied ? 'animate-pulse' : ''}`}
       style={{
         width: size,
         height: size,
-        filter: `drop-shadow(0 8px 16px rgba(61,39,35,0.4)) drop-shadow(0 0 20px ${glowColor})`,
-        transform: isSelected ? 'scale(1.5) rotate(10deg)' : isHovered ? 'scale(1.3) rotate(5deg)' : 'scale(1)',
-        animation: !isOccupied ? 'beanFloat 3s ease-in-out infinite' : 'none'
+        filter: `drop-shadow(0 4px 8px rgba(61,39,35,0.3)) ${glowColor !== 'transparent' ? `drop-shadow(0 0 12px ${glowColor})` : ''}`,
+        transform: isSelected ? 'scale(1.3)' : isHovered ? 'scale(1.15)' : 'scale(1)',
       }}
     >
       <svg
@@ -53,48 +51,35 @@ const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 32, seatType }: 
             <stop offset="50%" stopColor={beanColor} />
             <stop offset="100%" stopColor={seamColor} />
           </radialGradient>
-          <filter id={`woodTexture-${size}`}>
-            <feTurbulence baseFrequency="0.9" numOctaves="4" result="noise" />
-            <feColorMatrix in="noise" type="saturate" values="0"/>
-            <feComponentTransfer>
-              <feFuncA type="discrete" tableValues="0.5 0.8 0.3 0.9"/>
-            </feComponentTransfer>
-            <feComposite operator="multiply" in2="SourceGraphic"/>
-          </filter>
         </defs>
         
-        {/* Coffee bean body with wood texture */}
         <ellipse
           cx="12"
           cy="12"
           rx="8"
           ry="11"
           fill={`url(#beanGradient-${size})`}
-          filter={`url(#woodTexture-${size})`}
           transform="rotate(-15 12 12)"
         />
         
-        {/* Enhanced coffee bean seam */}
         <path
           d="M7 8 Q12 12 17 16"
           stroke={seamColor}
-          strokeWidth="2.5"
+          strokeWidth="2"
           strokeLinecap="round"
           fill="none"
           opacity="0.8"
         />
         
-        {/* Wood grain highlight */}
         <ellipse
           cx="9"
           cy="9"
           rx="2"
           ry="3"
-          fill="rgba(205,133,63,0.4)"
+          fill="rgba(205,133,63,0.3)"
           transform="rotate(-15 9 9)"
         />
         
-        {/* Selection ring with woody glow */}
         {(isSelected || isHovered) && (
           <ellipse
             cx="12"
@@ -103,149 +88,72 @@ const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 32, seatType }: 
             ry="14"
             fill="none"
             stroke={glowColor}
-            strokeWidth="3"
+            strokeWidth="2"
             transform="rotate(-15 12 12)"
             opacity="0.8"
             className="animate-pulse"
           />
         )}
-        
-        {/* Seat type indicator with wood styling */}
-        {seatType && (
-          <text
-            x="12"
-            y="20"
-            textAnchor="middle"
-            fontSize="6"
-            fill="#F5DEB3"
-            fontWeight="bold"
-            stroke="#8B4513"
-            strokeWidth="0.5"
-          >
-            {seatType.charAt(0).toUpperCase()}
-          </text>
-        )}
       </svg>
       
-      {/* Floating particles for available seats */}
       {!isOccupied && (
-        <>
-          <div className="absolute -top-2 -right-2 w-2 h-2 bg-amber-600 rounded-full animate-ping opacity-75" />
-          <div className="absolute -bottom-2 -left-2 w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }} />
-        </>
+        <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping opacity-75" />
       )}
     </div>
   );
 };
 
-// Clean Professional Coffee Bar Component (without crowded menus)
-const CleanProfessionalCoffeeBar = () => {
+// Clean Coffee Bar Component
+const CleanCoffeeBar = () => {
   return (
-    <div className="absolute top-[8%] left-[20%] w-[50%] h-[20%] perspective-1000">
-      {/* Main Coffee Bar Structure */}
+    <div className="absolute top-[10%] left-[25%] w-[50%] h-[15%]">
       <div className="relative w-full h-full">
-        {/* Upper Shelf with Clean Design */}
-        <div className="absolute top-0 left-0 w-full h-[30%] bg-gradient-to-r from-amber-800 to-orange-800 rounded-t-xl border-4 border-amber-700 shadow-inner">
-          <div className="w-full h-full bg-gradient-to-b from-amber-300/20 to-transparent rounded-t-lg flex items-center justify-around px-4">
-            {/* Coffee Equipment Display - Cleaner Layout */}
-            <div className="w-4 h-7 bg-gradient-to-b from-amber-900 to-amber-800 rounded-lg border border-amber-600 shadow-lg relative">
-              <div className="absolute top-1 left-1 w-2 h-2 bg-amber-600 rounded-full opacity-60"></div>
-              <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-amber-700 rounded-full opacity-80"></div>
+        {/* Main Coffee Bar */}
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-amber-800 to-orange-900 rounded-lg border-2 border-amber-700 shadow-xl">
+          {/* Counter Surface */}
+          <div className="absolute top-0 left-0 w-full h-[30%] bg-gradient-to-r from-amber-700 to-orange-700 rounded-t-lg">
+            <div className="w-full h-full bg-gradient-to-b from-amber-300/20 to-transparent rounded-t-lg flex items-center justify-around px-4">
+              <div className="w-3 h-5 bg-gradient-to-b from-amber-900 to-amber-800 rounded border border-amber-600"></div>
+              <div className="w-4 h-4 bg-gradient-to-b from-gray-300 to-gray-500 rounded border border-gray-400"></div>
+              <div className="w-2 h-4 bg-gradient-to-b from-gray-700 to-gray-900 rounded border border-gray-600"></div>
             </div>
-            <div className="w-5 h-6 bg-gradient-to-b from-gray-300 to-gray-500 rounded-lg border border-gray-400 shadow-lg"></div>
-            <div className="w-3 h-5 bg-gradient-to-b from-gray-700 to-gray-900 rounded-lg border border-gray-600 shadow-lg"></div>
-          </div>
-        </div>
-
-        {/* Main Coffee Bar Counter */}
-        <div className="absolute top-[30%] left-0 w-full h-[70%] bg-gradient-to-b from-gray-700 to-gray-900 rounded-b-xl border-4 border-gray-600 shadow-2xl">
-          {/* Clean Backsplash */}
-          <div className="absolute top-0 left-0 w-full h-[35%] bg-gradient-to-b from-gray-800 to-gray-900 rounded-t-lg">
-            <div className="w-full h-full opacity-60" style={{
-              backgroundImage: `
-                linear-gradient(90deg, #2a2a2a 1px, transparent 1px),
-                linear-gradient(180deg, #2a2a2a 1px, transparent 1px)
-              `,
-              backgroundSize: '15px 10px'
-            }}></div>
           </div>
 
-          {/* Espresso Machine - Better Positioned */}
-          <div className="absolute top-[20%] left-[20%] w-[25%] h-[60%] bg-gradient-to-b from-gray-300 to-gray-600 rounded-lg shadow-2xl border-2 border-gray-400">
-            <div className="w-full h-[70%] bg-gradient-to-br from-gray-400 to-gray-700 rounded-t-lg relative">
-              {/* Steam Wands */}
-              <div className="absolute right-2 top-2 w-1 h-4 bg-gray-800 rounded-full"></div>
-              <div className="absolute right-4 top-2 w-1 h-4 bg-gray-800 rounded-full"></div>
-              
-              {/* Portafilter */}
-              <div className="absolute bottom-1 left-2 w-3 h-2 bg-gray-900 rounded-sm"></div>
-              
-              {/* Control Panel */}
-              <div className="absolute top-1 left-1 w-5 h-4 bg-gray-800 rounded-sm">
-                <div className="grid grid-cols-2 gap-0.5 p-0.5">
-                  <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
-                  <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
-                  <div className="w-1 h-1 bg-red-400 rounded-full"></div>
-                  <div className="w-1 h-1 bg-yellow-400 rounded-full"></div>
+          {/* Main Counter */}
+          <div className="absolute top-[30%] left-0 w-full h-[70%] bg-gradient-to-b from-gray-700 to-gray-900 rounded-b-lg border-2 border-gray-600">
+            {/* Espresso Machine */}
+            <div className="absolute top-[15%] left-[20%] w-[20%] h-[50%] bg-gradient-to-b from-gray-300 to-gray-600 rounded shadow-lg border border-gray-400">
+              <div className="w-full h-[60%] bg-gradient-to-br from-gray-400 to-gray-700 rounded-t relative">
+                <div className="absolute right-1 top-1 w-0.5 h-3 bg-gray-800 rounded-full"></div>
+                <div className="absolute top-0.5 left-0.5 w-3 h-2 bg-gray-800 rounded">
+                  <div className="w-0.5 h-0.5 bg-green-400 rounded-full m-0.5 animate-pulse"></div>
                 </div>
               </div>
             </div>
-            
-            <div className="w-full h-[30%] bg-gradient-to-b from-gray-700 to-gray-900 rounded-b-lg relative">
-              <div className="absolute inset-1 bg-gray-800 rounded"></div>
+
+            {/* Grinder */}
+            <div className="absolute top-[15%] left-[50%] w-[15%] h-[40%] bg-gradient-to-b from-gray-800 to-black rounded shadow-lg border border-gray-700">
+              <div className="w-full h-[40%] bg-gradient-to-b from-gray-600 to-gray-800 rounded-t"></div>
             </div>
 
-            {/* Steam Effect */}
-            <div className="absolute -top-2 right-1 w-1 h-6 bg-gradient-to-t from-white/50 to-transparent rounded-full animate-pulse"></div>
-          </div>
-
-          {/* Grinder - Better Positioned */}
-          <div className="absolute top-[20%] left-[50%] w-[18%] h-[50%] bg-gradient-to-b from-gray-800 to-black rounded-lg shadow-xl border-2 border-gray-700">
-            <div className="w-full h-[40%] bg-gradient-to-b from-gray-600 to-gray-800 rounded-t-lg relative">
-              <div className="absolute top-1 left-1 w-2 h-1 bg-gray-900 rounded-full"></div>
-            </div>
-            <div className="w-full h-[60%] bg-gradient-to-b from-gray-900 to-black rounded-b-lg relative">
-              <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-3 h-1 bg-gray-700 rounded"></div>
-            </div>
-          </div>
-
-          {/* Scale and Accessories - Cleaner Layout */}
-          <div className="absolute top-[20%] right-[15%] w-[20%] h-[40%] flex flex-col gap-1">
-            <div className="w-full h-[60%] bg-gradient-to-b from-gray-800 to-black rounded border border-gray-600 relative">
-              <div className="absolute inset-1 bg-gray-900 rounded">
-                <div className="absolute top-1 right-1 w-4 h-2 bg-green-900 rounded text-[0.4rem] text-green-400 flex items-center justify-center font-mono">
-                  18.5g
-                </div>
+            {/* Scale */}
+            <div className="absolute top-[15%] right-[15%] w-[15%] h-[30%] bg-gradient-to-b from-gray-800 to-black rounded border border-gray-600">
+              <div className="absolute top-0.5 right-0.5 w-3 h-1 bg-green-900 rounded text-[0.3rem] text-green-400 flex items-center justify-center font-mono">
+                18.5g
               </div>
-            </div>
-            
-            <div className="w-full h-[40%] flex gap-1 justify-center items-center">
-              <div className="w-3 h-3 bg-white rounded-full border-2 border-gray-300 shadow-lg"></div>
-              <div className="w-3 h-3 bg-white rounded-full border-2 border-gray-300 shadow-lg"></div>
-            </div>
-          </div>
-
-          {/* Counter Surface Details */}
-          <div className="absolute bottom-0 left-0 w-full h-[25%] bg-gradient-to-r from-gray-600 to-gray-800 rounded-b-lg">
-            <div className="w-full h-full bg-gradient-to-b from-transparent to-black/20 rounded-b-lg relative">
-              <div className="absolute top-1/2 left-[25%] w-2 h-0.5 bg-gray-400 rounded-full transform -translate-y-1/2"></div>
-              <div className="absolute top-1/2 left-[50%] w-2 h-0.5 bg-gray-400 rounded-full transform -translate-y-1/2"></div>
-              <div className="absolute top-1/2 left-[75%] w-2 h-0.5 bg-gray-400 rounded-full transform -translate-y-1/2"></div>
             </div>
           </div>
         </div>
 
-        {/* Bar Stools - Better Spaced */}
-        <div className="absolute -bottom-12 left-[15%] w-[70%] h-12 flex justify-around items-end">
+        {/* Bar Stools */}
+        <div className="absolute -bottom-8 left-[20%] w-[60%] h-8 flex justify-around items-end">
           {[1, 2, 3].map((stool) => (
             <div key={stool} className="relative">
-              <div className="w-10 h-4 bg-gradient-to-b from-amber-700 to-amber-900 rounded-full border-2 border-amber-600 shadow-lg relative">
-                <div className="absolute inset-1 bg-gradient-to-b from-amber-600/30 to-transparent rounded-full"></div>
+              <div className="w-8 h-3 bg-gradient-to-b from-amber-700 to-amber-900 rounded-full border border-amber-600 shadow-md">
+                <div className="absolute inset-0.5 bg-gradient-to-b from-amber-600/30 to-transparent rounded-full"></div>
               </div>
-              
-              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gradient-to-b from-gray-700 to-gray-900"></div>
-              <div className="absolute top-6 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-gray-800"></div>
-              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-gray-600 rounded-full"></div>
+              <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gradient-to-b from-gray-700 to-gray-900"></div>
+              <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-4 h-0.5 bg-gray-600 rounded-full"></div>
             </div>
           ))}
         </div>
@@ -254,7 +162,7 @@ const CleanProfessionalCoffeeBar = () => {
   );
 };
 
-// Enhanced Barista Avatar Component with woody cafe styling
+// Clean Barista Avatar
 const BaristaAvatar = ({ name, position }: { name: string; position: { x: number; y: number } }) => {
   const getAvatarImage = (name: string) => {
     switch (name) {
@@ -280,203 +188,159 @@ const BaristaAvatar = ({ name, position }: { name: string; position: { x: number
       title={`${name} - Expert Barista`}
     >
       <div className="relative">
-        <div className="relative w-20 h-20 rounded-full border-4 border-gradient-to-r from-amber-700 via-orange-700 to-amber-800 shadow-2xl overflow-hidden group-hover:scale-110 transition-all duration-500"
+        <div className="relative w-16 h-16 rounded-full border-3 border-amber-700 shadow-xl overflow-hidden group-hover:scale-110 transition-all duration-300"
              style={{
-               background: 'linear-gradient(135deg, #8B4513, #A0522D, #CD853F)',
-               boxShadow: '0 0 25px rgba(139, 69, 19, 0.6), inset 0 0 10px rgba(205, 133, 63, 0.3)'
+               background: 'linear-gradient(135deg, #8B4513, #A0522D)',
+               boxShadow: '0 0 20px rgba(139, 69, 19, 0.5)'
              }}>
           <img 
             src={getAvatarImage(name)} 
             alt={name}
-            className="w-full h-full object-cover rounded-full transform group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover rounded-full"
           />
           
-          <div className="absolute inset-0 rounded-full border-2 border-amber-600 animate-pulse opacity-70" />
-          <div className="absolute inset-0 rounded-full border border-orange-400 animate-ping opacity-40" style={{ animationDelay: '0.5s' }} />
+          <div className="absolute inset-0 rounded-full border border-amber-600 animate-pulse opacity-50" />
           
-          <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-            <div className="w-1.5 h-8 bg-gradient-to-t from-white/70 to-transparent rounded-full animate-pulse opacity-90" />
-            <div className="w-1 h-6 bg-gradient-to-t from-white/50 to-transparent rounded-full animate-pulse opacity-70 ml-2 -mt-6" style={{ animationDelay: '0.3s' }} />
-            <div className="w-1.5 h-7 bg-gradient-to-t from-white/60 to-transparent rounded-full animate-pulse opacity-80 -ml-1 -mt-5" style={{ animationDelay: '0.8s' }} />
+          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+            <div className="w-1 h-5 bg-gradient-to-t from-white/60 to-transparent rounded-full animate-pulse" />
           </div>
         </div>
         
-        <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-amber-800 via-orange-800 to-amber-900 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-2xl whitespace-nowrap group-hover:scale-105 transition-all duration-300 border-2 border-amber-600"
-             style={{
-               background: 'linear-gradient(135deg, #8B4513, #A0522D)',
-               boxShadow: '0 8px 25px rgba(139, 69, 19, 0.8)'
-             }}>
-          <div className="flex items-center gap-2">
-            ☕ {name}
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-          </div>
+        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-amber-800 to-orange-800 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg whitespace-nowrap group-hover:scale-105 transition-all duration-300 border border-amber-600">
+          ☕ {name}
         </div>
         
-        <div className="absolute -top-2 -right-2 w-5 h-5 bg-gradient-to-r from-green-500 to-emerald-600 border-3 border-white rounded-full animate-pulse shadow-lg flex items-center justify-center">
-          <div className="w-2 h-2 bg-white rounded-full" />
-        </div>
-        
-        <div className="absolute -top-8 -left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="w-2 h-2 bg-amber-500 rounded-full animate-bounce" />
-          <div className="w-2 h-2 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-          <div className="w-2 h-2 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-        </div>
-        
-        <div className="absolute top-1 right-1 bg-gradient-to-r from-amber-600 to-orange-600 text-white text-xs px-1.5 py-0.5 rounded-full font-bold shadow-md opacity-90">
-          ⭐
+        <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-500 to-emerald-600 border-2 border-white rounded-full animate-pulse shadow-md flex items-center justify-center">
+          <div className="w-1.5 h-1.5 bg-white rounded-full" />
         </div>
       </div>
     </div>
   );
 };
 
-// Enhanced Real Café Layout with better organization and spacing
-const REAL_CAFE_SEATS = [
-  // Bar counter seats - Better spaced
+// Clean Seating Layout
+const CLEAN_CAFE_SEATS = [
+  // Bar counter seats
   { 
-    id: 'bar-counter-1', x: 25, y: 40, w: 3, h: 3, type: 'bar', zone: 'counter',
+    id: 'counter-seats', x: 30, y: 35, w: 4, h: 4, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-counter-2', x: 32, y: 40, w: 3, h: 3, type: 'bar', zone: 'counter',
+    id: 'bar-counter-2', x: 38, y: 35, w: 4, h: 4, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-counter-3', x: 39, y: 40, w: 3, h: 3, type: 'bar', zone: 'counter',
-    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
-  },
-  { 
-    id: 'bar-counter-4', x: 46, y: 40, w: 3, h: 3, type: 'bar', zone: 'counter',
+    id: 'bar-counter-3', x: 46, y: 35, w: 4, h: 4, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
 
-  // Window-side seating area - Better positioned
+  // Window seating
   { 
-    id: 'window-table-1', x: 75, y: 30, w: 4, h: 4, type: 'table', zone: 'window',
+    id: 'window-table-1', x: 75, y: 30, w: 5, h: 5, type: 'table', zone: 'window',
     ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'relaxed'
   },
   { 
-    id: 'window-table-2', x: 82, y: 30, w: 4, h: 4, type: 'table', zone: 'window',
-    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'relaxed'
-  },
-  { 
-    id: 'window-chair-1', x: 75, y: 40, w: 3, h: 3, type: 'chair', zone: 'window',
+    id: 'window-chair-1', x: 85, y: 30, w: 4, h: 4, type: 'chair', zone: 'window',
     ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'contemplative'
   },
   { 
-    id: 'window-chair-2', x: 82, y: 40, w: 3, h: 3, type: 'chair', zone: 'window',
+    id: 'window-chair-2', x: 75, y: 40, w: 4, h: 4, type: 'chair', zone: 'window',
     ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'contemplative'
   },
 
-  // Interior seating area - Better organized
+  // Central workspace
   { 
-    id: 'interior-chair-1', x: 15, y: 55, w: 3, h: 3, type: 'chair', zone: 'interior',
-    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'focused'
-  },
-  { 
-    id: 'interior-chair-2', x: 25, y: 55, w: 3, h: 3, type: 'chair', zone: 'interior',
-    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'focused'
-  },
-  { 
-    id: 'interior-table-1', x: 35, y: 55, w: 4, h: 4, type: 'table', zone: 'interior',
-    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'interior-table-2', x: 45, y: 55, w: 4, h: 4, type: 'table', zone: 'interior',
-    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'collaborative'
-  },
-
-  // Cozy corner seating - Better spaced
-  { 
-    id: 'corner-sofa-1', x: 65, y: 65, w: 5, h: 4, type: 'sofa', zone: 'corner',
-    ambientSound: 'intimate', musicZone: 'chill', vibe: 'relaxed'
-  },
-  { 
-    id: 'corner-sofa-2', x: 75, y: 65, w: 5, h: 4, type: 'sofa', zone: 'corner',
-    ambientSound: 'intimate', musicZone: 'chill', vibe: 'relaxed'
-  },
-  { 
-    id: 'corner-table-1', x: 85, y: 65, w: 3, h: 3, type: 'table', zone: 'corner',
-    ambientSound: 'intimate', musicZone: 'chill', vibe: 'contemplative'
-  },
-
-  // Central workspace area - Better positioned
-  { 
-    id: 'central-table-1', x: 55, y: 45, w: 4, h: 4, type: 'table', zone: 'central',
+    id: 'workspace-zone', x: 55, y: 45, w: 5, h: 5, type: 'table', zone: 'central',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'productive'
   },
   { 
-    id: 'central-table-2', x: 65, y: 45, w: 4, h: 4, type: 'table', zone: 'central',
+    id: 'central-table-2', x: 65, y: 45, w: 5, h: 5, type: 'table', zone: 'central',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'productive'
   },
+
+  // Interior seating
   { 
-    id: 'central-chair-1', x: 55, y: 55, w: 3, h: 3, type: 'chair', zone: 'central',
-    ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'focused'
+    id: 'interior-chair-1', x: 20, y: 55, w: 4, h: 4, type: 'chair', zone: 'interior',
+    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'focused'
   },
   { 
-    id: 'central-chair-2', x: 65, y: 55, w: 3, h: 3, type: 'chair', zone: 'central',
-    ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'focused'
+    id: 'interior-table-1', x: 30, y: 55, w: 5, h: 5, type: 'table', zone: 'interior',
+    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'collaborative'
+  },
+  { 
+    id: 'interior-table-2', x: 40, y: 55, w: 5, h: 5, type: 'table', zone: 'interior',
+    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'collaborative'
   },
 
-  // Back wall seating - Better organized
+  // Cozy corner
   { 
-    id: 'back-wall-1', x: 15, y: 75, w: 3, h: 3, type: 'chair', zone: 'back',
+    id: 'cosmic-corner', x: 70, y: 65, w: 6, h: 5, type: 'sofa', zone: 'corner',
+    ambientSound: 'intimate', musicZone: 'chill', vibe: 'relaxed'
+  },
+  { 
+    id: 'corner-sofa-2', x: 80, y: 65, w: 6, h: 5, type: 'sofa', zone: 'corner',
+    ambientSound: 'intimate', musicZone: 'chill', vibe: 'relaxed'
+  },
+
+  // Back area
+  { 
+    id: 'social-hub', x: 25, y: 75, w: 5, h: 5, type: 'table', zone: 'back',
+    ambientSound: 'quiet', musicZone: 'ambient', vibe: 'social'
+  },
+  { 
+    id: 'zen-garden', x: 40, y: 75, w: 5, h: 5, type: 'chair', zone: 'back',
     ambientSound: 'quiet', musicZone: 'ambient', vibe: 'contemplative'
   },
   { 
-    id: 'back-wall-2', x: 25, y: 75, w: 3, h: 3, type: 'chair', zone: 'back',
-    ambientSound: 'quiet', musicZone: 'ambient', vibe: 'contemplative'
-  },
-  { 
-    id: 'back-wall-3', x: 35, y: 75, w: 3, h: 3, type: 'chair', zone: 'back',
-    ambientSound: 'quiet', musicZone: 'ambient', vibe: 'contemplative'
+    id: 'vinyl-lounge', x: 55, y: 75, w: 5, h: 5, type: 'table', zone: 'back',
+    ambientSound: 'quiet', musicZone: 'ambient', vibe: 'musical'
   }
 ];
 
-// Barista positions with corrected name
+// Barista positions
 const BARISTAS = [
-  { name: 'Ahmed', position: { x: 28, y: 15 } },
-  { name: 'Joy', position: { x: 35, y: 15 } },
-  { name: 'Muneeb', position: { x: 42, y: 15 } }
+  { name: 'Ahmed', position: { x: 30, y: 15 } },
+  { name: 'Joy', position: { x: 38, y: 15 } },
+  { name: 'Muneeb', position: { x: 46, y: 15 } }
 ];
 
-// Enhanced Zone colors with woody theme
+// Clean Zone colors
 const ZONE_COLORS = {
   counter: { 
-    bg: 'linear-gradient(135deg, rgba(139, 69, 19, 0.25) 0%, rgba(160, 82, 45, 0.15) 100%)', 
+    bg: 'rgba(139, 69, 19, 0.15)', 
     border: '#8B4513', 
     name: '☕ Coffee Counter',
-    accent: 'rgba(139, 69, 19, 0.7)'
+    accent: 'rgba(139, 69, 19, 0.6)'
   },
   window: { 
-    bg: 'linear-gradient(135deg, rgba(34, 139, 34, 0.2) 0%, rgba(107, 142, 35, 0.15) 100%)', 
+    bg: 'rgba(34, 139, 34, 0.15)', 
     border: '#228B22', 
     name: '🪟 Window Seating',
-    accent: 'rgba(34, 139, 34, 0.7)'
+    accent: 'rgba(34, 139, 34, 0.6)'
   },
   interior: { 
-    bg: 'linear-gradient(135deg, rgba(70, 130, 180, 0.2) 0%, rgba(100, 149, 237, 0.15) 100%)', 
+    bg: 'rgba(70, 130, 180, 0.15)', 
     border: '#4682B4', 
     name: '🎨 Interior Design',
-    accent: 'rgba(70, 130, 180, 0.7)'
+    accent: 'rgba(70, 130, 180, 0.6)'
   },
   corner: { 
-    bg: 'linear-gradient(135deg, rgba(147, 112, 219, 0.2) 0%, rgba(138, 43, 226, 0.15) 100%)', 
+    bg: 'rgba(147, 112, 219, 0.15)', 
     border: '#9370DB', 
     name: '🛋️ Cozy Corner',
-    accent: 'rgba(147, 112, 219, 0.7)'
+    accent: 'rgba(147, 112, 219, 0.6)'
   },
   central: { 
-    bg: 'linear-gradient(135deg, rgba(218, 165, 32, 0.2) 0%, rgba(184, 134, 11, 0.15) 100%)', 
+    bg: 'rgba(218, 165, 32, 0.15)', 
     border: '#DAA520', 
     name: '💼 Work Zone',
-    accent: 'rgba(218, 165, 32, 0.7)'
+    accent: 'rgba(218, 165, 32, 0.6)'
   },
   back: { 
-    bg: 'linear-gradient(135deg, rgba(119, 136, 153, 0.2) 0%, rgba(112, 128, 144, 0.15) 100%)', 
+    bg: 'rgba(119, 136, 153, 0.15)', 
     border: '#778899', 
     name: '🧘 Quiet Zone',
-    accent: 'rgba(119, 136, 153, 0.7)'
+    accent: 'rgba(119, 136, 153, 0.6)'
   }
 };
 
@@ -507,9 +371,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activePanel, setActivePanel] = useState<'coffee' | 'workspace' | 'community' | null>(null);
   const [deliveredOrders, setDeliveredOrders] = useState<any[]>([]);
-  const [animationEnabled, setAnimationEnabled] = useState(true);
 
-  // Update time every minute for dynamic lighting
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -518,7 +380,6 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
   }, []);
 
   const handleSeatClick = (seatId: string) => {
-    // Enhanced particle effect on seat selection
     const newParticle = {
       id: Date.now().toString(),
       x: Math.random() * 100,
@@ -538,7 +399,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
   };
 
   const getZoneStats = (zone: string) => {
-    const zoneSeats = REAL_CAFE_SEATS.filter(seat => seat.zone === zone);
+    const zoneSeats = CLEAN_CAFE_SEATS.filter(seat => seat.zone === zone);
     const occupiedSeats = zoneSeats.filter(seat => getSeatOccupancy(seat.id).length > 0);
     return {
       total: zoneSeats.length,
@@ -560,26 +421,10 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
 
   const handleOrderComplete = (order: any) => {
     setDeliveredOrders(prev => [...prev, order]);
-    const newParticle = {
-      id: Date.now().toString(),
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      type: 'delivery',
-      timestamp: Date.now()
-    };
-    setParticles(prev => [...prev, newParticle]);
   };
 
   const handleProximityInteraction = (targetUserId: string, interactionType: string) => {
     console.log(`Interaction: ${interactionType} with ${targetUserId}`);
-    const newParticle = {
-      id: Date.now().toString(),
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      type: interactionType,
-      timestamp: Date.now()
-    };
-    setParticles(prev => [...prev, newParticle]);
   };
 
   const nearbyUsers = onlineUsers
@@ -593,75 +438,18 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
 
   return (
     <div className={`w-full h-full relative ${isFullscreen ? 'fixed inset-0 z-50 bg-black' : 'max-h-screen overflow-hidden'}`}>
-      {/* Enhanced CSS animations with woody theme */}
-      <style>
-        {`
-          @keyframes beanFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-          }
-          
-          @keyframes woodGrain {
-            0%, 100% { 
-              background-position: 0% 50%;
-              box-shadow: 0 0 15px rgba(139, 69, 19, 0.4);
-            }
-            50% { 
-              background-position: 100% 50%;
-              box-shadow: 0 0 25px rgba(139, 69, 19, 0.6);
-            }
-          }
-          
-          @keyframes cafeAmbience {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-          
-          .woody-background {
-            background: linear-gradient(-45deg, 
-              #F5DEB3, #DEB887, #D2B48C, #BC9A6A, #8B7355, #A0826D);
-            background-size: 400% 400%;
-            animation: cafeAmbience 25s ease infinite;
-          }
-          
-          .wood-texture {
-            background-image: 
-              radial-gradient(circle at 25% 25%, rgba(139, 69, 19, 0.08) 0%, transparent 50%),
-              radial-gradient(circle at 75% 75%, rgba(160, 82, 45, 0.08) 0%, transparent 50%),
-              linear-gradient(45deg, rgba(245, 222, 179, 0.03) 25%, transparent 25%),
-              linear-gradient(-45deg, rgba(205, 133, 63, 0.03) 25%, transparent 25%);
-          }
-        `}
-      </style>
-
-      {/* Enhanced Header with cleaner woody styling */}
+      {/* Clean Header */}
       {!hideHeader && !isFullscreen && (
-        <div className="text-center py-6 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 rounded-t-lg border-b-3 border-amber-500 wood-texture"
-             style={{
-               background: 'linear-gradient(135deg, #F5DEB3, #DEB887, #D2B48C)',
-               boxShadow: 'inset 0 2px 8px rgba(139, 69, 19, 0.15)'
-             }}>
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="relative">
-              <Crown className="h-8 w-8 text-amber-800 animate-pulse" />
-              <Sparkles className="h-4 w-4 text-orange-600 absolute -top-1 -right-1 animate-spin" />
-            </div>
-            <h2 className="text-3xl font-bold text-amber-900 bg-gradient-to-r from-amber-800 to-orange-800 bg-clip-text text-transparent"
-                style={{ textShadow: '1px 1px 3px rgba(139, 69, 19, 0.2)' }}>
-              A MATTER OF COFFEE
-            </h2>
-            <div className="relative">
-              <Sparkles className="h-8 w-8 text-amber-800 animate-pulse" />
-              <Coffee className="h-4 w-4 text-amber-600 absolute -bottom-1 -left-1 animate-bounce" />
-            </div>
+        <div className="text-center py-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-t-lg border-b-2 border-amber-300">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <Crown className="h-6 w-6 text-amber-800" />
+            <h2 className="text-2xl font-bold text-amber-900">A Matter of Coffee</h2>
+            <Coffee className="h-6 w-6 text-amber-800" />
           </div>
-          <p className="text-amber-800 text-lg mb-4 font-medium">
-            ✨ Click on any coffee bean to claim your perfect spot! ✨
-          </p>
+          <p className="text-amber-800 mb-3">Click on any coffee bean to claim your perfect spot!</p>
           
-          {/* Enhanced Controls */}
-          <div className="flex justify-center items-center gap-3 flex-wrap mb-4">
+          {/* Clean Controls */}
+          <div className="flex justify-center items-center gap-2 mb-3">
             <GamificationElements 
               userPoints={1250}
               streak={7}
@@ -669,46 +457,33 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
             />
             <CoffeeShopAmbientAudio />
             <AdvancedSocialFeatures />
-            <Button
-              onClick={() => setAnimationEnabled(!animationEnabled)}
-              variant="outline"
-              size="sm"
-              className="bg-purple-50 border-purple-300 hover:bg-purple-100"
-            >
-              {animationEnabled ? '🎭 Animations ON' : '🎭 Animations OFF'}
-            </Button>
           </div>
           
-          {/* Enhanced Zone Statistics with cleaner woody styling */}
-          <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 px-8">
+          {/* Zone Statistics */}
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 px-6">
             {Object.entries(ZONE_COLORS).map(([zone, config]) => {
               const stats = getZoneStats(zone);
               const occupancyRate = (stats.occupied / stats.total) * 100;
               
               return (
-                <Card key={zone} className="bg-white/90 backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                      style={{ 
-                        borderColor: config.border,
-                        background: 'linear-gradient(135deg, rgba(245, 222, 179, 0.95), rgba(222, 184, 135, 0.85))'
-                      }}>
-                  <CardContent className="p-3">
+                <Card key={zone} className="bg-white/90 border shadow-sm hover:shadow-md transition-shadow">
+                  <CardContent className="p-2">
                     <div className="text-xs font-bold mb-1" style={{ color: config.border }}>
                       {config.name}
                     </div>
-                    <div className="text-xs text-amber-800 mb-2 font-medium">
+                    <div className="text-xs text-gray-600 mb-1">
                       {stats.occupied}/{stats.total} seats
                     </div>
-                    <div className="w-full bg-amber-200 rounded-full h-2 mb-1 overflow-hidden border border-amber-400">
+                    <div className="w-full bg-gray-200 rounded-full h-1.5 mb-1">
                       <div 
-                        className="h-2 rounded-full transition-all duration-1000 ease-out"
+                        className="h-1.5 rounded-full transition-all duration-500"
                         style={{ 
                           width: `${occupancyRate}%`,
-                          background: `linear-gradient(90deg, ${config.border}, ${config.accent})`,
-                          boxShadow: `0 0 8px ${config.accent}`
+                          backgroundColor: config.border
                         }}
                       />
                     </div>
-                    <div className="text-xs font-bold text-center text-amber-800">
+                    <div className="text-xs font-medium text-center" style={{ color: config.border }}>
                       {occupancyRate > 80 ? '🔥 Busy' : occupancyRate > 50 ? '☕ Active' : '✨ Available'}
                     </div>
                   </CardContent>
@@ -719,13 +494,13 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         </div>
       )}
 
-      {/* Dynamic Environment Overlay */}
+      {/* Dynamic Environment */}
       <DynamicEnvironment 
         currentOccupancy={onlineUsers.length}
         userPreferences={{}}
       />
 
-      {/* Fullscreen Toggle Button */}
+      {/* Fullscreen Toggle */}
       <div className="absolute top-4 right-4 z-40">
         <Button
           onClick={toggleFullscreen}
@@ -736,7 +511,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           {isFullscreen ? (
             <>
               <Minimize2 className="h-4 w-4 mr-2" />
-              Exit Fullscreen
+              Exit
             </>
           ) : (
             <>
@@ -747,12 +522,12 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         </Button>
       </div>
 
-      {/* Smart Recommendations Panel */}
+      {/* Smart Recommendations */}
       {!isFullscreen && (
-        <div className="absolute top-4 right-32 z-30">
+        <div className="absolute top-4 right-24 z-30">
           <SmartSeatRecommendations
             userProfile={userProfile}
-            availableSeats={REAL_CAFE_SEATS.map(s => s.id)}
+            availableSeats={CLEAN_CAFE_SEATS.map(s => s.id)}
             onSeatRecommend={(seatId, reason) => {
               console.log(`Recommended seat: ${seatId} - ${reason}`);
               handleSeatClick(seatId);
@@ -761,13 +536,13 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         </div>
       )}
 
-      {/* Enhanced Side Panels */}
+      {/* Side Panels */}
       <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-30 space-y-2">
         <Button
           onClick={() => setActivePanel(activePanel === 'coffee' ? null : 'coffee')}
           variant="outline"
           size="sm"
-          className="bg-white/90 backdrop-blur-sm border-amber-300 hover:bg-amber-50"
+          className="bg-white/90 backdrop-blur-sm"
         >
           <Coffee className="h-4 w-4" />
         </Button>
@@ -775,7 +550,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           onClick={() => setActivePanel(activePanel === 'workspace' ? null : 'workspace')}
           variant="outline"
           size="sm"
-          className="bg-white/90 backdrop-blur-sm border-purple-300 hover:bg-purple-50"
+          className="bg-white/90 backdrop-blur-sm"
         >
           <Zap className="h-4 w-4" />
         </Button>
@@ -783,13 +558,13 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           onClick={() => setActivePanel(activePanel === 'community' ? null : 'community')}
           variant="outline"
           size="sm"
-          className="bg-white/90 backdrop-blur-sm border-emerald-300 hover:bg-emerald-50"
+          className="bg-white/90 backdrop-blur-sm"
         >
           <Users className="h-4 w-4" />
         </Button>
       </div>
 
-      {/* Active Panel Content */}
+      {/* Panel Content */}
       {activePanel && (
         <div className="absolute left-16 top-1/2 transform -translate-y-1/2 z-30 w-80">
           {activePanel === 'coffee' && selectedSeat && (
@@ -830,29 +605,33 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         </div>
       )}
 
-      {/* Main Interactive Canvas - Enhanced Clean Woody Café Layout */}
+      {/* Main Canvas */}
       <div
-        className={`relative w-full mx-auto overflow-hidden woody-background wood-texture ${
-          isFullscreen ? 'h-screen' : hideHeader ? 'h-full' : 'h-[calc(100vh-300px)]'
+        className={`relative w-full mx-auto overflow-hidden ${
+          isFullscreen ? 'h-screen' : hideHeader ? 'h-full' : 'h-[calc(100vh-220px)]'
         }`}
         style={{
-          backgroundImage: `
-            radial-gradient(circle at 20% 80%, rgba(139, 69, 19, 0.12) 0%, transparent 50%),
-            radial-gradient(circle at 80% 20%, rgba(160, 82, 45, 0.12) 0%, transparent 50%),
-            radial-gradient(circle at 40% 40%, rgba(222, 184, 135, 0.08) 0%, transparent 50%),
-            linear-gradient(45deg, rgba(245, 222, 179, 0.04) 25%, transparent 25%),
-            linear-gradient(-45deg, rgba(205, 133, 63, 0.04) 25%, transparent 25%)
-          `,
-          boxShadow: 'inset 0 0 40px rgba(139, 69, 19, 0.08)'
+          background: 'linear-gradient(135deg, #F5DEB3, #DEB887, #D2B48C)',
+          backgroundSize: '200% 200%',
+          animation: 'gradient 15s ease infinite'
         }}
       >
-        {/* Enhanced Particle Effects */}
+        <style>
+          {`
+            @keyframes gradient {
+              0%, 100% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
+            }
+          `}
+        </style>
+
+        {/* Particle Effects */}
         <EnhancedSeatingEffects particles={particles} />
 
-        {/* Clean Professional Coffee Bar replacing crowded setup */}
-        <CleanProfessionalCoffeeBar />
+        {/* Clean Coffee Bar */}
+        <CleanCoffeeBar />
 
-        {/* Enhanced Baristas with corrected name */}
+        {/* Baristas */}
         {BARISTAS.map((barista) => (
           <BaristaAvatar
             key={barista.name}
@@ -861,9 +640,9 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           />
         ))}
 
-        {/* Zone Background Overlays with enhanced woody styling */}
+        {/* Zone Overlays */}
         {Object.entries(ZONE_COLORS).map(([zone, config]) => {
-          const zoneSeats = REAL_CAFE_SEATS.filter(seat => seat.zone === zone);
+          const zoneSeats = CLEAN_CAFE_SEATS.filter(seat => seat.zone === zone);
           if (zoneSeats.length === 0) return null;
           
           const minX = Math.min(...zoneSeats.map(s => s.x));
@@ -874,103 +653,70 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           return (
             <div
               key={`zone-${zone}`}
-              className="absolute rounded-2xl border-2 transition-all duration-500 hover:shadow-xl wood-texture"
+              className="absolute rounded-xl border transition-all duration-300 hover:shadow-lg"
               style={{
-                left: `${minX - 2}%`,
-                top: `${minY - 2}%`,
-                width: `${maxX - minX + 4}%`,
-                height: `${maxY - minY + 4}%`,
-                background: config.bg,
+                left: `${minX - 1}%`,
+                top: `${minY - 1}%`,
+                width: `${maxX - minX + 2}%`,
+                height: `${maxY - minY + 2}%`,
+                backgroundColor: config.bg,
                 borderColor: config.border,
-                backdropFilter: 'blur(1px)',
-                boxShadow: `0 0 15px ${config.accent}, inset 0 1px 8px rgba(245, 222, 179, 0.15)`,
                 zIndex: 10
               }}
             >
-              <div className="absolute -top-6 left-2 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full shadow-lg border-2 wood-texture" 
-                   style={{ 
-                     borderColor: config.border,
-                     background: 'linear-gradient(135deg, rgba(245, 222, 179, 0.98), rgba(222, 184, 135, 0.92))'
-                   }}>
-                <span className="text-xs font-bold" style={{ color: config.border }}>
-                  {config.name}
-                </span>
+              <div className="absolute -top-5 left-2 bg-white/95 px-2 py-1 rounded-full shadow-md border text-xs font-bold" 
+                   style={{ borderColor: config.border, color: config.border }}>
+                {config.name}
               </div>
             </div>
           );
         })}
 
-        {/* Enhanced Coffee Bean Seat Markers with better woody theme */}
-        {REAL_CAFE_SEATS.map((seat) => {
+        {/* Coffee Bean Seats */}
+        {CLEAN_CAFE_SEATS.map((seat) => {
           const occupants = getSeatOccupancy(seat.id);
           const isOccupied = occupants.length > 0;
           const isSelected = selectedSeat === seat.id;
           const isHovered = hoveredSeat === seat.id;
-          const hasDelivery = deliveredOrders.some(order => order.seatId === seat.id);
           
           return (
             <div
               key={seat.id}
-              className="absolute cursor-pointer transition-all duration-500 rounded-2xl flex items-center justify-center group wood-texture"
+              className="absolute cursor-pointer transition-all duration-300 rounded-xl flex items-center justify-center"
               style={{
                 left: `${seat.x}%`,
                 top: `${seat.y}%`,
                 width: `${seat.w}%`,
                 height: `${seat.h}%`,
                 zIndex: isHovered || isSelected ? 40 : 30,
-                transform: isSelected 
-                  ? 'scale(1.2) rotate(2deg)' 
+                backgroundColor: isSelected 
+                  ? 'rgba(139, 69, 19, 0.25)' 
                   : isHovered 
-                    ? 'scale(1.1) rotate(1deg)' 
-                    : 'scale(1)',
-                filter: isSelected || isHovered ? 'drop-shadow(0 12px 25px rgba(139,69,19,0.4))' : 'none'
+                    ? 'rgba(160, 82, 45, 0.15)' 
+                    : 'rgba(245, 222, 179, 0.1)',
+                borderRadius: '12px',
+                border: isSelected || isHovered 
+                  ? `2px solid ${ZONE_COLORS[seat.zone as keyof typeof ZONE_COLORS]?.border}` 
+                  : '1px solid rgba(139, 69, 19, 0.2)'
               }}
               onClick={() => handleSeatClick(seat.id)}
               onMouseEnter={() => setHoveredSeat(seat.id)}
               onMouseLeave={() => setHoveredSeat(null)}
             >
-              {/* Enhanced seat base with cleaner woody styling */}
-              <div 
-                className="w-full h-full rounded-2xl border-3 transition-all duration-300 wood-texture"
-                style={{
-                  backgroundColor: isSelected 
-                    ? 'rgba(139, 69, 19, 0.35)' 
-                    : isHovered 
-                      ? 'rgba(160, 82, 45, 0.25)' 
-                      : 'rgba(245, 222, 179, 0.15)',
-                  borderColor: isSelected 
-                    ? '#8B4513' 
-                    : ZONE_COLORS[seat.zone as keyof typeof ZONE_COLORS]?.border || '#D2691E',
-                  borderWidth: isSelected ? '4px' : '2px',
-                  boxShadow: isSelected || isHovered 
-                    ? `0 0 20px ${ZONE_COLORS[seat.zone as keyof typeof ZONE_COLORS]?.accent}, inset 0 1px 8px rgba(245, 222, 179, 0.25)` 
-                    : 'inset 0 1px 4px rgba(245, 222, 179, 0.15)'
-                }}
-              />
-
-              {/* Enhanced Coffee Bean with woody theme */}
+              {/* Coffee Bean */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <CoffeeBean
                   isOccupied={isOccupied}
                   isSelected={isSelected}
                   isHovered={isHovered}
-                  size={isFullscreen ? 28 : 20}
+                  size={isFullscreen ? 24 : 18}
                   seatType={seat.type}
                 />
               </div>
 
-              {/* Delivery Animation */}
-              {hasDelivery && (
-                <div className="absolute -top-6 -right-6 z-20 animate-bounce">
-                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                    <Coffee className="h-2 w-2 text-white" />
-                  </div>
-                </div>
-              )}
-
-              {/* Enhanced Occupancy Indicators */}
+              {/* Occupancy Indicators */}
               {isOccupied && (
-                <div className="absolute -top-4 -right-4 z-20">
+                <div className="absolute -top-3 -right-3 z-20">
                   <EnhancedUserAvatars
                     users={occupants}
                     seatId={seat.id}
@@ -979,10 +725,10 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
                 </div>
               )}
 
-              {/* Enhanced Click hint when hovered */}
+              {/* Click hint */}
               {isHovered && !isSelected && (
-                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-3 py-1 rounded-full text-xs font-bold animate-bounce shadow-xl whitespace-nowrap">
+                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-amber-600 text-white px-2 py-1 rounded text-xs font-bold animate-bounce shadow-lg whitespace-nowrap">
                     Click to sit!
                   </div>
                 </div>
@@ -991,7 +737,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           );
         })}
 
-        {/* Compact Live Status */}
+        {/* Status Indicators */}
         <div className="absolute top-4 left-4 space-y-2">
           <Badge className="bg-green-600/90 text-white px-3 py-1 text-xs font-semibold animate-pulse flex items-center gap-2">
             <div className="w-2 h-2 bg-white rounded-full animate-ping" />
@@ -1004,11 +750,11 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           </Badge>
         </div>
 
-        {/* Compact Seat Info Panel */}
+        {/* Seat Info Panel */}
         {hoveredSeat && (
-          <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-2xl text-sm max-w-xs border-l-4 border-amber-500">
+          <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-xl text-sm max-w-xs border-l-4 border-amber-500">
             {(() => {
-              const seat = REAL_CAFE_SEATS.find(s => s.id === hoveredSeat);
+              const seat = CLEAN_CAFE_SEATS.find(s => s.id === hoveredSeat);
               const occupants = getSeatOccupancy(hoveredSeat);
               if (!seat) return null;
               
@@ -1019,71 +765,57 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
                       <Coffee className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <div className="font-bold text-stone-800">{hoveredSeat.replace(/-/g, ' ').toUpperCase()}</div>
-                      <div className="text-xs text-stone-600 capitalize">{seat.vibe} atmosphere • {seat.zone}</div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    <div className="bg-blue-50 p-2 rounded-lg">
-                      <div className="text-xs text-blue-600 font-medium">Music Zone</div>
-                      <div className="text-xs capitalize">{seat.musicZone}</div>
-                    </div>
-                    <div className="bg-green-50 p-2 rounded-lg">
-                      <div className="text-xs text-green-600 font-medium">Audio</div>
-                      <div className="text-xs capitalize">{seat.ambientSound}</div>
+                      <div className="font-bold text-gray-800">{hoveredSeat.replace(/-/g, ' ').toUpperCase()}</div>
+                      <div className="text-xs text-gray-600 capitalize">{seat.vibe} • {seat.zone}</div>
                     </div>
                   </div>
                   
                   {occupants.length > 0 && (
                     <div className="mb-3">
-                      <div className="text-xs font-medium text-stone-700 mb-1">Currently Here:</div>
+                      <div className="text-xs font-medium text-gray-700 mb-1">Currently Here:</div>
                       <div className="space-y-1">
                         {occupants.map((user, idx) => (
                           <div key={idx} className="flex items-center gap-2 text-xs">
                             <span className="text-sm">{user.mood}</span>
                             <span className="font-medium">{user.name}</span>
                             <Badge variant="outline" className="text-xs">{user.status}</Badge>
-                            <span className="text-xs text-gray-600">- {user.activity}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
                   
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      className="flex-1 bg-amber-600 hover:bg-amber-700 text-white text-xs"
-                      onClick={() => handleSeatClick(seat.id)}
-                    >
-                      <Coffee className="h-3 w-3 mr-1" />
-                      Sit Here
-                    </Button>
-                  </div>
+                  <Button 
+                    size="sm" 
+                    className="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs"
+                    onClick={() => handleSeatClick(seat.id)}
+                  >
+                    <Coffee className="h-3 w-3 mr-1" />
+                    Sit Here
+                  </Button>
                 </>
               );
             })()}
           </div>
         )}
 
-        {/* Compact Instructions */}
+        {/* Instructions */}
         <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg text-xs max-w-xs">
           <div className="font-bold mb-2 text-sm flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-amber-600" />
-            Welcome to A Matter of Coffee!
+            Welcome!
           </div>
           <div className="space-y-1 text-xs">
             <div className="flex items-center gap-2">
               <CoffeeBean isOccupied={false} isSelected={false} isHovered={false} size={12} />
-              <span>Click any coffee bean to sit there</span>
+              <span>Click any bean to sit</span>
             </div>
             <div className="flex items-center gap-2">
               <CoffeeBean isOccupied={true} isSelected={false} isHovered={false} size={12} />
-              <span>See who's sitting where in real-time</span>
+              <span>See who's here real-time</span>
             </div>
             <div className="text-gray-600 mt-1 pt-1 border-t text-xs">
-              Our expert baristas Ahmed, Joy & Muneeb are here to serve you! ☕
+              Baristas Ahmed, Joy & Muneeb ready to serve! ☕
             </div>
           </div>
         </div>
