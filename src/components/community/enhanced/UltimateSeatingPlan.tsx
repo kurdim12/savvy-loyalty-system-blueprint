@@ -10,6 +10,72 @@ import { CoffeeShopAmbientAudio } from './CoffeeShopAmbientAudio';
 import { GamificationElements } from './GamificationElements';
 import { AdvancedSocialFeatures } from './AdvancedSocialFeatures';
 
+// Coffee Bean Icon Component
+const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 24 }: { 
+  isOccupied: boolean; 
+  isSelected: boolean; 
+  isHovered: boolean; 
+  size?: number; 
+}) => {
+  const beanColor = isOccupied ? '#B0B0B0' : '#6F4E37';
+  const seamColor = isOccupied ? '#808080' : '#3E2C19';
+  
+  return (
+    <div 
+      className={`relative transition-all duration-300 ${
+        !isOccupied ? 'animate-pulse' : ''
+      }`}
+      style={{
+        width: size,
+        height: size,
+        filter: isSelected || isHovered ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' : 'drop-shadow(0 3px 6px rgba(0,0,0,0.2))',
+        transform: isSelected ? 'scale(1.3)' : isHovered ? 'scale(1.2)' : 'scale(1)',
+        animation: !isOccupied ? 'beanPulse 2s ease-in-out infinite' : 'none'
+      }}
+    >
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Coffee bean body */}
+        <ellipse
+          cx="12"
+          cy="12"
+          rx="8"
+          ry="11"
+          fill={beanColor}
+          transform="rotate(-15 12 12)"
+        />
+        {/* Coffee bean seam */}
+        <path
+          d="M7 8 Q12 12 17 16"
+          stroke={seamColor}
+          strokeWidth="2"
+          strokeLinecap="round"
+          fill="none"
+        />
+        {/* Selection ring */}
+        {(isSelected || isHovered) && (
+          <ellipse
+            cx="12"
+            cy="12"
+            rx="10"
+            ry="13"
+            fill="none"
+            stroke={isSelected ? '#3b82f6' : '#60a5fa'}
+            strokeWidth="2"
+            transform="rotate(-15 12 12)"
+            opacity="0.8"
+          />
+        )}
+      </svg>
+    </div>
+  );
+};
+
 // Ultra-precise seat coordinates matching the exact chair positions in the photo
 const ULTRA_PRECISE_CAFE_SEATS = [
   // Bar stools at the counter (pixel-perfect positioning)
@@ -145,6 +211,7 @@ const ULTRA_PRECISE_CAFE_SEATS = [
   }
 ];
 
+// Ultra-precise zone colors
 const ZONE_COLORS = {
   indoor: { bg: 'rgba(139, 69, 19, 0.15)', border: '#8B4513', name: '🏠 Indoor Café' },
   outdoor: { bg: 'rgba(34, 197, 94, 0.15)', border: '#22C55E', name: '🌿 Outdoor Terrace' },
@@ -236,7 +303,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
             <h2 className="text-3xl font-bold text-stone-800">RAW SMITH CAFÉ</h2>
             <Sparkles className="h-8 w-8 text-amber-600" />
           </div>
-          <p className="text-stone-600 mb-4">Click on any seat in the café to sit there!</p>
+          <p className="text-stone-600 mb-4">Click on any coffee bean to sit there!</p>
           
           {/* Enhanced Controls */}
           <div className="flex justify-center items-center gap-4 flex-wrap">
@@ -322,17 +389,25 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         }`}
         style={{
           aspectRatio: isFullscreen ? "auto" : "4/3",
-          maxWidth: isFullscreen ? "100vw" : "95vw",
-          height: isFullscreen ? "100vh" : hideHeader ? "70vh" : "calc(100vh - 300px)",
+          width: isFullscreen ? "100vw" : "100%",
+          height: isFullscreen ? "100vh" : hideHeader ? "80vh" : "calc(100vh - 200px)",
           backgroundImage: "url('/lovable-uploads/7ddcf203-b9d9-4773-bf53-d70372417ee7.png')",
           backgroundSize: "cover",
           backgroundPosition: "center"
         }}
       >
+        {/* CSS for bean pulse animation */}
+        <style jsx>{`
+          @keyframes beanPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+          }
+        `}</style>
+
         {/* Enhanced Particle Effects */}
         <EnhancedSeatingEffects particles={particles} />
 
-        {/* Ultra-Precise Individual Chair Clickable Areas with Enhanced Visual Feedback */}
+        {/* Coffee Bean Seat Markers */}
         {ULTRA_PRECISE_CAFE_SEATS.map((seat) => {
           const occupants = getSeatOccupancy(seat.id);
           const isOccupied = occupants.length > 0;
@@ -342,50 +417,31 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           return (
             <div
               key={seat.id}
-              className={`absolute cursor-pointer transition-all duration-300 rounded-full ${
-                isSelected 
-                  ? 'ring-4 ring-blue-500 bg-blue-500/80 shadow-xl shadow-blue-500/70' 
-                  : isHovered 
-                    ? 'ring-3 ring-blue-400 bg-blue-400/70 shadow-lg shadow-blue-400/60' 
-                    : 'hover:bg-blue-300/50 hover:ring-2 hover:ring-blue-300'
-              }`}
+              className="absolute cursor-pointer transition-all duration-300 rounded-full flex items-center justify-center"
               style={{
                 left: `${seat.x}%`,
                 top: `${seat.y}%`,
                 width: `${seat.w}%`,
                 height: `${seat.h}%`,
                 zIndex: isHovered || isSelected ? 35 : 25,
-                border: isSelected 
-                  ? '4px solid #3b82f6' 
-                  : isHovered 
-                    ? '3px solid #60a5fa' 
-                    : '2px solid rgba(59, 130, 246, 0.3)',
-                backdropFilter: isHovered || isSelected ? 'blur(3px)' : 'blur(1px)',
-                boxShadow: isSelected 
-                  ? '0 0 40px rgba(59, 130, 246, 0.9), inset 0 0 30px rgba(59, 130, 246, 0.5)' 
-                  : isHovered 
-                    ? '0 0 30px rgba(96, 165, 250, 0.7), inset 0 0 20px rgba(96, 165, 250, 0.3)' 
-                    : '0 0 15px rgba(59, 130, 246, 0.2)',
                 transform: isSelected 
-                  ? 'scale(1.15)' 
+                  ? 'scale(1.1)' 
                   : isHovered 
-                    ? 'scale(1.10)' 
+                    ? 'scale(1.05)' 
                     : 'scale(1)'
               }}
               onClick={() => handleSeatClick(seat.id)}
               onMouseEnter={() => setHoveredSeat(seat.id)}
               onMouseLeave={() => setHoveredSeat(null)}
             >
-              {/* Enhanced Center Dot Indicator */}
-              <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full ${
-                isSelected 
-                  ? 'w-3 h-3 bg-white animate-ping' 
-                  : isHovered 
-                    ? 'w-2.5 h-2.5 bg-white animate-pulse' 
-                    : 'w-2 h-2 bg-blue-500'
-              }`} />
+              <CoffeeBean
+                isOccupied={isOccupied}
+                isSelected={isSelected}
+                isHovered={isHovered}
+                size={isFullscreen ? 32 : 24}
+              />
 
-              {/* Ultra-Precise Occupancy Indicators */}
+              {/* Enhanced Occupancy Indicators */}
               {isOccupied && (
                 <div className="absolute -top-4 -right-4 z-20">
                   <EnhancedUserAvatars
@@ -395,25 +451,15 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
                   />
                 </div>
               )}
-              
-              {/* Enhanced Selection Pulse Effect */}
-              {isSelected && (
-                <div className="absolute inset-0 border-4 border-blue-300 rounded-full animate-ping bg-blue-300/30" />
-              )}
 
               {/* Enhanced Click hint when hovered */}
               {isHovered && !isSelected && (
                 <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1 rounded-full text-xs font-bold animate-bounce shadow-xl whitespace-nowrap">
+                  <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-3 py-1 rounded-full text-xs font-bold animate-bounce shadow-xl whitespace-nowrap">
                     Click to sit!
                   </div>
                 </div>
               )}
-              
-              {/* Enhanced availability indicator */}
-              <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
-                isOccupied ? 'bg-red-500 animate-pulse' : 'bg-green-500 animate-ping'
-              }`} />
             </div>
           );
         })}
@@ -502,15 +548,15 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           </div>
           <div className="space-y-2 text-xs">
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-200 border-2 border-blue-500 rounded-lg animate-pulse"></div>
-              <span>Click directly on any chair to sit there</span>
+              <CoffeeBean isOccupied={false} isSelected={false} isHovered={false} size={16} />
+              <span>Click any coffee bean to sit there</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+              <CoffeeBean isOccupied={true} isSelected={false} isHovered={false} size={16} />
               <span>See who's sitting where in real-time</span>
             </div>
             <div className="text-gray-600 mt-2 pt-2 border-t">
-              Hover over chairs to see details • Click to join conversations
+              Hover over beans to see details • Click to join conversations
             </div>
           </div>
         </div>
