@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { InteractiveSeatingMap } from './InteractiveSeatingMap';
+import { UltimateSeatingPlan } from './UltimateSeatingPlan';
 import { useSeatingPresence } from '@/hooks/useSeatingPresence';
 
 interface UniqueSeatingAreaProps {
@@ -18,9 +18,31 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
     onSeatSelect(seatId);
   };
 
+  // Transform users data to match enhanced format with required id property
+  const enhancedUsers = onlineUsers.map((user, index) => {
+    // Define allowed status values
+    const statusOptions: ('chatting' | 'working' | 'available' | 'focused')[] = ['chatting', 'working', 'available', 'focused'];
+    const randomStatus = statusOptions[Math.floor(Math.random() * statusOptions.length)];
+    
+    return {
+      id: `user-${index}-${user.seatId}`, // Add the required id property
+      seatId: user.seatId,
+      name: user.name,
+      mood: user.mood,
+      activity: user.activity || 'Enjoying coffee',
+      status: randomStatus, // Now properly typed
+      drinkType: ['espresso', 'latte', 'cappuccino', 'americano'][Math.floor(Math.random() * 4)] as 'espresso' | 'latte' | 'cappuccino' | 'americano'
+    };
+  });
+
   return (
     <div className="w-full h-full">
-      <InteractiveSeatingMap />
+      <UltimateSeatingPlan 
+        onSeatSelect={handleSeatSelect}
+        selectedSeat={selectedSeat}
+        hideHeader={true}
+        onlineUsers={enhancedUsers}
+      />
     </div>
   );
 };
