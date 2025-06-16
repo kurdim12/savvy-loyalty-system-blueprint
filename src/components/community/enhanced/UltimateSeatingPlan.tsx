@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,55 +10,73 @@ import { CoffeeShopAmbientAudio } from './CoffeeShopAmbientAudio';
 import { GamificationElements } from './GamificationElements';
 import { AdvancedSocialFeatures } from './AdvancedSocialFeatures';
 
-// Real seat positions matching the actual café photo
+// Updated seat positions to match exactly with visible chairs in the café photo
 const REAL_CAFE_SEATS = [
-  // Bar stools (visible in the photo at the counter)
+  // Bar stools at the counter (front counter area)
   { 
-    id: 'bar-stool-1', x: 12, y: 45, w: 6, h: 8, type: 'bar', zone: 'indoor',
+    id: 'bar-stool-1', x: 15, y: 52, w: 4, h: 6, type: 'bar', zone: 'indoor',
     ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-2', x: 19, y: 45, w: 6, h: 8, type: 'bar', zone: 'indoor',
+    id: 'bar-stool-2', x: 20, y: 52, w: 4, h: 6, type: 'bar', zone: 'indoor',
     ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-3', x: 26, y: 45, w: 6, h: 8, type: 'bar', zone: 'indoor',
+    id: 'bar-stool-3', x: 25, y: 52, w: 4, h: 6, type: 'bar', zone: 'indoor',
+    ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
+  },
+  { 
+    id: 'bar-stool-4', x: 30, y: 52, w: 4, h: 6, type: 'bar', zone: 'indoor',
     ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
   },
   
-  // Tables visible in the main dining area
+  // Main dining area tables with chairs
   { 
-    id: 'center-table-1', x: 40, y: 60, w: 12, h: 10, type: 'table', zone: 'indoor', capacity: 4,
+    id: 'center-table-1', x: 42, y: 65, w: 8, h: 8, type: 'table', zone: 'indoor', capacity: 4,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'center-table-2', x: 58, y: 60, w: 12, h: 10, type: 'table', zone: 'indoor', capacity: 4,
+    id: 'center-table-2', x: 55, y: 65, w: 8, h: 8, type: 'table', zone: 'indoor', capacity: 4,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+  },
+  { 
+    id: 'center-table-3', x: 68, y: 65, w: 8, h: 8, type: 'table', zone: 'indoor', capacity: 4,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   
-  // Window seating area
+  // Window seating area (right side window seats)
   { 
-    id: 'window-seat-1', x: 75, y: 40, w: 15, h: 8, type: 'window', zone: 'indoor', capacity: 2,
+    id: 'window-seat-1', x: 78, y: 45, w: 12, h: 6, type: 'window', zone: 'indoor', capacity: 2,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'relaxed'
   },
   { 
-    id: 'window-seat-2', x: 75, y: 55, w: 15, h: 8, type: 'window', zone: 'indoor', capacity: 2,
+    id: 'window-seat-2', x: 78, y: 55, w: 12, h: 6, type: 'window', zone: 'indoor', capacity: 2,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'relaxed'
   },
   
-  // Corner booth (back left)
+  // Corner booth/seating (back left area)
   { 
-    id: 'corner-booth', x: 8, y: 25, w: 18, h: 12, type: 'booth', zone: 'indoor', capacity: 6,
+    id: 'corner-booth', x: 8, y: 30, w: 15, h: 10, type: 'booth', zone: 'indoor', capacity: 6,
     ambientSound: 'intimate', musicZone: 'premium', vibe: 'private'
   },
   
-  // Side tables
+  // Side tables (middle area)
   { 
-    id: 'side-table-1', x: 35, y: 35, w: 10, h: 8, type: 'table', zone: 'indoor', capacity: 2,
+    id: 'side-table-1', x: 35, y: 42, w: 6, h: 6, type: 'table', zone: 'indoor', capacity: 2,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'side-table-2', x: 50, y: 35, w: 10, h: 8, type: 'table', zone: 'indoor', capacity: 2,
+    id: 'side-table-2', x: 48, y: 42, w: 6, h: 6, type: 'table', zone: 'indoor', capacity: 2,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+  },
+  
+  // Back row seating
+  { 
+    id: 'back-table-1', x: 42, y: 35, w: 8, h: 6, type: 'table', zone: 'indoor', capacity: 4,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+  },
+  { 
+    id: 'back-table-2', x: 55, y: 35, w: 8, h: 6, type: 'table', zone: 'indoor', capacity: 4,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   }
 ];
@@ -205,7 +222,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         />
       </div>
 
-      {/* Main Interactive Canvas - Real Café Photo with Clickable Seats */}
+      {/* Main Interactive Canvas - Real Café Photo with Precisely Positioned Clickable Seats */}
       <div
         className="relative w-full mx-auto border-2 border-stone-400 rounded-lg shadow-2xl overflow-hidden bg-cover bg-center bg-no-repeat"
         style={{
@@ -220,7 +237,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         {/* Particle Effects */}
         <EnhancedSeatingEffects particles={particles} />
 
-        {/* Clickable Seat Areas - Invisible overlays on actual seats */}
+        {/* Precisely Positioned Clickable Seat Areas */}
         {REAL_CAFE_SEATS.map((seat) => {
           const occupants = getSeatOccupancy(seat.id);
           const isOccupied = occupants.length > 0;
@@ -230,27 +247,31 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           return (
             <div
               key={seat.id}
-              className={`absolute cursor-pointer transition-all duration-300 hover:scale-105 ${
+              className={`absolute cursor-pointer transition-all duration-300 hover:scale-110 ${
                 isSelected 
-                  ? 'ring-4 ring-amber-400 bg-amber-400/30' 
+                  ? 'ring-4 ring-amber-500 bg-amber-500/40 shadow-lg shadow-amber-500/50' 
                   : isHovered 
-                    ? 'ring-2 ring-amber-300 bg-amber-300/20' 
-                    : 'hover:bg-amber-200/10'
+                    ? 'ring-3 ring-amber-400 bg-amber-400/30 shadow-md shadow-amber-400/40' 
+                    : 'hover:bg-amber-300/20 hover:ring-2 hover:ring-amber-300'
               }`}
               style={{
                 left: `${seat.x}%`,
                 top: `${seat.y}%`,
                 width: `${seat.w}%`,
                 height: `${seat.h}%`,
-                borderRadius: '8px',
+                borderRadius: '12px',
                 zIndex: isHovered || isSelected ? 25 : 15,
                 border: isSelected 
                   ? '3px solid #f59e0b' 
                   : isHovered 
-                    ? '2px solid #f59e0b' 
-                    : '1px solid transparent',
-                backdropFilter: isHovered || isSelected ? 'blur(1px)' : 'none',
-                boxShadow: isHovered ? '0 0 20px rgba(245, 158, 11, 0.4)' : 'none'
+                    ? '2px solid #fbbf24' 
+                    : '2px solid transparent',
+                backdropFilter: isHovered || isSelected ? 'blur(2px)' : 'none',
+                boxShadow: isSelected 
+                  ? '0 0 25px rgba(245, 158, 11, 0.6), inset 0 0 15px rgba(245, 158, 11, 0.3)' 
+                  : isHovered 
+                    ? '0 0 20px rgba(251, 191, 36, 0.5)' 
+                    : 'none'
               }}
               onClick={() => handleSeatClick(seat.id)}
               onMouseEnter={() => setHoveredSeat(seat.id)}
@@ -258,7 +279,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
             >
               {/* Occupancy Indicators */}
               {isOccupied && (
-                <div className="absolute -top-2 -right-2 z-10">
+                <div className="absolute -top-3 -right-3 z-10">
                   <EnhancedUserAvatars
                     users={occupants}
                     seatId={seat.id}
@@ -269,24 +290,29 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
               
               {/* Seat Type Indicator - only show when hovered */}
               {isHovered && (
-                <div className="absolute top-1 left-1 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                  {seat.type}
+                <div className="absolute top-1 left-1 bg-black/80 text-white text-xs px-2 py-1 rounded-md font-medium">
+                  {seat.type.charAt(0).toUpperCase() + seat.type.slice(1)}
                 </div>
               )}
               
               {/* Selection Pulse Effect */}
               {isSelected && (
-                <div className="absolute inset-0 border-4 border-amber-400 rounded animate-pulse" />
+                <div className="absolute inset-0 border-4 border-amber-400 rounded-xl animate-pulse bg-amber-400/20" />
               )}
 
-              {/* Click hint when hovered */}
+              {/* Enhanced Click hint when hovered */}
               {isHovered && !isSelected && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-amber-600 text-white px-3 py-1 rounded-full text-sm font-medium animate-pulse">
-                    Click to sit here
+                  <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse shadow-lg">
+                    Click to sit here!
                   </div>
                 </div>
               )}
+              
+              {/* Seat availability indicator */}
+              <div className={`absolute top-1 right-1 w-3 h-3 rounded-full ${
+                isOccupied ? 'bg-red-500' : 'bg-green-500'
+              } ${isHovered ? 'animate-pulse' : ''}`} />
             </div>
           );
         })}
