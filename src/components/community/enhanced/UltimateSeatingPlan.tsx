@@ -126,7 +126,7 @@ const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 32, seatType }: 
   );
 };
 
-// Enhanced Barista Avatar Component with new images
+// Enhanced Barista Avatar Component with improved styling and no "master" text
 const BaristaAvatar = ({ name, position }: { name: string; position: { x: number; y: number } }) => {
   const getAvatarImage = (name: string) => {
     switch (name) {
@@ -149,38 +149,52 @@ const BaristaAvatar = ({ name, position }: { name: string; position: { x: number
         top: `${position.y}%`,
         transform: 'translate(-50%, -50%)'
       }}
-      title={`${name} - Master Barista`}
+      title={`${name} - Expert Barista`}
     >
       <div className="relative">
-        {/* Enhanced avatar container with glow effect */}
-        <div className="relative w-16 h-16 rounded-full border-4 border-amber-400 shadow-2xl overflow-hidden group-hover:scale-110 transition-all duration-300 bg-gradient-to-br from-amber-100 to-orange-100">
+        {/* Enhanced avatar container with better styling */}
+        <div className="relative w-20 h-20 rounded-full border-4 border-gradient-to-r from-amber-400 via-yellow-500 to-orange-500 shadow-2xl overflow-hidden group-hover:scale-110 transition-all duration-500 bg-gradient-to-br from-amber-50 to-orange-100">
           <img 
             src={getAvatarImage(name)} 
             alt={name}
-            className="w-full h-full object-cover rounded-full"
+            className="w-full h-full object-cover rounded-full transform group-hover:scale-105 transition-transform duration-300"
           />
           
-          {/* Animated border glow */}
-          <div className="absolute inset-0 rounded-full border-2 border-yellow-300 animate-pulse opacity-60" />
+          {/* Animated multi-layered border glow */}
+          <div className="absolute inset-0 rounded-full border-2 border-yellow-300 animate-pulse opacity-70" />
+          <div className="absolute inset-0 rounded-full border border-amber-200 animate-ping opacity-40" style={{ animationDelay: '0.5s' }} />
           
-          {/* Coffee steam animation */}
-          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-            <div className="w-1 h-6 bg-gradient-to-t from-white/60 to-transparent rounded-full animate-pulse opacity-80" />
-            <div className="w-1 h-4 bg-gradient-to-t from-white/40 to-transparent rounded-full animate-pulse opacity-60 ml-1 -mt-4" style={{ animationDelay: '0.5s' }} />
+          {/* Enhanced coffee steam animation */}
+          <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+            <div className="w-1.5 h-8 bg-gradient-to-t from-white/70 to-transparent rounded-full animate-pulse opacity-90" />
+            <div className="w-1 h-6 bg-gradient-to-t from-white/50 to-transparent rounded-full animate-pulse opacity-70 ml-2 -mt-6" style={{ animationDelay: '0.3s' }} />
+            <div className="w-1.5 h-7 bg-gradient-to-t from-white/60 to-transparent rounded-full animate-pulse opacity-80 -ml-1 -mt-5" style={{ animationDelay: '0.8s' }} />
           </div>
         </div>
         
-        {/* Enhanced name tag with styling */}
-        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-amber-700 to-orange-700 text-white px-4 py-2 rounded-full text-sm font-bold shadow-xl whitespace-nowrap group-hover:scale-105 transition-all duration-300">
-          ☕ {name}
+        {/* Enhanced name tag with better positioning and styling */}
+        <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-2xl whitespace-nowrap group-hover:scale-105 transition-all duration-300 border-2 border-amber-300">
+          <div className="flex items-center gap-2">
+            ☕ {name}
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+          </div>
         </div>
         
-        {/* Status indicator */}
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full animate-pulse shadow-lg" />
+        {/* Enhanced status indicator with better positioning */}
+        <div className="absolute -top-2 -right-2 w-5 h-5 bg-gradient-to-r from-green-400 to-emerald-500 border-3 border-white rounded-full animate-pulse shadow-lg flex items-center justify-center">
+          <div className="w-2 h-2 bg-white rounded-full" />
+        </div>
         
-        {/* Skill level indicator */}
-        <div className="absolute top-0 left-0 bg-gradient-to-r from-yellow-400 to-amber-500 text-black text-xs px-2 py-1 rounded-full font-bold shadow-md">
-          ⭐ Master
+        {/* Floating skill indicators */}
+        <div className="absolute -top-8 -left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" />
+          <div className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+          <div className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+        </div>
+        
+        {/* Coffee expertise indicator */}
+        <div className="absolute top-1 right-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold shadow-md opacity-90">
+          ⭐
         </div>
       </div>
     </div>
@@ -705,7 +719,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           </div>
         </div>
 
-        {/* Enhanced Baristas with new avatars */}
+        {/* Enhanced Baristas with improved avatars - NO MASTER TEXT */}
         {BARISTAS.map((barista) => (
           <BaristaAvatar
             key={barista.name}
@@ -923,7 +937,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
               <span>See who's sitting where in real-time</span>
             </div>
             <div className="text-gray-600 mt-1 pt-1 border-t text-xs">
-              Our baristas Ahmed, Joy & Muneef are here to serve you! ☕
+              Our expert baristas Ahmed, Joy & Muneef are here to serve you! ☕
             </div>
           </div>
         </div>
