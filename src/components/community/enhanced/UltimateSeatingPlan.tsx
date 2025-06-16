@@ -11,7 +11,7 @@ import { GamificationElements } from './GamificationElements';
 import { AdvancedSocialFeatures } from './AdvancedSocialFeatures';
 
 // Coffee Bean Icon Component
-const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 24 }: { 
+const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 28 }: { 
   isOccupied: boolean; 
   isSelected: boolean; 
   isHovered: boolean; 
@@ -28,8 +28,8 @@ const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 24 }: {
       style={{
         width: size,
         height: size,
-        filter: isSelected || isHovered ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' : 'drop-shadow(0 3px 6px rgba(0,0,0,0.2))',
-        transform: isSelected ? 'scale(1.3)' : isHovered ? 'scale(1.2)' : 'scale(1)',
+        filter: isSelected || isHovered ? 'drop-shadow(0 6px 12px rgba(0,0,0,0.4))' : 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
+        transform: isSelected ? 'scale(1.4)' : isHovered ? 'scale(1.3)' : 'scale(1)',
         animation: !isOccupied ? 'beanPulse 2s ease-in-out infinite' : 'none'
       }}
     >
@@ -80,133 +80,133 @@ const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 24 }: {
 const ULTRA_PRECISE_CAFE_SEATS = [
   // Bar stools at the counter (positioned exactly on chair seats)
   { 
-    id: 'bar-stool-1', x: 76.8, y: 18.5, w: 2.0, h: 2.0, type: 'bar', zone: 'indoor',
+    id: 'bar-stool-1', x: 76.5, y: 18.2, w: 1.8, h: 1.8, type: 'bar', zone: 'indoor',
     ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-2', x: 80.5, y: 18.5, w: 2.0, h: 2.0, type: 'bar', zone: 'indoor',
+    id: 'bar-stool-2', x: 80.0, y: 18.2, w: 1.8, h: 1.8, type: 'bar', zone: 'indoor',
     ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-3', x: 84.2, y: 18.5, w: 2.0, h: 2.0, type: 'bar', zone: 'indoor',
+    id: 'bar-stool-3', x: 83.5, y: 18.2, w: 1.8, h: 1.8, type: 'bar', zone: 'indoor',
     ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-4', x: 87.9, y: 18.5, w: 2.0, h: 2.0, type: 'bar', zone: 'indoor',
+    id: 'bar-stool-4', x: 87.0, y: 18.2, w: 1.8, h: 1.8, type: 'bar', zone: 'indoor',
     ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
   },
   
   // Left side green armchair (exactly on the chair seat)
   { 
-    id: 'green-armchair-1', x: 15.2, y: 46.0, w: 2.5, h: 2.5, type: 'armchair', zone: 'indoor', capacity: 1,
+    id: 'green-armchair-1', x: 15.5, y: 45.8, w: 2.2, h: 2.2, type: 'armchair', zone: 'indoor', capacity: 1,
     ambientSound: 'intimate', musicZone: 'ambient', vibe: 'relaxed'
   },
   
   // Left side table chairs (positioned exactly on chair seats)
   { 
-    id: 'left-table-chair-1', x: 12.0, y: 60.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'left-table-chair-1', x: 12.2, y: 60.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'left-table-chair-2', x: 22.8, y: 60.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'left-table-chair-2', x: 22.5, y: 60.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'left-table-chair-3', x: 12.0, y: 67.0, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'left-table-chair-3', x: 12.2, y: 66.8, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'left-table-chair-4', x: 22.8, y: 67.0, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'left-table-chair-4', x: 22.5, y: 66.8, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   
   // Center area tables - first table (exactly on chair seats)
   { 
-    id: 'center-table-1-chair-1', x: 34.5, y: 58.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-1-chair-1', x: 34.8, y: 58.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'center-table-1-chair-2', x: 45.2, y: 58.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-1-chair-2', x: 44.8, y: 58.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'center-table-1-chair-3', x: 34.5, y: 69.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-1-chair-3', x: 34.8, y: 69.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'center-table-1-chair-4', x: 45.2, y: 69.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-1-chair-4', x: 44.8, y: 69.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   
   // Second center table (exactly on chair seats)
   { 
-    id: 'center-table-2-chair-1', x: 53.8, y: 58.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-2-chair-1', x: 54.2, y: 58.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'center-table-2-chair-2', x: 64.5, y: 58.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-2-chair-2', x: 64.2, y: 58.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'center-table-2-chair-3', x: 53.8, y: 69.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-2-chair-3', x: 54.2, y: 69.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'center-table-2-chair-4', x: 64.5, y: 69.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-2-chair-4', x: 64.2, y: 69.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   
   // Third center table (exactly on chair seats)
   { 
-    id: 'center-table-3-chair-1', x: 73.2, y: 58.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-3-chair-1', x: 73.5, y: 58.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'center-table-3-chair-2', x: 83.9, y: 58.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-3-chair-2', x: 83.5, y: 58.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'center-table-3-chair-3', x: 73.2, y: 69.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-3-chair-3', x: 73.5, y: 69.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'center-table-3-chair-4', x: 83.9, y: 69.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-3-chair-4', x: 83.5, y: 69.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   
   // Back row tables - first table (exactly on chair seats)
   { 
-    id: 'back-table-1-chair-1', x: 34.5, y: 35.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'back-table-1-chair-1', x: 34.8, y: 35.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'back-table-1-chair-2', x: 45.2, y: 35.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'back-table-1-chair-2', x: 44.8, y: 35.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'back-table-1-chair-3', x: 34.5, y: 46.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'back-table-1-chair-3', x: 34.8, y: 46.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'back-table-1-chair-4', x: 45.2, y: 46.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'back-table-1-chair-4', x: 44.8, y: 46.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   
   // Second back table (exactly on chair seats)
   { 
-    id: 'back-table-2-chair-1', x: 53.8, y: 35.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'back-table-2-chair-1', x: 54.2, y: 35.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'back-table-2-chair-2', x: 64.5, y: 35.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'back-table-2-chair-2', x: 64.2, y: 35.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'back-table-2-chair-3', x: 53.8, y: 46.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'back-table-2-chair-3', x: 54.2, y: 46.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'back-table-2-chair-4', x: 64.5, y: 46.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'back-table-2-chair-4', x: 64.2, y: 46.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   }
 ];
@@ -394,12 +394,12 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
 
       {/* Main Interactive Canvas - Full page photo */}
       <div
-        className={`relative w-full mx-auto border-2 border-stone-400 rounded-lg shadow-2xl overflow-hidden ${
-          isFullscreen ? 'h-screen border-0 rounded-none' : 'h-screen border-0 rounded-none'
+        className={`relative w-full mx-auto overflow-hidden ${
+          isFullscreen ? 'h-screen' : 'h-screen'
         }`}
         style={{
           width: "100vw",
-          height: isFullscreen ? "100vh" : "100vh",
+          height: isFullscreen ? "100vh" : "calc(100vh - 120px)",
           backgroundImage: "url('/lovable-uploads/7ddcf203-b9d9-4773-bf53-d70372417ee7.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -440,7 +440,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
                 isOccupied={isOccupied}
                 isSelected={isSelected}
                 isHovered={isHovered}
-                size={isFullscreen ? 32 : 24}
+                size={isFullscreen ? 36 : 28}
               />
 
               {/* Enhanced Occupancy Indicators */}
