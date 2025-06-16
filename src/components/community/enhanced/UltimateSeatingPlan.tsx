@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,96 +11,56 @@ import { CoffeeShopAmbientAudio } from './CoffeeShopAmbientAudio';
 import { GamificationElements } from './GamificationElements';
 import { AdvancedSocialFeatures } from './AdvancedSocialFeatures';
 
-// Enhanced seating zones with more detailed data
-const ENHANCED_SEATING_ZONES = [
-  // Bar Counter Stools with enhanced features
+// Real seat positions matching the actual café photo
+const REAL_CAFE_SEATS = [
+  // Bar stools (visible in the photo at the counter)
   { 
-    id: 'bar-stool-1', x: 15, y: 20, w: 4, h: 4, type: 'bar', zone: 'indoor',
+    id: 'bar-stool-1', x: 12, y: 45, w: 6, h: 8, type: 'bar', zone: 'indoor',
     ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-2', x: 20, y: 20, w: 4, h: 4, type: 'bar', zone: 'indoor',
+    id: 'bar-stool-2', x: 19, y: 45, w: 6, h: 8, type: 'bar', zone: 'indoor',
     ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-3', x: 25, y: 20, w: 4, h: 4, type: 'bar', zone: 'indoor',
-    ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
-  },
-  { 
-    id: 'bar-stool-4', x: 30, y: 20, w: 4, h: 4, type: 'bar', zone: 'indoor',
-    ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
-  },
-  { 
-    id: 'bar-stool-5', x: 35, y: 20, w: 4, h: 4, type: 'bar', zone: 'indoor',
+    id: 'bar-stool-3', x: 26, y: 45, w: 6, h: 8, type: 'bar', zone: 'indoor',
     ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
   },
   
-  // Indoor Tables with enhanced features
+  // Tables visible in the main dining area
   { 
-    id: 'table-1', x: 10, y: 35, w: 8, h: 6, type: 'table', zone: 'indoor', capacity: 4,
+    id: 'center-table-1', x: 40, y: 60, w: 12, h: 10, type: 'table', zone: 'indoor', capacity: 4,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'table-2', x: 25, y: 35, w: 8, h: 6, type: 'table', zone: 'indoor', capacity: 4,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'table-3', x: 40, y: 35, w: 8, h: 6, type: 'table', zone: 'indoor', capacity: 4,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'table-4', x: 10, y: 50, w: 8, h: 6, type: 'table', zone: 'indoor', capacity: 4,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'table-5', x: 25, y: 50, w: 8, h: 6, type: 'table', zone: 'indoor', capacity: 4,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'table-6', x: 40, y: 50, w: 8, h: 6, type: 'table', zone: 'indoor', capacity: 4,
+    id: 'center-table-2', x: 58, y: 60, w: 12, h: 10, type: 'table', zone: 'indoor', capacity: 4,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   
-  // Outdoor Terrace Tables
+  // Window seating area
   { 
-    id: 'outdoor-1', x: 12, y: 70, w: 6, h: 5, type: 'table', zone: 'outdoor', capacity: 2,
-    ambientSound: 'nature', musicZone: 'chill', vibe: 'relaxed'
+    id: 'window-seat-1', x: 75, y: 40, w: 15, h: 8, type: 'window', zone: 'indoor', capacity: 2,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'relaxed'
   },
   { 
-    id: 'outdoor-2', x: 22, y: 70, w: 6, h: 5, type: 'table', zone: 'outdoor', capacity: 2,
-    ambientSound: 'nature', musicZone: 'chill', vibe: 'relaxed'
-  },
-  { 
-    id: 'outdoor-3', x: 32, y: 70, w: 6, h: 5, type: 'table', zone: 'outdoor', capacity: 2,
-    ambientSound: 'nature', musicZone: 'chill', vibe: 'relaxed'
-  },
-  { 
-    id: 'outdoor-4', x: 42, y: 70, w: 6, h: 5, type: 'table', zone: 'outdoor', capacity: 2,
-    ambientSound: 'nature', musicZone: 'chill', vibe: 'relaxed'
+    id: 'window-seat-2', x: 75, y: 55, w: 15, h: 8, type: 'window', zone: 'indoor', capacity: 2,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'relaxed'
   },
   
-  // Premium Lounge Area
+  // Corner booth (back left)
   { 
-    id: 'lounge-chair-1', x: 60, y: 35, w: 5, h: 5, type: 'lounge', zone: 'lounge',
-    ambientSound: 'soft-jazz', musicZone: 'premium', vibe: 'luxurious'
-  },
-  { 
-    id: 'lounge-chair-2', x: 68, y: 35, w: 5, h: 5, type: 'lounge', zone: 'lounge',
-    ambientSound: 'soft-jazz', musicZone: 'premium', vibe: 'luxurious'
-  },
-  { 
-    id: 'lounge-chair-3', x: 60, y: 45, w: 5, h: 5, type: 'lounge', zone: 'lounge',
-    ambientSound: 'soft-jazz', musicZone: 'premium', vibe: 'luxurious'
-  },
-  { 
-    id: 'lounge-chair-4', x: 68, y: 45, w: 5, h: 5, type: 'lounge', zone: 'lounge',
-    ambientSound: 'soft-jazz', musicZone: 'premium', vibe: 'luxurious'
-  },
-  
-  // Corner Booth
-  { 
-    id: 'corner-booth', x: 60, y: 60, w: 12, h: 8, type: 'booth', zone: 'lounge', capacity: 6,
+    id: 'corner-booth', x: 8, y: 25, w: 18, h: 12, type: 'booth', zone: 'indoor', capacity: 6,
     ambientSound: 'intimate', musicZone: 'premium', vibe: 'private'
+  },
+  
+  // Side tables
+  { 
+    id: 'side-table-1', x: 35, y: 35, w: 10, h: 8, type: 'table', zone: 'indoor', capacity: 2,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+  },
+  { 
+    id: 'side-table-2', x: 50, y: 35, w: 10, h: 8, type: 'table', zone: 'indoor', capacity: 2,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   }
 ];
 
@@ -132,9 +93,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
 }) => {
   const [hoveredSeat, setHoveredSeat] = useState<string | null>(null);
   const [particles, setParticles] = useState<any[]>([]);
-  const [showSmartRecommendations, setShowSmartRecommendations] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [weatherEffect, setWeatherEffect] = useState('sunny');
 
   // Update time every minute for dynamic lighting
   useEffect(() => {
@@ -142,15 +101,6 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
       setCurrentTime(new Date());
     }, 60000);
     return () => clearInterval(timer);
-  }, []);
-
-  // Simulate weather changes
-  useEffect(() => {
-    const weatherTimer = setInterval(() => {
-      const weathers = ['sunny', 'cloudy', 'rainy', 'golden-hour'];
-      setWeatherEffect(weathers[Math.floor(Math.random() * weathers.length)]);
-    }, 300000); // Change every 5 minutes
-    return () => clearInterval(weatherTimer);
   }, []);
 
   const handleSeatClick = (seatId: string) => {
@@ -174,31 +124,13 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
   };
 
   const getZoneStats = (zone: string) => {
-    const zoneSeats = ENHANCED_SEATING_ZONES.filter(seat => seat.zone === zone);
+    const zoneSeats = REAL_CAFE_SEATS.filter(seat => seat.zone === zone);
     const occupiedSeats = zoneSeats.filter(seat => getSeatOccupancy(seat.id).length > 0);
     return {
       total: zoneSeats.length,
       occupied: occupiedSeats.length,
       available: zoneSeats.length - occupiedSeats.length
     };
-  };
-
-  const getDynamicLighting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 6) return 'brightness-75 sepia-10'; // Night
-    if (hour < 12) return 'brightness-110 saturate-110'; // Morning
-    if (hour < 17) return 'brightness-100'; // Afternoon
-    if (hour < 20) return 'brightness-90 sepia-20'; // Evening
-    return 'brightness-80 sepia-30'; // Night
-  };
-
-  const getWeatherOverlay = () => {
-    switch (weatherEffect) {
-      case 'rainy': return 'bg-blue-900/10';
-      case 'cloudy': return 'bg-gray-500/10';
-      case 'golden-hour': return 'bg-amber-300/20';
-      default: return 'bg-yellow-100/10';
-    }
   };
 
   const userProfile = {
@@ -218,7 +150,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
             <h2 className="text-3xl font-bold text-stone-800">RAW SMITH CAFÉ</h2>
             <Sparkles className="h-8 w-8 text-amber-600" />
           </div>
-          <p className="text-stone-600 mb-4">Ultimate Interactive Seating Experience</p>
+          <p className="text-stone-600 mb-4">Click on any seat in the café to sit there!</p>
           
           {/* Enhanced Controls */}
           <div className="flex justify-center items-center gap-4 flex-wrap">
@@ -231,7 +163,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
             <AdvancedSocialFeatures />
           </div>
           
-          {/* Zone Statistics with enhanced styling */}
+          {/* Zone Statistics */}
           <div className="flex justify-center gap-6 mt-6">
             {Object.entries(ZONE_COLORS).map(([zone, config]) => {
               const stats = getZoneStats(zone);
@@ -265,7 +197,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
       <div className="absolute top-4 right-4 z-30">
         <SmartSeatRecommendations
           userProfile={userProfile}
-          availableSeats={ENHANCED_SEATING_ZONES.map(s => s.id)}
+          availableSeats={REAL_CAFE_SEATS.map(s => s.id)}
           onSeatRecommend={(seatId, reason) => {
             console.log(`Recommended seat: ${seatId} - ${reason}`);
             handleSeatClick(seatId);
@@ -273,9 +205,9 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         />
       </div>
 
-      {/* Main Interactive Canvas with Enhanced Features */}
+      {/* Main Interactive Canvas - Real Café Photo with Clickable Seats */}
       <div
-        className={`relative w-full mx-auto border-2 border-stone-400 rounded-lg shadow-2xl overflow-hidden bg-cover bg-center bg-no-repeat transition-all duration-1000 ${getDynamicLighting()}`}
+        className="relative w-full mx-auto border-2 border-stone-400 rounded-lg shadow-2xl overflow-hidden bg-cover bg-center bg-no-repeat"
         style={{
           aspectRatio: "4/3",
           maxWidth: "95vw",
@@ -285,40 +217,11 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           backgroundPosition: "center"
         }}
       >
-        {/* Weather Effects Overlay */}
-        <div className={`absolute inset-0 ${getWeatherOverlay()} transition-all duration-2000`} />
-        
         {/* Particle Effects */}
         <EnhancedSeatingEffects particles={particles} />
 
-        {/* Enhanced Zone Labels with Animations */}
-        {Object.entries(ZONE_COLORS).map(([zone, config]) => {
-          const zoneSeats = ENHANCED_SEATING_ZONES.filter(seat => seat.zone === zone);
-          if (zoneSeats.length === 0) return null;
-          
-          const avgX = zoneSeats.reduce((sum, seat) => sum + seat.x, 0) / zoneSeats.length;
-          const avgY = zoneSeats.reduce((sum, seat) => sum + seat.y, 0) / zoneSeats.length;
-          
-          return (
-            <div
-              key={zone}
-              className="absolute bg-white/95 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg text-sm font-semibold pointer-events-none animate-pulse"
-              style={{
-                left: `${avgX}%`,
-                top: `${avgY - 8}%`,
-                transform: 'translate(-50%, -50%)',
-                color: config.border,
-                border: `2px solid ${config.border}`,
-                zIndex: 10
-              }}
-            >
-              {config.name}
-            </div>
-          );
-        })}
-
-        {/* Enhanced Interactive Seating Zones */}
-        {ENHANCED_SEATING_ZONES.map((seat) => {
+        {/* Clickable Seat Areas - Invisible overlays on actual seats */}
+        {REAL_CAFE_SEATS.map((seat) => {
           const occupants = getSeatOccupancy(seat.id);
           const isOccupied = occupants.length > 0;
           const isSelected = selectedSeat === seat.id;
@@ -329,38 +232,33 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
               key={seat.id}
               className={`absolute cursor-pointer transition-all duration-300 hover:scale-105 ${
                 isSelected 
-                  ? 'animate-pulse ring-4 ring-amber-400' 
+                  ? 'ring-4 ring-amber-400 bg-amber-400/30' 
                   : isHovered 
-                    ? 'scale-110 ring-2 ring-amber-300' 
-                    : ''
+                    ? 'ring-2 ring-amber-300 bg-amber-300/20' 
+                    : 'hover:bg-amber-200/10'
               }`}
               style={{
                 left: `${seat.x}%`,
                 top: `${seat.y}%`,
                 width: `${seat.w}%`,
                 height: `${seat.h}%`,
-                backgroundColor: isSelected 
-                  ? 'rgba(245, 158, 11, 0.6)' 
-                  : isHovered 
-                    ? 'rgba(245, 158, 11, 0.4)' 
-                    : 'rgba(139, 69, 19, 0.2)',
+                borderRadius: '8px',
+                zIndex: isHovered || isSelected ? 25 : 15,
                 border: isSelected 
                   ? '3px solid #f59e0b' 
                   : isHovered 
                     ? '2px solid #f59e0b' 
-                    : '1px solid rgba(139, 69, 19, 0.4)',
-                borderRadius: '12px',
-                zIndex: isHovered || isSelected ? 25 : 15,
-                backdropFilter: 'blur(2px)',
-                boxShadow: isHovered ? '0 8px 32px rgba(245, 158, 11, 0.3)' : 'none'
+                    : '1px solid transparent',
+                backdropFilter: isHovered || isSelected ? 'blur(1px)' : 'none',
+                boxShadow: isHovered ? '0 0 20px rgba(245, 158, 11, 0.4)' : 'none'
               }}
               onClick={() => handleSeatClick(seat.id)}
               onMouseEnter={() => setHoveredSeat(seat.id)}
               onMouseLeave={() => setHoveredSeat(null)}
             >
-              {/* Enhanced Occupancy Indicators with Status */}
+              {/* Occupancy Indicators */}
               {isOccupied && (
-                <div className="absolute -top-3 -right-3 z-10">
+                <div className="absolute -top-2 -right-2 z-10">
                   <EnhancedUserAvatars
                     users={occupants}
                     seatId={seat.id}
@@ -369,50 +267,48 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
                 </div>
               )}
               
-              {/* Ambient Sound Indicator */}
-              {(seat as any).ambientSound && isHovered && (
-                <div className="absolute top-1 left-1">
-                  <Volume2 className="h-3 w-3 text-blue-600 animate-pulse" />
-                </div>
-              )}
-              
-              {/* Vibe Indicator */}
-              {(seat as any).vibe && isHovered && (
-                <div className="absolute bottom-1 right-1">
-                  <Sparkles className="h-3 w-3 text-purple-600 animate-spin" />
+              {/* Seat Type Indicator - only show when hovered */}
+              {isHovered && (
+                <div className="absolute top-1 left-1 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                  {seat.type}
                 </div>
               )}
               
               {/* Selection Pulse Effect */}
               {isSelected && (
-                <div className="absolute inset-0 border-4 border-amber-400 rounded-lg animate-pulse" />
+                <div className="absolute inset-0 border-4 border-amber-400 rounded animate-pulse" />
+              )}
+
+              {/* Click hint when hovered */}
+              {isHovered && !isSelected && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-amber-600 text-white px-3 py-1 rounded-full text-sm font-medium animate-pulse">
+                    Click to sit here
+                  </div>
+                </div>
               )}
             </div>
           );
         })}
 
-        {/* Enhanced Live Status with More Features */}
+        {/* Live Status */}
         <div className="absolute top-4 left-4 space-y-2">
           <Badge className="bg-green-600/90 text-white px-4 py-2 text-sm font-semibold animate-pulse flex items-center gap-2">
             <div className="w-2 h-2 bg-white rounded-full animate-ping" />
-            Ultimate Experience Active
+            Real Café Seating Active
           </Badge>
           
           <Badge className="bg-blue-600/90 text-white px-3 py-1 text-xs">
             <Calendar className="h-3 w-3 mr-1" />
             {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </Badge>
-          
-          <Badge className="bg-purple-600/90 text-white px-3 py-1 text-xs">
-            🌤️ {weatherEffect}
-          </Badge>
         </div>
 
-        {/* Enhanced Seat Info Panel with More Details */}
+        {/* Seat Info Panel */}
         {hoveredSeat && (
           <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-2xl text-base max-w-md border-l-4 border-amber-500">
             {(() => {
-              const seat = ENHANCED_SEATING_ZONES.find(s => s.id === hoveredSeat);
+              const seat = REAL_CAFE_SEATS.find(s => s.id === hoveredSeat);
               const occupants = getSeatOccupancy(hoveredSeat);
               if (!seat) return null;
               
@@ -423,19 +319,19 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
                       <Coffee className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <div className="font-bold text-stone-800 text-lg">{hoveredSeat}</div>
-                      <div className="text-sm text-stone-600 capitalize">{(seat as any).vibe} atmosphere</div>
+                      <div className="font-bold text-stone-800 text-lg">{hoveredSeat.replace(/-/g, ' ').toUpperCase()}</div>
+                      <div className="text-sm text-stone-600 capitalize">{seat.vibe} atmosphere</div>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="bg-blue-50 p-2 rounded-lg">
                       <div className="text-xs text-blue-600 font-medium">Music Zone</div>
-                      <div className="text-sm capitalize">{(seat as any).musicZone}</div>
+                      <div className="text-sm capitalize">{seat.musicZone}</div>
                     </div>
                     <div className="bg-green-50 p-2 rounded-lg">
                       <div className="text-xs text-green-600 font-medium">Audio</div>
-                      <div className="text-sm capitalize">{(seat as any).ambientSound}</div>
+                      <div className="text-sm capitalize">{seat.ambientSound}</div>
                     </div>
                   </div>
                   
@@ -462,14 +358,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
                       onClick={() => handleSeatClick(seat.id)}
                     >
                       <Coffee className="h-4 w-4 mr-2" />
-                      Join This Spot
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      className="border-amber-600 text-amber-600 hover:bg-amber-50"
-                    >
-                      <Zap className="h-4 w-4" />
+                      Sit Here
                     </Button>
                   </div>
                 </>
@@ -478,31 +367,23 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           </div>
         )}
 
-        {/* Enhanced Legend with More Information */}
+        {/* Instructions */}
         <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-lg text-sm max-w-xs">
           <div className="font-bold mb-3 text-base flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-amber-600" />
-            Ultimate Features
+            How to Use
           </div>
           <div className="space-y-2 text-xs">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-amber-200 border-2 border-amber-500 rounded animate-pulse"></div>
-              <span>Smart seat recommendations</span>
+              <span>Click directly on any seat in the café photo</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-              <span>Real-time presence & status</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Volume2 className="h-4 w-4 text-blue-600" />
-              <span>Immersive audio zones</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Crown className="h-4 w-4 text-purple-600" />
-              <span>Gamification & achievements</span>
+              <span>See who's sitting where in real-time</span>
             </div>
             <div className="text-gray-600 mt-2 pt-2 border-t">
-              Dynamic lighting • Weather effects • Mobile optimized
+              Hover over seats to see details • Click to join conversations
             </div>
           </div>
         </div>
