@@ -81,146 +81,161 @@ const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 28 }: {
   );
 };
 
-// Ultra-precise seat coordinates exactly matching chair positions in the photo
-const ULTRA_PRECISE_CAFE_SEATS = [
-  // Bar stools at the counter (positioned exactly on chair seats)
+// Barista Avatar Component
+const BaristaAvatar = ({ name, position }: { name: string; position: { x: number; y: number } }) => {
+  const getAvatarImage = (name: string) => {
+    switch (name) {
+      case 'Ahmed':
+        return '/lovable-uploads/3f275999-cbf4-4980-b4a7-5b9b6bd06fd5.png';
+      case 'Joy':
+        return '/lovable-uploads/7d5ad9b7-d14b-49ee-bfc4-d52c547ddb08.png';
+      case 'Muneef':
+        return '/lovable-uploads/7d5ad9b7-d14b-49ee-bfc4-d52c547ddb08.png';
+      default:
+        return '';
+    }
+  };
+
+  return (
+    <div
+      className="absolute z-30 cursor-pointer"
+      style={{
+        left: `${position.x}%`,
+        top: `${position.y}%`,
+        transform: 'translate(-50%, -50%)'
+      }}
+      title={`${name} - Barista`}
+    >
+      <div className="relative">
+        <div className="w-8 h-8 bg-gradient-to-br from-amber-600 to-orange-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-pulse">
+          <Coffee className="h-4 w-4 text-white" />
+        </div>
+        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
+          {name}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Real Café Layout based on uploaded images
+const REAL_CAFE_SEATS = [
+  // Bar counter seats (from interior photos)
   { 
-    id: 'bar-stool-1', x: 76.5, y: 18.2, w: 1.8, h: 1.8, type: 'bar', zone: 'indoor',
-    ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
+    id: 'bar-counter-1', x: 25, y: 15, w: 2, h: 2, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-2', x: 80.0, y: 18.2, w: 1.8, h: 1.8, type: 'bar', zone: 'indoor',
-    ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
+    id: 'bar-counter-2', x: 30, y: 15, w: 2, h: 2, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-3', x: 83.5, y: 18.2, w: 1.8, h: 1.8, type: 'bar', zone: 'indoor',
-    ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
+    id: 'bar-counter-3', x: 35, y: 15, w: 2, h: 2, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-4', x: 87.0, y: 18.2, w: 1.8, h: 1.8, type: 'bar', zone: 'indoor',
-    ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
+    id: 'bar-counter-4', x: 40, y: 15, w: 2, h: 2, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
-  
-  // Left side green armchair (exactly on the chair seat)
+
+  // Window-side seating area (from outdoor/window photos)
   { 
-    id: 'green-armchair-1', x: 15.5, y: 45.8, w: 2.2, h: 2.2, type: 'armchair', zone: 'indoor', capacity: 1,
-    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'relaxed'
-  },
-  
-  // Left side table chairs (positioned exactly on chair seats)
-  { 
-    id: 'left-table-chair-1', x: 12.2, y: 60.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'window-table-1', x: 75, y: 25, w: 2.5, h: 2.5, type: 'table', zone: 'window',
+    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'relaxed'
   },
   { 
-    id: 'left-table-chair-2', x: 22.5, y: 60.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'window-table-2', x: 80, y: 25, w: 2.5, h: 2.5, type: 'table', zone: 'window',
+    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'relaxed'
   },
   { 
-    id: 'left-table-chair-3', x: 12.2, y: 66.8, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'window-chair-1', x: 85, y: 30, w: 2, h: 2, type: 'chair', zone: 'window',
+    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'contemplative'
   },
   { 
-    id: 'left-table-chair-4', x: 22.5, y: 66.8, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'window-chair-2', x: 85, y: 35, w: 2, h: 2, type: 'chair', zone: 'window',
+    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'contemplative'
   },
-  
-  // Center area tables - first table (exactly on chair seats)
+
+  // Interior seating area (green/blue textured wall area)
   { 
-    id: 'center-table-1-chair-1', x: 34.8, y: 58.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'center-table-1-chair-2', x: 44.8, y: 58.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'interior-chair-1', x: 15, y: 45, w: 2, h: 2, type: 'chair', zone: 'interior',
+    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'focused'
   },
   { 
-    id: 'center-table-1-chair-3', x: 34.8, y: 69.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'interior-chair-2', x: 20, y: 45, w: 2, h: 2, type: 'chair', zone: 'interior',
+    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'focused'
   },
   { 
-    id: 'center-table-1-chair-4', x: 44.8, y: 69.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  
-  // Second center table (exactly on chair seats)
-  { 
-    id: 'center-table-2-chair-1', x: 54.2, y: 58.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'interior-table-1', x: 25, y: 50, w: 2.5, h: 2.5, type: 'table', zone: 'interior',
+    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'center-table-2-chair-2', x: 64.2, y: 58.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'interior-table-2', x: 35, y: 50, w: 2.5, h: 2.5, type: 'table', zone: 'interior',
+    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'collaborative'
+  },
+
+  // Cozy corner seating (from artistic interior photo)
+  { 
+    id: 'corner-sofa-1', x: 65, y: 55, w: 3, h: 2.5, type: 'sofa', zone: 'corner',
+    ambientSound: 'intimate', musicZone: 'chill', vibe: 'relaxed'
   },
   { 
-    id: 'center-table-2-chair-3', x: 54.2, y: 69.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'corner-sofa-2', x: 70, y: 60, w: 3, h: 2.5, type: 'sofa', zone: 'corner',
+    ambientSound: 'intimate', musicZone: 'chill', vibe: 'relaxed'
   },
   { 
-    id: 'center-table-2-chair-4', x: 64.2, y: 69.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'corner-table-1', x: 65, y: 65, w: 2, h: 2, type: 'table', zone: 'corner',
+    ambientSound: 'intimate', musicZone: 'chill', vibe: 'contemplative'
   },
-  
-  // Third center table (exactly on chair seats)
+
+  // Central workspace area
   { 
-    id: 'center-table-3-chair-1', x: 73.5, y: 58.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'center-table-3-chair-2', x: 83.5, y: 58.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'central-table-1', x: 45, y: 35, w: 2.5, h: 2.5, type: 'table', zone: 'central',
+    ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'productive'
   },
   { 
-    id: 'center-table-3-chair-3', x: 73.5, y: 69.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'central-table-2', x: 55, y: 35, w: 2.5, h: 2.5, type: 'table', zone: 'central',
+    ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'productive'
   },
   { 
-    id: 'center-table-3-chair-4', x: 83.5, y: 69.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  
-  // Back row tables - first table (exactly on chair seats)
-  { 
-    id: 'back-table-1-chair-1', x: 34.8, y: 35.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'central-chair-1', x: 45, y: 42, w: 2, h: 2, type: 'chair', zone: 'central',
+    ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'focused'
   },
   { 
-    id: 'back-table-1-chair-2', x: 44.8, y: 35.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'central-chair-2', x: 55, y: 42, w: 2, h: 2, type: 'chair', zone: 'central',
+    ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'focused'
+  },
+
+  // Back wall seating (concrete/industrial area)
+  { 
+    id: 'back-wall-1', x: 15, y: 65, w: 2, h: 2, type: 'chair', zone: 'back',
+    ambientSound: 'quiet', musicZone: 'ambient', vibe: 'contemplative'
   },
   { 
-    id: 'back-table-1-chair-3', x: 34.8, y: 46.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'back-wall-2', x: 25, y: 65, w: 2, h: 2, type: 'chair', zone: 'back',
+    ambientSound: 'quiet', musicZone: 'ambient', vibe: 'contemplative'
   },
   { 
-    id: 'back-table-1-chair-4', x: 44.8, y: 46.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  
-  // Second back table (exactly on chair seats)
-  { 
-    id: 'back-table-2-chair-1', x: 54.2, y: 35.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'back-table-2-chair-2', x: 64.2, y: 35.5, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'back-table-2-chair-3', x: 54.2, y: 46.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'back-table-2-chair-4', x: 64.2, y: 46.2, w: 1.8, h: 1.8, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'back-wall-3', x: 35, y: 65, w: 2, h: 2, type: 'chair', zone: 'back',
+    ambientSound: 'quiet', musicZone: 'ambient', vibe: 'contemplative'
   }
 ];
 
-// Ultra-precise zone colors
+// Barista positions behind the counter
+const BARISTAS = [
+  { name: 'Ahmed', position: { x: 28, y: 8 } },
+  { name: 'Joy', position: { x: 33, y: 8 } },
+  { name: 'Muneef', position: { x: 38, y: 8 } }
+];
+
+// Zone colors matching the café aesthetic
 const ZONE_COLORS = {
-  indoor: { bg: 'rgba(139, 69, 19, 0.15)', border: '#8B4513', name: '🏠 Indoor Café' },
-  outdoor: { bg: 'rgba(34, 197, 94, 0.15)', border: '#22C55E', name: '🌿 Outdoor Terrace' },
-  lounge: { bg: 'rgba(147, 51, 234, 0.15)', border: '#9333EA', name: '🛋️ Premium Lounge' }
+  counter: { bg: 'rgba(139, 69, 19, 0.15)', border: '#8B4513', name: '☕ Coffee Counter' },
+  window: { bg: 'rgba(34, 197, 94, 0.15)', border: '#22C55E', name: '🪟 Window Seating' },
+  interior: { bg: 'rgba(59, 130, 246, 0.15)', border: '#3B82F6', name: '🎨 Interior Design' },
+  corner: { bg: 'rgba(147, 51, 234, 0.15)', border: '#9333EA', name: '🛋️ Cozy Corner' },
+  central: { bg: 'rgba(245, 158, 11, 0.15)', border: '#F59E0B', name: '💼 Work Zone' },
+  back: { bg: 'rgba(107, 114, 128, 0.15)', border: '#6B7280', name: '🧘 Quiet Zone' }
 };
 
 interface UltimateSeatingPlanProps {
@@ -280,7 +295,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
   };
 
   const getZoneStats = (zone: string) => {
-    const zoneSeats = ULTRA_PRECISE_CAFE_SEATS.filter(seat => seat.zone === zone);
+    const zoneSeats = REAL_CAFE_SEATS.filter(seat => seat.zone === zone);
     const occupiedSeats = zoneSeats.filter(seat => getSeatOccupancy(seat.id).length > 0);
     return {
       total: zoneSeats.length,
@@ -352,7 +367,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         <div className="text-center py-2 bg-gradient-to-r from-amber-50 to-orange-50 rounded-t-lg">
           <div className="flex items-center justify-center gap-3 mb-2">
             <Crown className="h-6 w-6 text-amber-600" />
-            <h2 className="text-2xl font-bold text-stone-800">RAW SMITH CAFÉ</h2>
+            <h2 className="text-2xl font-bold text-stone-800">A MATTER OF COFFEE</h2>
             <Sparkles className="h-6 w-6 text-amber-600" />
           </div>
           <p className="text-stone-600 text-sm mb-2">Click on any coffee bean to sit there!</p>
@@ -431,7 +446,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         <div className="absolute top-4 right-32 z-30">
           <SmartSeatRecommendations
             userProfile={userProfile}
-            availableSeats={ULTRA_PRECISE_CAFE_SEATS.map(s => s.id)}
+            availableSeats={REAL_CAFE_SEATS.map(s => s.id)}
             onSeatRecommend={(seatId, reason) => {
               console.log(`Recommended seat: ${seatId} - ${reason}`);
               handleSeatClick(seatId);
@@ -509,13 +524,13 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         </div>
       )}
 
-      {/* Main Interactive Canvas - Fit to container */}
+      {/* Main Interactive Canvas - Café Layout */}
       <div
         className={`relative w-full mx-auto overflow-hidden ${
           isFullscreen ? 'h-screen' : hideHeader ? 'h-full' : 'h-[calc(100vh-200px)]'
         }`}
         style={{
-          backgroundImage: "url('/lovable-uploads/7ddcf203-b9d9-4773-bf53-d70372417ee7.png')",
+          backgroundImage: "linear-gradient(135deg, #f5f1eb 0%, #e8ddd4 30%, #d4c4b0 60%, #c7b299 100%)",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat"
@@ -524,8 +539,24 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         {/* Enhanced Particle Effects */}
         <EnhancedSeatingEffects particles={particles} />
 
+        {/* Coffee Bar Area */}
+        <div className="absolute top-[5%] left-[20%] w-[50%] h-[15%] bg-gradient-to-r from-amber-900/30 to-orange-800/30 rounded-lg border-2 border-amber-700/50">
+          <div className="w-full h-full bg-gradient-to-b from-amber-600/20 to-amber-800/30 rounded-lg flex items-center justify-center">
+            <div className="text-amber-800 font-bold text-sm">☕ COFFEE BAR ☕</div>
+          </div>
+        </div>
+
+        {/* Baristas behind the counter */}
+        {BARISTAS.map((barista) => (
+          <BaristaAvatar
+            key={barista.name}
+            name={barista.name}
+            position={barista.position}
+          />
+        ))}
+
         {/* Coffee Bean Seat Markers */}
-        {ULTRA_PRECISE_CAFE_SEATS.map((seat) => {
+        {REAL_CAFE_SEATS.map((seat) => {
           const occupants = getSeatOccupancy(seat.id);
           const isOccupied = occupants.length > 0;
           const isSelected = selectedSeat === seat.id;
@@ -546,7 +577,10 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
                   ? 'scale(1.1)' 
                   : isHovered 
                     ? 'scale(1.05)' 
-                    : 'scale(1)'
+                    : 'scale(1)',
+                backgroundColor: ZONE_COLORS[seat.zone as keyof typeof ZONE_COLORS]?.bg || 'rgba(139, 69, 19, 0.1)',
+                border: `2px solid ${ZONE_COLORS[seat.zone as keyof typeof ZONE_COLORS]?.border || '#8B4513'}`,
+                borderRadius: seat.type === 'table' ? '8px' : seat.type === 'sofa' ? '16px' : '50%'
               }}
               onClick={() => handleSeatClick(seat.id)}
               onMouseEnter={() => setHoveredSeat(seat.id)}
@@ -556,7 +590,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
                 isOccupied={isOccupied}
                 isSelected={isSelected}
                 isHovered={isHovered}
-                size={isFullscreen ? 36 : 24}
+                size={isFullscreen ? 20 : 16}
               />
 
               {/* Delivery Animation */}
@@ -595,7 +629,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         <div className="absolute top-4 left-4 space-y-2">
           <Badge className="bg-green-600/90 text-white px-3 py-1 text-xs font-semibold animate-pulse flex items-center gap-2">
             <div className="w-2 h-2 bg-white rounded-full animate-ping" />
-            Live Café Active
+            A Matter of Coffee - Live
           </Badge>
           
           <Badge className="bg-blue-600/90 text-white px-2 py-1 text-xs">
@@ -608,7 +642,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         {hoveredSeat && (
           <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-2xl text-sm max-w-xs border-l-4 border-amber-500">
             {(() => {
-              const seat = ULTRA_PRECISE_CAFE_SEATS.find(s => s.id === hoveredSeat);
+              const seat = REAL_CAFE_SEATS.find(s => s.id === hoveredSeat);
               const occupants = getSeatOccupancy(hoveredSeat);
               if (!seat) return null;
               
@@ -620,7 +654,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
                     </div>
                     <div>
                       <div className="font-bold text-stone-800">{hoveredSeat.replace(/-/g, ' ').toUpperCase()}</div>
-                      <div className="text-xs text-stone-600 capitalize">{seat.vibe} atmosphere</div>
+                      <div className="text-xs text-stone-600 capitalize">{seat.vibe} atmosphere • {seat.zone}</div>
                     </div>
                   </div>
                   
@@ -671,7 +705,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg text-xs max-w-xs">
           <div className="font-bold mb-2 text-sm flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-amber-600" />
-            How to Use
+            Welcome to A Matter of Coffee!
           </div>
           <div className="space-y-1 text-xs">
             <div className="flex items-center gap-2">
@@ -683,7 +717,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
               <span>See who's sitting where in real-time</span>
             </div>
             <div className="text-gray-600 mt-1 pt-1 border-t text-xs">
-              Hover over beans to see details • Click to join conversations
+              Our baristas Ahmed, Joy & Muneef are here to serve you! ☕
             </div>
           </div>
         </div>
