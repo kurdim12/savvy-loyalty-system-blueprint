@@ -1,10 +1,9 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Coffee, Users, MapPin, ArrowLeft, Zap } from 'lucide-react';
-import { UniqueSeatingArea } from './enhanced/UniqueSeatingArea';
+import { Coffee, Users, MapPin, Zap } from 'lucide-react';
+import { InteractiveSeatingMap } from './enhanced/InteractiveSeatingMap';
 import { SeatedPerspectiveView } from './enhanced/SeatedPerspectiveView';
 
 export const PhysicalCafeFloorPlan = () => {
@@ -38,8 +37,8 @@ export const PhysicalCafeFloorPlan = () => {
           <div className="flex items-center gap-3">
             <MapPin className="h-6 w-6 text-stone-600" />
             <div>
-              <span className="text-xl">Interactive Café Seating</span>
-              <div className="text-sm text-stone-600 font-normal">Click any seat to join area conversations</div>
+              <span className="text-xl">Raw Smith Coffee - Interactive Seating</span>
+              <div className="text-sm text-stone-600 font-normal">A Matter of Coffee Live Sessions</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -56,12 +55,7 @@ export const PhysicalCafeFloorPlan = () => {
       </CardHeader>
       
       <CardContent className="p-0 h-full">
-        <div className="relative w-full h-[600px] overflow-hidden rounded-b-lg">
-          <UniqueSeatingArea 
-            onSeatSelect={handleSeatSelect}
-            onViewChange={() => setCurrentView('floor-plan')}
-          />
-        </div>
+        <InteractiveSeatingMap />
       </CardContent>
     </Card>
   );
