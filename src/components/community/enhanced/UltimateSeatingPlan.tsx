@@ -138,6 +138,201 @@ const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 32, seatType }: 
   );
 };
 
+// Professional Coffee Bar Component inspired by reference image
+const ProfessionalCoffeeBar = () => {
+  return (
+    <div className="absolute top-[5%] left-[18%] w-[54%] h-[25%] perspective-1000">
+      {/* Main Coffee Bar Structure */}
+      <div className="relative w-full h-full">
+        {/* Menu Boards (like in reference image) */}
+        <div className="absolute -top-8 left-[5%] w-[90%] h-12 flex gap-2 z-10">
+          {/* Coffee Menu Board */}
+          <div className="flex-1 bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg border-4 border-amber-600 shadow-2xl">
+            <div className="h-full p-2 text-white text-[0.6rem] font-bold">
+              <div className="text-amber-300 mb-1 text-center">☕ COFFEE</div>
+              <div className="grid grid-cols-2 gap-1 text-[0.5rem]">
+                <div>ESPRESSO...........£2.50</div>
+                <div>AMERICANO..........£3.00</div>
+                <div>CAPPUCCINO.........£3.50</div>
+                <div>LATTE..............£3.80</div>
+                <div>FLAT WHITE.........£3.60</div>
+                <div>MACCHIATO..........£3.20</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Brew Menu Board */}
+          <div className="flex-1 bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg border-4 border-amber-600 shadow-2xl">
+            <div className="h-full p-2 text-white text-[0.6rem] font-bold">
+              <div className="text-amber-300 mb-1 text-center">🫖 FILTER BREW</div>
+              <div className="grid grid-cols-2 gap-1 text-[0.5rem]">
+                <div>V60................£4.00</div>
+                <div>CHEMEX.............£4.50</div>
+                <div>AEROPRESS..........£3.80</div>
+                <div>FRENCH PRESS.......£3.50</div>
+                <div>COLD BREW..........£4.20</div>
+                <div>BATCH BREW.........£3.00</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tea Menu Board */}
+          <div className="flex-1 bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg border-4 border-amber-600 shadow-2xl">
+            <div className="h-full p-2 text-white text-[0.6rem] font-bold">
+              <div className="text-amber-300 mb-1 text-center">🍃 TEA</div>
+              <div className="grid grid-cols-2 gap-1 text-[0.5rem]">
+                <div>ENGLISH BREAKFAST..£2.80</div>
+                <div>EARL GREY..........£2.80</div>
+                <div>GREEN TEA..........£3.00</div>
+                <div>CHAMOMILE..........£3.20</div>
+                <div>MINT TEA...........£3.00</div>
+                <div>JASMINE............£3.40</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Upper Shelf with Products */}
+        <div className="absolute top-0 left-0 w-full h-[25%] bg-gradient-to-r from-amber-800 to-orange-800 rounded-t-xl border-4 border-amber-700 shadow-inner">
+          <div className="w-full h-full bg-gradient-to-b from-amber-300/20 to-transparent rounded-t-lg flex items-center justify-around px-4">
+            {/* Coffee Beans Jars */}
+            <div className="w-3 h-6 bg-gradient-to-b from-amber-900 to-amber-800 rounded-sm border border-amber-600 shadow-lg relative">
+              <div className="absolute top-1 left-0.5 w-2 h-2 bg-amber-600 rounded-full opacity-60"></div>
+              <div className="absolute bottom-1 left-0.5 w-1.5 h-1.5 bg-amber-700 rounded-full opacity-80"></div>
+            </div>
+            <div className="w-3 h-6 bg-gradient-to-b from-orange-900 to-orange-800 rounded-sm border border-orange-600 shadow-lg relative">
+              <div className="absolute top-1 left-0.5 w-2 h-2 bg-orange-600 rounded-full opacity-60"></div>
+            </div>
+            <div className="w-3 h-6 bg-gradient-to-b from-amber-900 to-amber-800 rounded-sm border border-amber-600 shadow-lg relative">
+              <div className="absolute top-1 left-0.5 w-2 h-2 bg-amber-600 rounded-full opacity-60"></div>
+            </div>
+
+            {/* Coffee Equipment */}
+            <div className="w-4 h-5 bg-gradient-to-b from-gray-300 to-gray-500 rounded-sm border border-gray-400 shadow-lg"></div>
+            <div className="w-3 h-4 bg-gradient-to-b from-gray-700 to-gray-900 rounded-sm border border-gray-600 shadow-lg"></div>
+            <div className="w-2 h-3 bg-gradient-to-b from-amber-600 to-amber-800 rounded-sm border border-amber-700 shadow-lg"></div>
+          </div>
+        </div>
+
+        {/* Main Coffee Bar Counter */}
+        <div className="absolute top-[25%] left-0 w-full h-[75%] bg-gradient-to-b from-gray-700 to-gray-900 rounded-b-xl border-4 border-gray-600 shadow-2xl">
+          {/* Black Subway Tile Backsplash */}
+          <div className="absolute top-0 left-0 w-full h-[40%] bg-gradient-to-b from-gray-900 to-black rounded-t-lg">
+            <div className="w-full h-full" style={{
+              backgroundImage: `
+                linear-gradient(90deg, #2a2a2a 1px, transparent 1px),
+                linear-gradient(180deg, #2a2a2a 1px, transparent 1px)
+              `,
+              backgroundSize: '12px 8px',
+              opacity: 0.6
+            }}></div>
+          </div>
+
+          {/* Espresso Machine */}
+          <div className="absolute top-[15%] left-[15%] w-[25%] h-[60%] bg-gradient-to-b from-gray-300 to-gray-600 rounded-lg shadow-2xl border-2 border-gray-400">
+            {/* Machine Body */}
+            <div className="w-full h-[70%] bg-gradient-to-br from-gray-400 to-gray-700 rounded-t-lg relative">
+              {/* Steam Wands */}
+              <div className="absolute right-2 top-2 w-1 h-4 bg-gray-800 rounded-full"></div>
+              <div className="absolute right-4 top-2 w-1 h-4 bg-gray-800 rounded-full"></div>
+              
+              {/* Portafilter */}
+              <div className="absolute bottom-1 left-2 w-3 h-2 bg-gray-900 rounded-sm"></div>
+              
+              {/* Control Panel */}
+              <div className="absolute top-1 left-1 w-4 h-3 bg-gray-800 rounded-sm">
+                <div className="grid grid-cols-2 gap-0.5 p-0.5">
+                  <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
+                  <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
+                  <div className="w-1 h-1 bg-red-400 rounded-full"></div>
+                  <div className="w-1 h-1 bg-yellow-400 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Machine Base */}
+            <div className="w-full h-[30%] bg-gradient-to-b from-gray-700 to-gray-900 rounded-b-lg relative">
+              <div className="absolute inset-1 bg-gray-800 rounded"></div>
+            </div>
+
+            {/* Steam Effect */}
+            <div className="absolute -top-2 right-1 w-1 h-6 bg-gradient-to-t from-white/50 to-transparent rounded-full animate-pulse"></div>
+            <div className="absolute -top-2 right-3 w-0.5 h-5 bg-gradient-to-t from-white/40 to-transparent rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+          </div>
+
+          {/* Grinder */}
+          <div className="absolute top-[15%] left-[45%] w-[15%] h-[50%] bg-gradient-to-b from-gray-800 to-black rounded-lg shadow-xl border-2 border-gray-700">
+            <div className="w-full h-[40%] bg-gradient-to-b from-gray-600 to-gray-800 rounded-t-lg relative">
+              <div className="absolute top-1 left-1 w-2 h-1 bg-gray-900 rounded-full"></div>
+            </div>
+            <div className="w-full h-[60%] bg-gradient-to-b from-gray-900 to-black rounded-b-lg relative">
+              <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-3 h-1 bg-gray-700 rounded"></div>
+            </div>
+          </div>
+
+          {/* Scale and Accessories */}
+          <div className="absolute top-[15%] right-[15%] w-[20%] h-[40%] flex flex-col gap-1">
+            {/* Digital Scale */}
+            <div className="w-full h-[50%] bg-gradient-to-b from-gray-800 to-black rounded border border-gray-600 relative">
+              <div className="absolute inset-1 bg-gray-900 rounded">
+                <div className="absolute top-1 right-1 w-4 h-2 bg-green-900 rounded text-[0.4rem] text-green-400 flex items-center justify-center font-mono">
+                  18.5g
+                </div>
+              </div>
+            </div>
+            
+            {/* Cups and Accessories */}
+            <div className="w-full h-[50%] flex gap-1">
+              <div className="w-3 h-3 bg-white rounded-full border-2 border-gray-300 shadow-lg"></div>
+              <div className="w-3 h-3 bg-white rounded-full border-2 border-gray-300 shadow-lg"></div>
+              <div className="w-2 h-4 bg-gradient-to-b from-amber-600 to-amber-800 rounded border border-amber-700"></div>
+            </div>
+          </div>
+
+          {/* Counter Surface Details */}
+          <div className="absolute bottom-0 left-0 w-full h-[20%] bg-gradient-to-r from-gray-600 to-gray-800 rounded-b-lg">
+            <div className="w-full h-full bg-gradient-to-b from-transparent to-black/20 rounded-b-lg relative">
+              {/* Drawer Handles */}
+              <div className="absolute top-1/2 left-[20%] w-2 h-0.5 bg-gray-400 rounded-full transform -translate-y-1/2"></div>
+              <div className="absolute top-1/2 left-[50%] w-2 h-0.5 bg-gray-400 rounded-full transform -translate-y-1/2"></div>
+              <div className="absolute top-1/2 left-[80%] w-2 h-0.5 bg-gray-400 rounded-full transform -translate-y-1/2"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bar Stools (like in reference image) */}
+        <div className="absolute -bottom-8 left-[10%] w-[80%] h-12 flex justify-around items-end">
+          {[1, 2, 3, 4].map((stool) => (
+            <div key={stool} className="relative">
+              {/* Stool Seat */}
+              <div className="w-8 h-3 bg-gradient-to-b from-amber-700 to-amber-900 rounded-full border-2 border-amber-600 shadow-lg relative">
+                <div className="absolute inset-1 bg-gradient-to-b from-amber-600/30 to-transparent rounded-full"></div>
+              </div>
+              
+              {/* Stool Legs */}
+              <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gradient-to-b from-gray-700 to-gray-900"></div>
+              <div className="absolute top-6 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-gray-800"></div>
+              
+              {/* Footrest */}
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-0.5 bg-gray-600 rounded-full"></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Hanging Copper Pipes for Menu Boards */}
+        <div className="absolute -top-10 left-[5%] w-[90%] h-4">
+          {[1, 2, 3, 4].map((pipe) => (
+            <div key={pipe} className="absolute w-1 h-4 bg-gradient-to-b from-amber-600 to-orange-700 rounded-full shadow-lg" 
+                 style={{ left: `${pipe * 22}%` }}>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/30 to-transparent rounded-full"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Enhanced Barista Avatar Component with woody cafe styling
 const BaristaAvatar = ({ name, position }: { name: string; position: { x: number; y: number } }) => {
   const getAvatarImage = (name: string) => {
@@ -225,19 +420,19 @@ const BaristaAvatar = ({ name, position }: { name: string; position: { x: number
 const REAL_CAFE_SEATS = [
   // Bar counter seats (from interior photos)
   { 
-    id: 'bar-counter-1', x: 25, y: 15, w: 2, h: 2, type: 'bar', zone: 'counter',
+    id: 'bar-counter-1', x: 25, y: 35, w: 2, h: 2, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-counter-2', x: 30, y: 15, w: 2, h: 2, type: 'bar', zone: 'counter',
+    id: 'bar-counter-2', x: 30, y: 35, w: 2, h: 2, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-counter-3', x: 35, y: 15, w: 2, h: 2, type: 'bar', zone: 'counter',
+    id: 'bar-counter-3', x: 35, y: 35, w: 2, h: 2, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-counter-4', x: 40, y: 15, w: 2, h: 2, type: 'bar', zone: 'counter',
+    id: 'bar-counter-4', x: 40, y: 35, w: 2, h: 2, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
 
@@ -293,19 +488,19 @@ const REAL_CAFE_SEATS = [
 
   // Central workspace area
   { 
-    id: 'central-table-1', x: 45, y: 35, w: 2.5, h: 2.5, type: 'table', zone: 'central',
+    id: 'central-table-1', x: 45, y: 45, w: 2.5, h: 2.5, type: 'table', zone: 'central',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'productive'
   },
   { 
-    id: 'central-table-2', x: 55, y: 35, w: 2.5, h: 2.5, type: 'table', zone: 'central',
+    id: 'central-table-2', x: 55, y: 45, w: 2.5, h: 2.5, type: 'table', zone: 'central',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'productive'
   },
   { 
-    id: 'central-chair-1', x: 45, y: 42, w: 2, h: 2, type: 'chair', zone: 'central',
+    id: 'central-chair-1', x: 45, y: 52, w: 2, h: 2, type: 'chair', zone: 'central',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'focused'
   },
   { 
-    id: 'central-chair-2', x: 55, y: 42, w: 2, h: 2, type: 'chair', zone: 'central',
+    id: 'central-chair-2', x: 55, y: 52, w: 2, h: 2, type: 'chair', zone: 'central',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'focused'
   },
 
@@ -742,39 +937,8 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         {/* Enhanced Particle Effects */}
         <EnhancedSeatingEffects particles={particles} />
 
-        {/* Enhanced Coffee Bar Area with rich wooden 3D effect */}
-        <div className="absolute top-[5%] left-[18%] w-[54%] h-[20%] rounded-3xl shadow-2xl overflow-hidden transform perspective-1000 hover:scale-105 transition-all duration-500">
-          <div className="w-full h-full bg-gradient-to-br from-amber-900 via-amber-800 to-orange-900 rounded-3xl relative"
-               style={{
-                 background: 'linear-gradient(135deg, #8B4513, #A0522D, #CD853F, #D2691E)',
-                 boxShadow: '0 20px 60px rgba(139, 69, 19, 0.8), inset 0 5px 20px rgba(245, 222, 179, 0.3)'
-               }}>
-            {/* Rich wood texture overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-amber-900/40 to-orange-900/40 rounded-3xl wood-texture" />
-            
-            {/* Enhanced coffee machine area */}
-            <div className="absolute left-[10%] top-[15%] w-[80%] h-[70%] bg-gradient-to-b from-gray-800 to-gray-900 rounded-xl shadow-inner"
-                 style={{ boxShadow: 'inset 0 5px 15px rgba(0,0,0,0.6)' }}>
-              <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 rounded-xl flex items-center justify-center">
-                <div className="text-amber-200 font-bold text-xl flex items-center gap-4"
-                     style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                  <Coffee className="h-8 w-8 animate-pulse" />
-                  ☕ ARTISAN ESPRESSO BAR ☕
-                  <Coffee className="h-8 w-8 animate-pulse" style={{ animationDelay: '0.5s' }} />
-                </div>
-              </div>
-            </div>
-            
-            {/* Enhanced steam effects */}
-            <div className="absolute top-0 left-[25%] w-3 h-12 bg-gradient-to-t from-white/70 to-transparent rounded-full animate-pulse opacity-90" />
-            <div className="absolute top-0 left-[45%] w-2 h-10 bg-gradient-to-t from-white/50 to-transparent rounded-full animate-pulse opacity-70" style={{ animationDelay: '1s' }} />
-            <div className="absolute top-0 left-[65%] w-3 h-11 bg-gradient-to-t from-white/60 to-transparent rounded-full animate-pulse opacity-80" style={{ animationDelay: '0.5s' }} />
-            
-            {/* Wood grain details */}
-            <div className="absolute top-2 left-4 w-16 h-1 bg-amber-600 rounded-full opacity-60" />
-            <div className="absolute bottom-2 right-4 w-20 h-1 bg-orange-600 rounded-full opacity-60" />
-          </div>
-        </div>
+        {/* Professional Coffee Bar replacing simple bar area */}
+        <ProfessionalCoffeeBar />
 
         {/* Enhanced Baristas with improved woody avatars */}
         {BARISTAS.map((barista) => (
