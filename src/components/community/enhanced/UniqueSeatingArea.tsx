@@ -18,8 +18,9 @@ export const UniqueSeatingArea = ({ onSeatSelect, onViewChange }: UniqueSeatingA
     onSeatSelect(seatId);
   };
 
-  // Transform users data to match enhanced format
-  const enhancedUsers = onlineUsers.map(user => ({
+  // Transform users data to match enhanced format with required id property
+  const enhancedUsers = onlineUsers.map((user, index) => ({
+    id: `user-${index}-${user.seatId}`, // Add the required id property
     seatId: user.seatId,
     name: user.name,
     mood: user.mood,

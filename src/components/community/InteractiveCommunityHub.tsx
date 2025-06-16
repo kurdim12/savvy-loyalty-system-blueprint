@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Coffee, Users, MessageSquare, MapPin, Calendar, Star, Trophy, Zap } from 'lucide-react';
+import { Coffee, Users, MessageSquare, MapPin, Calendar, Star, Trophy, Zap, Crown, Sparkles, Volume2 } from 'lucide-react';
 import { CommunityChat } from './CommunityChat';
 import { CommunityEvents } from './CommunityEvents';
 import { CommunityMembers } from './CommunityMembers';
