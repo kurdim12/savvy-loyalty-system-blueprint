@@ -15,27 +15,29 @@ import { DynamicEnvironment } from './DynamicEnvironment';
 import { PersonalWorkspace } from './PersonalWorkspace';
 import { CommunityFeatures } from './CommunityFeatures';
 
-// Coffee Bean Icon Component
-const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 28 }: { 
+// Enhanced Coffee Bean Icon Component with animations
+const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 32, seatType }: { 
   isOccupied: boolean; 
   isSelected: boolean; 
   isHovered: boolean; 
-  size?: number; 
+  size?: number;
+  seatType?: string;
 }) => {
   const beanColor = isOccupied ? '#B0B0B0' : '#6F4E37';
   const seamColor = isOccupied ? '#808080' : '#3E2C19';
+  const glowColor = isSelected ? '#3b82f6' : isHovered ? '#60a5fa' : 'transparent';
   
   return (
     <div 
-      className={`relative transition-all duration-300 ${
+      className={`relative transition-all duration-500 ${
         !isOccupied ? 'animate-pulse' : ''
       }`}
       style={{
         width: size,
         height: size,
-        filter: isSelected || isHovered ? 'drop-shadow(0 6px 12px rgba(0,0,0,0.4))' : 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
-        transform: isSelected ? 'scale(1.4)' : isHovered ? 'scale(1.3)' : 'scale(1)',
-        animation: !isOccupied ? 'beanPulse 2s ease-in-out infinite' : 'none'
+        filter: `drop-shadow(0 8px 16px rgba(0,0,0,0.3)) drop-shadow(0 0 20px ${glowColor})`,
+        transform: isSelected ? 'scale(1.5) rotate(10deg)' : isHovered ? 'scale(1.3) rotate(5deg)' : 'scale(1)',
+        animation: !isOccupied ? 'beanFloat 3s ease-in-out infinite' : 'none'
       }}
     >
       <svg
@@ -45,52 +47,95 @@ const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 28 }: {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Coffee bean body */}
+        {/* Coffee bean gradient */}
+        <defs>
+          <radialGradient id={`beanGradient-${size}`} cx="0.3" cy="0.3" r="0.7">
+            <stop offset="0%" stopColor={isOccupied ? '#D0D0D0' : '#8B5A3C'} />
+            <stop offset="100%" stopColor={beanColor} />
+          </radialGradient>
+        </defs>
+        
+        {/* Coffee bean body with gradient */}
         <ellipse
           cx="12"
           cy="12"
           rx="8"
           ry="11"
-          fill={beanColor}
+          fill={`url(#beanGradient-${size})`}
           transform="rotate(-15 12 12)"
         />
-        {/* Coffee bean seam */}
+        
+        {/* Coffee bean seam with enhanced styling */}
         <path
           d="M7 8 Q12 12 17 16"
           stroke={seamColor}
-          strokeWidth="2"
+          strokeWidth="2.5"
           strokeLinecap="round"
           fill="none"
         />
-        {/* Selection ring */}
+        
+        {/* Highlight effect */}
+        <ellipse
+          cx="9"
+          cy="9"
+          rx="2"
+          ry="3"
+          fill="rgba(255,255,255,0.3)"
+          transform="rotate(-15 9 9)"
+        />
+        
+        {/* Selection ring with animation */}
         {(isSelected || isHovered) && (
           <ellipse
             cx="12"
             cy="12"
-            rx="10"
-            ry="13"
+            rx="11"
+            ry="14"
             fill="none"
-            stroke={isSelected ? '#3b82f6' : '#60a5fa'}
-            strokeWidth="2"
+            stroke={glowColor}
+            strokeWidth="3"
             transform="rotate(-15 12 12)"
             opacity="0.8"
+            className="animate-pulse"
           />
         )}
+        
+        {/* Seat type indicator */}
+        {seatType && (
+          <text
+            x="12"
+            y="20"
+            textAnchor="middle"
+            fontSize="6"
+            fill="white"
+            fontWeight="bold"
+          >
+            {seatType.charAt(0).toUpperCase()}
+          </text>
+        )}
       </svg>
+      
+      {/* Floating particles for available seats */}
+      {!isOccupied && (
+        <>
+          <div className="absolute -top-2 -right-2 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75" />
+          <div className="absolute -bottom-2 -left-2 w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }} />
+        </>
+      )}
     </div>
   );
 };
 
-// Barista Avatar Component
+// Enhanced Barista Avatar Component with new images
 const BaristaAvatar = ({ name, position }: { name: string; position: { x: number; y: number } }) => {
   const getAvatarImage = (name: string) => {
     switch (name) {
       case 'Ahmed':
-        return '/lovable-uploads/3f275999-cbf4-4980-b4a7-5b9b6bd06fd5.png';
+        return '/lovable-uploads/85f66148-4e37-4572-8c7a-a4ce6e45514b.png';
       case 'Joy':
-        return '/lovable-uploads/7d5ad9b7-d14b-49ee-bfc4-d52c547ddb08.png';
+        return '/lovable-uploads/a93d552c-0790-4bbc-a949-d1d361213eba.png';
       case 'Muneef':
-        return '/lovable-uploads/7d5ad9b7-d14b-49ee-bfc4-d52c547ddb08.png';
+        return '/lovable-uploads/2cdb199c-75e8-4600-8900-dfbd96092a79.png';
       default:
         return '';
     }
@@ -98,27 +143,51 @@ const BaristaAvatar = ({ name, position }: { name: string; position: { x: number
 
   return (
     <div
-      className="absolute z-30 cursor-pointer"
+      className="absolute z-30 cursor-pointer group"
       style={{
         left: `${position.x}%`,
         top: `${position.y}%`,
         transform: 'translate(-50%, -50%)'
       }}
-      title={`${name} - Barista`}
+      title={`${name} - Master Barista`}
     >
       <div className="relative">
-        <div className="w-8 h-8 bg-gradient-to-br from-amber-600 to-orange-600 rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-pulse">
-          <Coffee className="h-4 w-4 text-white" />
+        {/* Enhanced avatar container with glow effect */}
+        <div className="relative w-16 h-16 rounded-full border-4 border-amber-400 shadow-2xl overflow-hidden group-hover:scale-110 transition-all duration-300 bg-gradient-to-br from-amber-100 to-orange-100">
+          <img 
+            src={getAvatarImage(name)} 
+            alt={name}
+            className="w-full h-full object-cover rounded-full"
+          />
+          
+          {/* Animated border glow */}
+          <div className="absolute inset-0 rounded-full border-2 border-yellow-300 animate-pulse opacity-60" />
+          
+          {/* Coffee steam animation */}
+          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+            <div className="w-1 h-6 bg-gradient-to-t from-white/60 to-transparent rounded-full animate-pulse opacity-80" />
+            <div className="w-1 h-4 bg-gradient-to-t from-white/40 to-transparent rounded-full animate-pulse opacity-60 ml-1 -mt-4" style={{ animationDelay: '0.5s' }} />
+          </div>
         </div>
-        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
-          {name}
+        
+        {/* Enhanced name tag with styling */}
+        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-amber-700 to-orange-700 text-white px-4 py-2 rounded-full text-sm font-bold shadow-xl whitespace-nowrap group-hover:scale-105 transition-all duration-300">
+          ☕ {name}
+        </div>
+        
+        {/* Status indicator */}
+        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full animate-pulse shadow-lg" />
+        
+        {/* Skill level indicator */}
+        <div className="absolute top-0 left-0 bg-gradient-to-r from-yellow-400 to-amber-500 text-black text-xs px-2 py-1 rounded-full font-bold shadow-md">
+          ⭐ Master
         </div>
       </div>
     </div>
   );
 };
 
-// Real Café Layout based on uploaded images
+// Enhanced Real Café Layout with more detailed positioning
 const REAL_CAFE_SEATS = [
   // Bar counter seats (from interior photos)
   { 
@@ -221,21 +290,51 @@ const REAL_CAFE_SEATS = [
   }
 ];
 
-// Barista positions behind the counter
+// Barista positions with enhanced layout
 const BARISTAS = [
-  { name: 'Ahmed', position: { x: 28, y: 8 } },
+  { name: 'Ahmed', position: { x: 25, y: 8 } },
   { name: 'Joy', position: { x: 33, y: 8 } },
-  { name: 'Muneef', position: { x: 38, y: 8 } }
+  { name: 'Muneef', position: { x: 41, y: 8 } }
 ];
 
-// Zone colors matching the café aesthetic
+// Enhanced Zone colors with gradients
 const ZONE_COLORS = {
-  counter: { bg: 'rgba(139, 69, 19, 0.15)', border: '#8B4513', name: '☕ Coffee Counter' },
-  window: { bg: 'rgba(34, 197, 94, 0.15)', border: '#22C55E', name: '🪟 Window Seating' },
-  interior: { bg: 'rgba(59, 130, 246, 0.15)', border: '#3B82F6', name: '🎨 Interior Design' },
-  corner: { bg: 'rgba(147, 51, 234, 0.15)', border: '#9333EA', name: '🛋️ Cozy Corner' },
-  central: { bg: 'rgba(245, 158, 11, 0.15)', border: '#F59E0B', name: '💼 Work Zone' },
-  back: { bg: 'rgba(107, 114, 128, 0.15)', border: '#6B7280', name: '🧘 Quiet Zone' }
+  counter: { 
+    bg: 'linear-gradient(135deg, rgba(139, 69, 19, 0.2) 0%, rgba(160, 82, 45, 0.15) 100%)', 
+    border: '#8B4513', 
+    name: '☕ Coffee Counter',
+    accent: 'rgba(139, 69, 19, 0.8)'
+  },
+  window: { 
+    bg: 'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(16, 185, 129, 0.15) 100%)', 
+    border: '#22C55E', 
+    name: '🪟 Window Seating',
+    accent: 'rgba(34, 197, 94, 0.8)'
+  },
+  interior: { 
+    bg: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.15) 100%)', 
+    border: '#3B82F6', 
+    name: '🎨 Interior Design',
+    accent: 'rgba(59, 130, 246, 0.8)'
+  },
+  corner: { 
+    bg: 'linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(126, 34, 206, 0.15) 100%)', 
+    border: '#9333EA', 
+    name: '🛋️ Cozy Corner',
+    accent: 'rgba(147, 51, 234, 0.8)'
+  },
+  central: { 
+    bg: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.15) 100%)', 
+    border: '#F59E0B', 
+    name: '💼 Work Zone',
+    accent: 'rgba(245, 158, 11, 0.8)'
+  },
+  back: { 
+    bg: 'linear-gradient(135deg, rgba(107, 114, 128, 0.2) 0%, rgba(75, 85, 99, 0.15) 100%)', 
+    border: '#6B7280', 
+    name: '🧘 Quiet Zone',
+    accent: 'rgba(107, 114, 128, 0.8)'
+  }
 };
 
 interface UltimateSeatingPlanProps {
@@ -265,6 +364,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activePanel, setActivePanel] = useState<'coffee' | 'workspace' | 'community' | null>(null);
   const [deliveredOrders, setDeliveredOrders] = useState<any[]>([]);
+  const [animationEnabled, setAnimationEnabled] = useState(true);
 
   // Update time every minute for dynamic lighting
   useEffect(() => {
@@ -275,7 +375,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
   }, []);
 
   const handleSeatClick = (seatId: string) => {
-    // Add particle effect on seat selection
+    // Enhanced particle effect on seat selection
     const newParticle = {
       id: Date.now().toString(),
       x: Math.random() * 100,
@@ -352,28 +452,55 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
 
   return (
     <div className={`w-full h-full relative ${isFullscreen ? 'fixed inset-0 z-50 bg-black' : 'max-h-screen overflow-hidden'}`}>
-      {/* CSS for bean pulse animation */}
+      {/* Enhanced CSS animations */}
       <style>
         {`
-          @keyframes beanPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
+          @keyframes beanFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+          }
+          
+          @keyframes zoneGlow {
+            0%, 100% { box-shadow: 0 0 10px rgba(139, 69, 19, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(139, 69, 19, 0.6); }
+          }
+          
+          @keyframes cafeAmbience {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          
+          .cafe-background {
+            background: linear-gradient(-45deg, #f5f1eb, #e8ddd4, #d4c4b0, #c7b299);
+            background-size: 400% 400%;
+            animation: cafeAmbience 20s ease infinite;
           }
         `}
       </style>
 
-      {/* Enhanced Header - Compact */}
+      {/* Enhanced Header with more visual elements */}
       {!hideHeader && !isFullscreen && (
-        <div className="text-center py-2 bg-gradient-to-r from-amber-50 to-orange-50 rounded-t-lg">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <Crown className="h-6 w-6 text-amber-600" />
-            <h2 className="text-2xl font-bold text-stone-800">A MATTER OF COFFEE</h2>
-            <Sparkles className="h-6 w-6 text-amber-600" />
+        <div className="text-center py-3 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 rounded-t-lg border-b-2 border-amber-200">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <div className="relative">
+              <Crown className="h-8 w-8 text-amber-600 animate-pulse" />
+              <Sparkles className="h-4 w-4 text-yellow-400 absolute -top-1 -right-1 animate-spin" />
+            </div>
+            <h2 className="text-3xl font-bold text-stone-800 bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent">
+              A MATTER OF COFFEE
+            </h2>
+            <div className="relative">
+              <Sparkles className="h-8 w-8 text-amber-600 animate-pulse" />
+              <Coffee className="h-4 w-4 text-amber-500 absolute -bottom-1 -left-1 animate-bounce" />
+            </div>
           </div>
-          <p className="text-stone-600 text-sm mb-2">Click on any coffee bean to sit there!</p>
+          <p className="text-stone-600 text-sm mb-3 font-medium">
+            ✨ Click on any coffee bean to claim your perfect spot! ✨
+          </p>
           
-          {/* Compact Controls */}
-          <div className="flex justify-center items-center gap-2 flex-wrap">
+          {/* Enhanced Controls */}
+          <div className="flex justify-center items-center gap-3 flex-wrap mb-3">
             <GamificationElements 
               userPoints={1250}
               streak={7}
@@ -381,29 +508,43 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
             />
             <CoffeeShopAmbientAudio />
             <AdvancedSocialFeatures />
+            <Button
+              onClick={() => setAnimationEnabled(!animationEnabled)}
+              variant="outline"
+              size="sm"
+              className="bg-purple-50 border-purple-300 hover:bg-purple-100"
+            >
+              {animationEnabled ? '🎭 Animations ON' : '🎭 Animations OFF'}
+            </Button>
           </div>
           
-          {/* Compact Zone Statistics */}
-          <div className="flex justify-center gap-4 mt-2">
+          {/* Enhanced Zone Statistics with visual improvements */}
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-2 px-4">
             {Object.entries(ZONE_COLORS).map(([zone, config]) => {
               const stats = getZoneStats(zone);
+              const occupancyRate = (stats.occupied / stats.total) * 100;
+              
               return (
-                <Card key={zone} className="bg-white/80 backdrop-blur-sm border-0 shadow-md">
-                  <CardContent className="p-2">
-                    <div className="text-sm font-semibold" style={{ color: config.border }}>
+                <Card key={zone} className="bg-white/90 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                  <CardContent className="p-3">
+                    <div className="text-xs font-bold mb-1" style={{ color: config.border }}>
                       {config.name}
                     </div>
-                    <div className="text-xs text-gray-600">
-                      {stats.occupied}/{stats.total} occupied
+                    <div className="text-xs text-gray-600 mb-2">
+                      {stats.occupied}/{stats.total} seats
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
+                    <div className="w-full bg-gray-200 rounded-full h-2 mb-1 overflow-hidden">
                       <div 
-                        className="h-1 rounded-full transition-all duration-500"
+                        className="h-2 rounded-full transition-all duration-1000 ease-out"
                         style={{ 
-                          width: `${(stats.occupied / stats.total) * 100}%`,
-                          backgroundColor: config.border 
+                          width: `${occupancyRate}%`,
+                          background: `linear-gradient(90deg, ${config.border}, ${config.accent})`,
+                          boxShadow: `0 0 10px ${config.accent}`
                         }}
                       />
+                    </div>
+                    <div className="text-xs font-medium text-center">
+                      {occupancyRate > 80 ? '🔥 Busy' : occupancyRate > 50 ? '☕ Active' : '✨ Available'}
                     </div>
                   </CardContent>
                 </Card>
@@ -526,27 +667,45 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
 
       {/* Main Interactive Canvas - Café Layout */}
       <div
-        className={`relative w-full mx-auto overflow-hidden ${
-          isFullscreen ? 'h-screen' : hideHeader ? 'h-full' : 'h-[calc(100vh-200px)]'
+        className={`relative w-full mx-auto overflow-hidden cafe-background ${
+          isFullscreen ? 'h-screen' : hideHeader ? 'h-full' : 'h-[calc(100vh-280px)]'
         }`}
         style={{
-          backgroundImage: "linear-gradient(135deg, #f5f1eb 0%, #e8ddd4 30%, #d4c4b0 60%, #c7b299 100%)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat"
+          backgroundImage: `
+            radial-gradient(circle at 20% 80%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(34, 197, 94, 0.05) 0%, transparent 50%)
+          `,
         }}
       >
         {/* Enhanced Particle Effects */}
         <EnhancedSeatingEffects particles={particles} />
 
-        {/* Coffee Bar Area */}
-        <div className="absolute top-[5%] left-[20%] w-[50%] h-[15%] bg-gradient-to-r from-amber-900/30 to-orange-800/30 rounded-lg border-2 border-amber-700/50">
-          <div className="w-full h-full bg-gradient-to-b from-amber-600/20 to-amber-800/30 rounded-lg flex items-center justify-center">
-            <div className="text-amber-800 font-bold text-sm">☕ COFFEE BAR ☕</div>
+        {/* Enhanced Coffee Bar Area with 3D effect */}
+        <div className="absolute top-[5%] left-[18%] w-[54%] h-[18%] rounded-2xl shadow-2xl overflow-hidden transform perspective-1000 hover:scale-105 transition-all duration-500">
+          <div className="w-full h-full bg-gradient-to-br from-amber-800 via-amber-700 to-orange-800 rounded-2xl relative">
+            {/* Wood texture overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-900/30 to-orange-900/30 rounded-2xl" />
+            
+            {/* Coffee machine area */}
+            <div className="absolute left-[10%] top-[20%] w-[80%] h-[60%] bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg shadow-inner">
+              <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg flex items-center justify-center">
+                <div className="text-amber-200 font-bold text-lg flex items-center gap-3">
+                  <Coffee className="h-6 w-6 animate-pulse" />
+                  ☕ ESPRESSO BAR ☕
+                  <Coffee className="h-6 w-6 animate-pulse" style={{ animationDelay: '0.5s' }} />
+                </div>
+              </div>
+            </div>
+            
+            {/* Steam effects */}
+            <div className="absolute top-0 left-[30%] w-2 h-8 bg-gradient-to-t from-white/60 to-transparent rounded-full animate-pulse opacity-80" />
+            <div className="absolute top-0 left-[50%] w-2 h-6 bg-gradient-to-t from-white/40 to-transparent rounded-full animate-pulse opacity-60" style={{ animationDelay: '1s' }} />
+            <div className="absolute top-0 left-[70%] w-2 h-7 bg-gradient-to-t from-white/50 to-transparent rounded-full animate-pulse opacity-70" style={{ animationDelay: '0.5s' }} />
           </div>
         </div>
 
-        {/* Baristas behind the counter */}
+        {/* Enhanced Baristas with new avatars */}
         {BARISTAS.map((barista) => (
           <BaristaAvatar
             key={barista.name}
@@ -555,7 +714,41 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           />
         ))}
 
-        {/* Coffee Bean Seat Markers */}
+        {/* Zone Background Overlays with enhanced styling */}
+        {Object.entries(ZONE_COLORS).map(([zone, config]) => {
+          const zoneSeats = REAL_CAFE_SEATS.filter(seat => seat.zone === zone);
+          if (zoneSeats.length === 0) return null;
+          
+          const minX = Math.min(...zoneSeats.map(s => s.x));
+          const maxX = Math.max(...zoneSeats.map(s => s.x + s.w));
+          const minY = Math.min(...zoneSeats.map(s => s.y));
+          const maxY = Math.max(...zoneSeats.map(s => s.y + s.h));
+          
+          return (
+            <div
+              key={`zone-${zone}`}
+              className="absolute rounded-2xl border-2 transition-all duration-500 hover:shadow-2xl"
+              style={{
+                left: `${minX - 2}%`,
+                top: `${minY - 2}%`,
+                width: `${maxX - minX + 4}%`,
+                height: `${maxY - minY + 4}%`,
+                background: config.bg,
+                borderColor: config.border,
+                backdropFilter: 'blur(1px)',
+                zIndex: 10
+              }}
+            >
+              <div className="absolute -top-6 left-2 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full shadow-lg border-2" style={{ borderColor: config.border }}>
+                <span className="text-xs font-bold" style={{ color: config.border }}>
+                  {config.name}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Enhanced Coffee Bean Seat Markers */}
         {REAL_CAFE_SEATS.map((seat) => {
           const occupants = getSeatOccupancy(seat.id);
           const isOccupied = occupants.length > 0;
@@ -566,32 +759,45 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           return (
             <div
               key={seat.id}
-              className="absolute cursor-pointer transition-all duration-300 rounded-full flex items-center justify-center"
+              className="absolute cursor-pointer transition-all duration-500 rounded-2xl flex items-center justify-center group"
               style={{
                 left: `${seat.x}%`,
                 top: `${seat.y}%`,
                 width: `${seat.w}%`,
                 height: `${seat.h}%`,
-                zIndex: isHovered || isSelected ? 35 : 25,
+                zIndex: isHovered || isSelected ? 40 : 30,
                 transform: isSelected 
-                  ? 'scale(1.1)' 
+                  ? 'scale(1.2) rotate(2deg)' 
                   : isHovered 
-                    ? 'scale(1.05)' 
+                    ? 'scale(1.1) rotate(1deg)' 
                     : 'scale(1)',
-                backgroundColor: ZONE_COLORS[seat.zone as keyof typeof ZONE_COLORS]?.bg || 'rgba(139, 69, 19, 0.1)',
-                border: `2px solid ${ZONE_COLORS[seat.zone as keyof typeof ZONE_COLORS]?.border || '#8B4513'}`,
-                borderRadius: seat.type === 'table' ? '8px' : seat.type === 'sofa' ? '16px' : '50%'
+                filter: isSelected || isHovered ? 'drop-shadow(0 10px 25px rgba(0,0,0,0.3))' : 'none'
               }}
               onClick={() => handleSeatClick(seat.id)}
               onMouseEnter={() => setHoveredSeat(seat.id)}
               onMouseLeave={() => setHoveredSeat(null)}
             >
-              <CoffeeBean
-                isOccupied={isOccupied}
-                isSelected={isSelected}
-                isHovered={isHovered}
-                size={isFullscreen ? 20 : 16}
+              {/* Seat base with enhanced styling */}
+              <div 
+                className="w-full h-full rounded-2xl border-3 transition-all duration-300"
+                style={{
+                  backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.3)' : isHovered ? 'rgba(139, 69, 19, 0.2)' : 'rgba(139, 69, 19, 0.1)',
+                  borderColor: isSelected ? '#3B82F6' : ZONE_COLORS[seat.zone as keyof typeof ZONE_COLORS]?.border || '#8B4513',
+                  borderWidth: isSelected ? '4px' : '2px',
+                  boxShadow: isSelected || isHovered ? `0 0 25px ${ZONE_COLORS[seat.zone as keyof typeof ZONE_COLORS]?.accent}` : 'none'
+                }}
               />
+
+              {/* Enhanced Coffee Bean */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <CoffeeBean
+                  isOccupied={isOccupied}
+                  isSelected={isSelected}
+                  isHovered={isHovered}
+                  size={isFullscreen ? 28 : 20}
+                  seatType={seat.type}
+                />
+              </div>
 
               {/* Delivery Animation */}
               {hasDelivery && (
