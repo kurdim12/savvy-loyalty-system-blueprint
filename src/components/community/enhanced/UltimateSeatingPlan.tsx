@@ -118,8 +118,8 @@ interface UltimateSeatingPlanProps {
     seatId: string; 
     name: string; 
     mood: string; 
-    status: string; 
-    drinkType?: string; 
+    status: 'working' | 'chatting' | 'available' | 'focused'; 
+    drinkType?: 'espresso' | 'latte' | 'cappuccino' | 'americano'; 
     activity: string; 
   }>;
 }
