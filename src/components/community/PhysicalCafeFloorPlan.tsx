@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Coffee, Users, MapPin, Zap } from 'lucide-react';
-import { InteractiveSeatingMap } from './enhanced/InteractiveSeatingMap';
+import { RawSmithSeatingMap } from './enhanced/RawSmithSeatingMap';
 import { SeatedPerspectiveView } from './enhanced/SeatedPerspectiveView';
 
 export const PhysicalCafeFloorPlan = () => {
@@ -55,7 +55,7 @@ export const PhysicalCafeFloorPlan = () => {
       </CardHeader>
       
       <CardContent className="p-0 h-full">
-        <InteractiveSeatingMap />
+        <RawSmithSeatingMap />
       </CardContent>
     </Card>
   );
