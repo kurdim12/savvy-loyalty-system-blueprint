@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Monitor, Book, Coffee, Plant, Picture, Settings, Star, Trophy } from 'lucide-react';
+import { Monitor, Book, Coffee, Leaf, Image, Settings, Star, Trophy } from 'lucide-react';
 
 interface PersonalItem {
   id: string;
@@ -51,7 +50,7 @@ export const PersonalWorkspace: React.FC<PersonalWorkspaceProps> = ({
     {
       id: 'plant',
       name: 'Desk Succulent',
-      icon: <Plant className="h-4 w-4" />,
+      icon: <Leaf className="h-4 w-4" />,
       category: 'decoration',
       unlocked: userLevel >= 5,
       description: 'Brings life to your space'
@@ -67,7 +66,7 @@ export const PersonalWorkspace: React.FC<PersonalWorkspaceProps> = ({
     {
       id: 'photo-frame',
       name: 'Memory Frame',
-      icon: <Picture className="h-4 w-4" />,
+      icon: <Image className="h-4 w-4" />,
       category: 'decoration',
       unlocked: userLevel >= 10,
       description: 'Cherished memories'
