@@ -336,7 +336,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
     .slice(0, 5);
 
   return (
-    <div className={`w-full relative ${isFullscreen ? 'fixed inset-0 z-50 bg-black' : ''}`}>
+    <div className={`w-full h-full relative ${isFullscreen ? 'fixed inset-0 z-50 bg-black' : 'max-h-screen overflow-hidden'}`}>
       {/* CSS for bean pulse animation */}
       <style>
         {`
@@ -347,18 +347,18 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         `}
       </style>
 
-      {/* Enhanced Header */}
+      {/* Enhanced Header - Compact */}
       {!hideHeader && !isFullscreen && (
-        <div className="text-center py-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-t-lg">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <Crown className="h-8 w-8 text-amber-600" />
-            <h2 className="text-3xl font-bold text-stone-800">RAW SMITH CAFÉ</h2>
-            <Sparkles className="h-8 w-8 text-amber-600" />
+        <div className="text-center py-2 bg-gradient-to-r from-amber-50 to-orange-50 rounded-t-lg">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <Crown className="h-6 w-6 text-amber-600" />
+            <h2 className="text-2xl font-bold text-stone-800">RAW SMITH CAFÉ</h2>
+            <Sparkles className="h-6 w-6 text-amber-600" />
           </div>
-          <p className="text-stone-600 mb-4">Click on any coffee bean to sit there!</p>
+          <p className="text-stone-600 text-sm mb-2">Click on any coffee bean to sit there!</p>
           
-          {/* Enhanced Controls */}
-          <div className="flex justify-center items-center gap-4 flex-wrap">
+          {/* Compact Controls */}
+          <div className="flex justify-center items-center gap-2 flex-wrap">
             <GamificationElements 
               userPoints={1250}
               streak={7}
@@ -368,22 +368,22 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
             <AdvancedSocialFeatures />
           </div>
           
-          {/* Zone Statistics */}
-          <div className="flex justify-center gap-6 mt-6">
+          {/* Compact Zone Statistics */}
+          <div className="flex justify-center gap-4 mt-2">
             {Object.entries(ZONE_COLORS).map(([zone, config]) => {
               const stats = getZoneStats(zone);
               return (
-                <Card key={zone} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                  <CardContent className="p-3">
-                    <div className="text-lg font-semibold" style={{ color: config.border }}>
+                <Card key={zone} className="bg-white/80 backdrop-blur-sm border-0 shadow-md">
+                  <CardContent className="p-2">
+                    <div className="text-sm font-semibold" style={{ color: config.border }}>
                       {config.name}
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-xs text-gray-600">
                       {stats.occupied}/{stats.total} occupied
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
                       <div 
-                        className="h-2 rounded-full transition-all duration-500"
+                        className="h-1 rounded-full transition-all duration-500"
                         style={{ 
                           width: `${(stats.occupied / stats.total) * 100}%`,
                           backgroundColor: config.border 
@@ -509,14 +509,12 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         </div>
       )}
 
-      {/* Main Interactive Canvas - Full page photo */}
+      {/* Main Interactive Canvas - Fit to container */}
       <div
         className={`relative w-full mx-auto overflow-hidden ${
-          isFullscreen ? 'h-screen' : 'h-screen'
+          isFullscreen ? 'h-screen' : hideHeader ? 'h-full' : 'h-[calc(100vh-200px)]'
         }`}
         style={{
-          width: "100vw",
-          height: isFullscreen ? "100vh" : "calc(100vh - 120px)",
           backgroundImage: "url('/lovable-uploads/7ddcf203-b9d9-4773-bf53-d70372417ee7.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -558,7 +556,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
                 isOccupied={isOccupied}
                 isSelected={isSelected}
                 isHovered={isHovered}
-                size={isFullscreen ? 36 : 28}
+                size={isFullscreen ? 36 : 24}
               />
 
               {/* Delivery Animation */}
@@ -593,22 +591,22 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           );
         })}
 
-        {/* Live Status */}
+        {/* Compact Live Status */}
         <div className="absolute top-4 left-4 space-y-2">
-          <Badge className="bg-green-600/90 text-white px-4 py-2 text-sm font-semibold animate-pulse flex items-center gap-2">
+          <Badge className="bg-green-600/90 text-white px-3 py-1 text-xs font-semibold animate-pulse flex items-center gap-2">
             <div className="w-2 h-2 bg-white rounded-full animate-ping" />
-            Real Café Seating Active
+            Live Café Active
           </Badge>
           
-          <Badge className="bg-blue-600/90 text-white px-3 py-1 text-xs">
+          <Badge className="bg-blue-600/90 text-white px-2 py-1 text-xs">
             <Calendar className="h-3 w-3 mr-1" />
             {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </Badge>
         </div>
 
-        {/* Seat Info Panel */}
+        {/* Compact Seat Info Panel */}
         {hoveredSeat && (
-          <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm p-6 rounded-xl shadow-2xl text-base max-w-md border-l-4 border-amber-500">
+          <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-2xl text-sm max-w-xs border-l-4 border-amber-500">
             {(() => {
               const seat = ULTRA_PRECISE_CAFE_SEATS.find(s => s.id === hoveredSeat);
               const occupants = getSeatOccupancy(hoveredSeat);
@@ -617,33 +615,33 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
               return (
                 <>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
-                      <Coffee className="h-6 w-6 text-white" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
+                      <Coffee className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <div className="font-bold text-stone-800 text-lg">{hoveredSeat.replace(/-/g, ' ').toUpperCase()}</div>
-                      <div className="text-sm text-stone-600 capitalize">{seat.vibe} atmosphere</div>
+                      <div className="font-bold text-stone-800">{hoveredSeat.replace(/-/g, ' ').toUpperCase()}</div>
+                      <div className="text-xs text-stone-600 capitalize">{seat.vibe} atmosphere</div>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="grid grid-cols-2 gap-2 mb-3">
                     <div className="bg-blue-50 p-2 rounded-lg">
                       <div className="text-xs text-blue-600 font-medium">Music Zone</div>
-                      <div className="text-sm capitalize">{seat.musicZone}</div>
+                      <div className="text-xs capitalize">{seat.musicZone}</div>
                     </div>
                     <div className="bg-green-50 p-2 rounded-lg">
                       <div className="text-xs text-green-600 font-medium">Audio</div>
-                      <div className="text-sm capitalize">{seat.ambientSound}</div>
+                      <div className="text-xs capitalize">{seat.ambientSound}</div>
                     </div>
                   </div>
                   
                   {occupants.length > 0 && (
-                    <div className="mb-4">
-                      <div className="text-sm font-medium text-stone-700 mb-2">Currently Here:</div>
-                      <div className="space-y-2">
+                    <div className="mb-3">
+                      <div className="text-xs font-medium text-stone-700 mb-1">Currently Here:</div>
+                      <div className="space-y-1">
                         {occupants.map((user, idx) => (
-                          <div key={idx} className="flex items-center gap-2 text-sm">
-                            <span className="text-lg">{user.mood}</span>
+                          <div key={idx} className="flex items-center gap-2 text-xs">
+                            <span className="text-sm">{user.mood}</span>
                             <span className="font-medium">{user.name}</span>
                             <Badge variant="outline" className="text-xs">{user.status}</Badge>
                             <span className="text-xs text-gray-600">- {user.activity}</span>
@@ -656,10 +654,10 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
                   <div className="flex gap-2">
                     <Button 
                       size="sm" 
-                      className="flex-1 bg-amber-600 hover:bg-amber-700 text-white"
+                      className="flex-1 bg-amber-600 hover:bg-amber-700 text-white text-xs"
                       onClick={() => handleSeatClick(seat.id)}
                     >
-                      <Coffee className="h-4 w-4 mr-2" />
+                      <Coffee className="h-3 w-3 mr-1" />
                       Sit Here
                     </Button>
                   </div>
@@ -669,22 +667,22 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           </div>
         )}
 
-        {/* Instructions */}
-        <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-lg text-sm max-w-xs">
-          <div className="font-bold mb-3 text-base flex items-center gap-2">
+        {/* Compact Instructions */}
+        <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg text-xs max-w-xs">
+          <div className="font-bold mb-2 text-sm flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-amber-600" />
             How to Use
           </div>
-          <div className="space-y-2 text-xs">
+          <div className="space-y-1 text-xs">
             <div className="flex items-center gap-2">
-              <CoffeeBean isOccupied={false} isSelected={false} isHovered={false} size={16} />
+              <CoffeeBean isOccupied={false} isSelected={false} isHovered={false} size={12} />
               <span>Click any coffee bean to sit there</span>
             </div>
             <div className="flex items-center gap-2">
-              <CoffeeBean isOccupied={true} isSelected={false} isHovered={false} size={16} />
+              <CoffeeBean isOccupied={true} isSelected={false} isHovered={false} size={12} />
               <span>See who's sitting where in real-time</span>
             </div>
-            <div className="text-gray-600 mt-2 pt-2 border-t">
+            <div className="text-gray-600 mt-1 pt-1 border-t text-xs">
               Hover over beans to see details • Click to join conversations
             </div>
           </div>
