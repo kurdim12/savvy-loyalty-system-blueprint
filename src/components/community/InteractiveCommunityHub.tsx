@@ -48,118 +48,132 @@ export const InteractiveCommunityHub = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {/* Community Header */}
-      <Card className="bg-gradient-to-r from-[#8B4513] to-[#D2B48C] text-white border-0">
+      {/* Enhanced Community Header */}
+      <Card className="bg-gradient-to-r from-[#8B4513] via-[#A0522D] to-[#D2B48C] text-white border-0 shadow-2xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold flex items-center justify-center gap-3">
-            <Coffee className="h-8 w-8" />
+          <CardTitle className="text-4xl font-bold flex items-center justify-center gap-3 mb-2">
+            <Coffee className="h-10 w-10 animate-pulse" />
             Raw Smith Café Community
+            <Sparkles className="h-10 w-10 animate-pulse" />
           </CardTitle>
-          <p className="text-white/90 text-lg">
-            Connect, collaborate, and create in our virtual coffee space
+          <p className="text-white/90 text-xl">
+            The Ultimate Interactive Coffee Experience
           </p>
+          <Badge className="bg-yellow-500 text-black font-bold text-lg px-4 py-2 mx-auto mt-2">
+            🚀 NOW WITH ULTRA ENHANCEMENTS!
+          </Badge>
         </CardHeader>
         
         <CardContent>
+          {/* Enhanced Statistics Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
-              <Users className="h-8 w-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">127</div>
+            <div className="text-center p-4 bg-white/15 rounded-xl backdrop-blur-sm border border-white/20 hover:scale-105 transition-transform">
+              <Users className="h-10 w-10 mx-auto mb-2 animate-bounce" />
+              <div className="text-3xl font-bold">127</div>
               <div className="text-sm opacity-90">Members Online</div>
             </div>
             
-            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
-              <MessageSquare className="h-8 w-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">1.2k</div>
+            <div className="text-center p-4 bg-white/15 rounded-xl backdrop-blur-sm border border-white/20 hover:scale-105 transition-transform">
+              <MessageSquare className="h-10 w-10 mx-auto mb-2 animate-pulse" />
+              <div className="text-3xl font-bold">1.2k</div>
               <div className="text-sm opacity-90">Messages Today</div>
             </div>
             
-            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
-              <Calendar className="h-8 w-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">5</div>
+            <div className="text-center p-4 bg-white/15 rounded-xl backdrop-blur-sm border border-white/20 hover:scale-105 transition-transform">
+              <Calendar className="h-10 w-10 mx-auto mb-2 animate-spin" />
+              <div className="text-3xl font-bold">5</div>
               <div className="text-sm opacity-90">Events This Week</div>
             </div>
 
-            <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
-              <Star className="h-8 w-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">98%</div>
+            <div className="text-center p-4 bg-white/15 rounded-xl backdrop-blur-sm border border-white/20 hover:scale-105 transition-transform">
+              <Crown className="h-10 w-10 mx-auto mb-2 text-yellow-300 animate-pulse" />
+              <div className="text-3xl font-bold">98%</div>
               <div className="text-sm opacity-90">Satisfaction</div>
             </div>
           </div>
 
-          {/* Enhanced Features Showcase */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+          {/* Revolutionary Features Showcase */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white/15 p-4 rounded-xl backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all">
               <div className="flex items-center gap-2 mb-2">
-                <Zap className="h-5 w-5 text-yellow-300" />
-                <span className="font-semibold">Real-Time Proximity Chat</span>
+                <Zap className="h-6 w-6 text-yellow-300 animate-pulse" />
+                <span className="font-bold">AI Smart Recommendations</span>
               </div>
-              <p className="text-sm text-white/80">Chat with people sitting near you in the café</p>
+              <p className="text-sm text-white/80">Intelligent seat matching based on your preferences</p>
             </div>
             
-            <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+            <div className="bg-white/15 p-4 rounded-xl backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all">
               <div className="flex items-center gap-2 mb-2">
-                <Trophy className="h-5 w-5 text-yellow-300" />
-                <span className="font-semibold">Interest-Based Zones</span>
+                <Volume2 className="h-6 w-6 text-blue-300 animate-pulse" />
+                <span className="font-bold">3D Spatial Audio</span>
               </div>
-              <p className="text-sm text-white/80">Find your tribe in specialized café areas</p>
+              <p className="text-sm text-white/80">Immersive soundscapes for each café zone</p>
             </div>
             
-            <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+            <div className="bg-white/15 p-4 rounded-xl backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all">
               <div className="flex items-center gap-2 mb-2">
-                <Coffee className="h-5 w-5 text-yellow-300" />
-                <span className="font-semibold">Interactive Seating</span>
+                <Trophy className="h-6 w-6 text-purple-300 animate-pulse" />
+                <span className="font-bold">Gamification System</span>
               </div>
-              <p className="text-sm text-white/80">Click any seat to join area conversations</p>
+              <p className="text-sm text-white/80">Earn achievements and unlock special features</p>
+            </div>
+            
+            <div className="bg-white/15 p-4 rounded-xl backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-6 w-6 text-pink-300 animate-pulse" />
+                <span className="font-bold">Dynamic Atmosphere</span>
+              </div>
+              <p className="text-sm text-white/80">Real-time weather and lighting effects</p>
             </div>
           </div>
 
-          {/* Café Experience Entry Button */}
+          {/* Ultimate Café Experience Entry Button */}
           <div className="text-center">
             <Button
               onClick={handleEnterCafe}
               size="lg"
-              className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-4 text-lg font-semibold shadow-xl transform hover:scale-105 transition-all duration-200"
+              className="bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 hover:from-amber-700 hover:via-orange-700 hover:to-red-700 text-white px-12 py-6 text-xl font-bold shadow-2xl transform hover:scale-110 transition-all duration-300 border-4 border-yellow-400 animate-pulse"
             >
-              <MapPin className="h-6 w-6 mr-3" />
-              Enter Interactive Café Experience
+              <MapPin className="h-8 w-8 mr-4" />
+              Enter ULTIMATE Café Experience
+              <Crown className="h-8 w-8 ml-4 text-yellow-300" />
             </Button>
-            <p className="text-white/80 text-sm mt-2">
-              Step into the real-time seating plan and connect with people around you
+            <p className="text-white/90 text-base mt-3 font-medium">
+              🚀 Experience the most advanced virtual café in existence!
             </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Main Content Tabs */}
+      {/* Main Content Tabs - Enhanced */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg">
+        <TabsList className="grid w-full grid-cols-4 bg-white shadow-xl rounded-xl border-2 border-amber-200">
           <TabsTrigger 
             value="spaces" 
-            className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white"
+            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#8B4513] data-[state=active]:to-[#A0522D] data-[state=active]:text-white font-semibold"
           >
-            <MapPin className="h-4 w-4" />
-            Spaces
+            <MapPin className="h-5 w-5" />
+            Ultimate Spaces
           </TabsTrigger>
           <TabsTrigger 
             value="chat" 
-            className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white"
+            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#8B4513] data-[state=active]:to-[#A0522D] data-[state=active]:text-white font-semibold"
           >
-            <MessageSquare className="h-4 w-4" />
-            Chat
+            <MessageSquare className="h-5 w-5" />
+            Smart Chat
           </TabsTrigger>
           <TabsTrigger 
             value="members" 
-            className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white"
+            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#8B4513] data-[state=active]:to-[#A0522D] data-[state=active]:text-white font-semibold"
           >
-            <Users className="h-4 w-4" />
-            Members
+            <Users className="h-5 w-5" />
+            Community
           </TabsTrigger>
           <TabsTrigger 
             value="events" 
-            className="flex items-center gap-2 data-[state=active]:bg-[#8B4513] data-[state=active]:text-white"
+            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#8B4513] data-[state=active]:to-[#A0522D] data-[state=active]:text-white font-semibold"
           >
-            <Calendar className="h-4 w-4" />
+            <Calendar className="h-5 w-5" />
             Events
           </TabsTrigger>
         </TabsList>
