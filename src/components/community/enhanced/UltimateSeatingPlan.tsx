@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -114,7 +113,15 @@ interface UltimateSeatingPlanProps {
   onSeatSelect?: (seatId: string) => void;
   selectedSeat?: string | null;
   hideHeader?: boolean;
-  onlineUsers?: Array<{ seatId: string; name: string; mood: string; status: string; drinkType?: string; activity: string }>;
+  onlineUsers?: Array<{ 
+    id: string; 
+    seatId: string; 
+    name: string; 
+    mood: string; 
+    status: string; 
+    drinkType?: string; 
+    activity: string; 
+  }>;
 }
 
 export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({ 
