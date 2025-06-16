@@ -76,137 +76,137 @@ const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 24 }: {
   );
 };
 
-// Ultra-precise seat coordinates matching the exact chair positions in the photo
+// Ultra-precise seat coordinates exactly matching chair positions in the photo
 const ULTRA_PRECISE_CAFE_SEATS = [
-  // Bar stools at the counter (pixel-perfect positioning)
+  // Bar stools at the counter (positioned exactly on chair seats)
   { 
-    id: 'bar-stool-1', x: 76.2, y: 16.8, w: 2.8, h: 4.2, type: 'bar', zone: 'indoor',
+    id: 'bar-stool-1', x: 76.8, y: 18.5, w: 2.0, h: 2.0, type: 'bar', zone: 'indoor',
     ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-2', x: 80.1, y: 16.8, w: 2.8, h: 4.2, type: 'bar', zone: 'indoor',
+    id: 'bar-stool-2', x: 80.5, y: 18.5, w: 2.0, h: 2.0, type: 'bar', zone: 'indoor',
     ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-3', x: 84.0, y: 16.8, w: 2.8, h: 4.2, type: 'bar', zone: 'indoor',
+    id: 'bar-stool-3', x: 84.2, y: 18.5, w: 2.0, h: 2.0, type: 'bar', zone: 'indoor',
     ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-4', x: 87.9, y: 16.8, w: 2.8, h: 4.2, type: 'bar', zone: 'indoor',
+    id: 'bar-stool-4', x: 87.9, y: 18.5, w: 2.0, h: 2.0, type: 'bar', zone: 'indoor',
     ambientSound: 'coffee-machine', musicZone: 'energetic', vibe: 'social'
   },
   
-  // Left side green armchair (ultra-precise)
+  // Left side green armchair (exactly on the chair seat)
   { 
-    id: 'green-armchair-1', x: 13.8, y: 43.5, w: 4.2, h: 5.8, type: 'armchair', zone: 'indoor', capacity: 1,
+    id: 'green-armchair-1', x: 15.2, y: 46.0, w: 2.5, h: 2.5, type: 'armchair', zone: 'indoor', capacity: 1,
     ambientSound: 'intimate', musicZone: 'ambient', vibe: 'relaxed'
   },
   
-  // Left side table chairs (ultra-precise positioning)
+  // Left side table chairs (positioned exactly on chair seats)
   { 
-    id: 'left-table-chair-1', x: 10.8, y: 58.2, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'left-table-chair-1', x: 12.0, y: 60.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'left-table-chair-2', x: 22.4, y: 58.2, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'left-table-chair-2', x: 22.8, y: 60.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'left-table-chair-3', x: 10.8, y: 65.8, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'left-table-chair-3', x: 12.0, y: 67.0, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'left-table-chair-4', x: 22.4, y: 65.8, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  
-  // Center area tables - first table (ultra-precise)
-  { 
-    id: 'center-table-1-chair-1', x: 33.6, y: 56.4, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'center-table-1-chair-2', x: 45.8, y: 56.4, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'center-table-1-chair-3', x: 33.6, y: 68.2, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'center-table-1-chair-4', x: 45.8, y: 68.2, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'left-table-chair-4', x: 22.8, y: 67.0, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   
-  // Second center table (ultra-precise)
+  // Center area tables - first table (exactly on chair seats)
   { 
-    id: 'center-table-2-chair-1', x: 53.2, y: 56.4, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-1-chair-1', x: 34.5, y: 58.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'center-table-2-chair-2', x: 65.4, y: 56.4, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-1-chair-2', x: 45.2, y: 58.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'center-table-2-chair-3', x: 53.2, y: 68.2, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-1-chair-3', x: 34.5, y: 69.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'center-table-2-chair-4', x: 65.4, y: 68.2, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  
-  // Third center table (ultra-precise)
-  { 
-    id: 'center-table-3-chair-1', x: 72.8, y: 56.4, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'center-table-3-chair-2', x: 85.0, y: 56.4, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'center-table-3-chair-3', x: 72.8, y: 68.2, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
-    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
-  },
-  { 
-    id: 'center-table-3-chair-4', x: 85.0, y: 68.2, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-1-chair-4', x: 45.2, y: 69.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   
-  // Back row tables - first table (ultra-precise)
+  // Second center table (exactly on chair seats)
   { 
-    id: 'back-table-1-chair-1', x: 33.6, y: 33.2, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-2-chair-1', x: 53.8, y: 58.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'back-table-1-chair-2', x: 45.8, y: 33.2, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-2-chair-2', x: 64.5, y: 58.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'back-table-1-chair-3', x: 33.6, y: 45.4, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-2-chair-3', x: 53.8, y: 69.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'back-table-1-chair-4', x: 45.8, y: 45.4, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-2-chair-4', x: 64.5, y: 69.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   
-  // Second back table (ultra-precise)
+  // Third center table (exactly on chair seats)
   { 
-    id: 'back-table-2-chair-1', x: 53.2, y: 33.2, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-3-chair-1', x: 73.2, y: 58.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'back-table-2-chair-2', x: 65.4, y: 33.2, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-3-chair-2', x: 83.9, y: 58.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'back-table-2-chair-3', x: 53.2, y: 45.4, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-3-chair-3', x: 73.2, y: 69.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   },
   { 
-    id: 'back-table-2-chair-4', x: 65.4, y: 45.4, w: 3.2, h: 3.6, type: 'chair', zone: 'indoor', capacity: 1,
+    id: 'center-table-3-chair-4', x: 83.9, y: 69.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+  },
+  
+  // Back row tables - first table (exactly on chair seats)
+  { 
+    id: 'back-table-1-chair-1', x: 34.5, y: 35.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+  },
+  { 
+    id: 'back-table-1-chair-2', x: 45.2, y: 35.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+  },
+  { 
+    id: 'back-table-1-chair-3', x: 34.5, y: 46.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+  },
+  { 
+    id: 'back-table-1-chair-4', x: 45.2, y: 46.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+  },
+  
+  // Second back table (exactly on chair seats)
+  { 
+    id: 'back-table-2-chair-1', x: 53.8, y: 35.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+  },
+  { 
+    id: 'back-table-2-chair-2', x: 64.5, y: 35.8, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+  },
+  { 
+    id: 'back-table-2-chair-3', x: 53.8, y: 46.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
+    ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
+  },
+  { 
+    id: 'back-table-2-chair-4', x: 64.5, y: 46.5, w: 2.0, h: 2.0, type: 'chair', zone: 'indoor', capacity: 1,
     ambientSound: 'gentle-chatter', musicZone: 'ambient', vibe: 'collaborative'
   }
 ];
@@ -392,18 +392,18 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         </div>
       )}
 
-      {/* Main Interactive Canvas */}
+      {/* Main Interactive Canvas - Full page photo */}
       <div
-        className={`relative w-full mx-auto border-2 border-stone-400 rounded-lg shadow-2xl overflow-hidden bg-cover bg-center bg-no-repeat ${
-          isFullscreen ? 'h-screen border-0 rounded-none' : ''
+        className={`relative w-full mx-auto border-2 border-stone-400 rounded-lg shadow-2xl overflow-hidden ${
+          isFullscreen ? 'h-screen border-0 rounded-none' : 'h-screen border-0 rounded-none'
         }`}
         style={{
-          aspectRatio: isFullscreen ? "auto" : "4/3",
-          width: isFullscreen ? "100vw" : "100%",
-          height: isFullscreen ? "100vh" : hideHeader ? "80vh" : "calc(100vh - 200px)",
+          width: "100vw",
+          height: isFullscreen ? "100vh" : "100vh",
           backgroundImage: "url('/lovable-uploads/7ddcf203-b9d9-4773-bf53-d70372417ee7.png')",
           backgroundSize: "cover",
-          backgroundPosition: "center"
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat"
         }}
       >
         {/* Enhanced Particle Effects */}
