@@ -295,6 +295,16 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
 
   return (
     <div className={`w-full relative ${isFullscreen ? 'fixed inset-0 z-50 bg-black' : ''}`}>
+      {/* CSS for bean pulse animation */}
+      <style>
+        {`
+          @keyframes beanPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+          }
+        `}
+      </style>
+
       {/* Enhanced Header */}
       {!hideHeader && !isFullscreen && (
         <div className="text-center py-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-t-lg">
@@ -396,14 +406,6 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           backgroundPosition: "center"
         }}
       >
-        {/* CSS for bean pulse animation */}
-        <style jsx>{`
-          @keyframes beanPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-          }
-        `}</style>
-
         {/* Enhanced Particle Effects */}
         <EnhancedSeatingEffects particles={particles} />
 
