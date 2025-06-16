@@ -1,4 +1,5 @@
-import { InteractiveCommunityHub } from '@/components/community/InteractiveCommunityHub';
+
+import { CinematicCommunityHub } from '@/components/community/CinematicCommunityHub';
 import Layout from '@/components/layout/Layout';
 
 const CommunityPage = () => {
@@ -6,7 +7,7 @@ const CommunityPage = () => {
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-[#FAF6F0] to-[#F5E6D3]">
         <div className="container mx-auto px-4 py-8">
-          <InteractiveCommunityHub />
+          <CinematicCommunityHub />
         </div>
       </div>
     </Layout>
