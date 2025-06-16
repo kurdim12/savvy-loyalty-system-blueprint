@@ -9,6 +9,11 @@ import { EnhancedUserAvatars } from './EnhancedUserAvatars';
 import { CoffeeShopAmbientAudio } from './CoffeeShopAmbientAudio';
 import { GamificationElements } from './GamificationElements';
 import { AdvancedSocialFeatures } from './AdvancedSocialFeatures';
+import { VirtualCoffeeOrdering } from './VirtualCoffeeOrdering';
+import { ProximityInteractions } from './ProximityInteractions';
+import { DynamicEnvironment } from './DynamicEnvironment';
+import { PersonalWorkspace } from './PersonalWorkspace';
+import { CommunityFeatures } from './CommunityFeatures';
 
 // Coffee Bean Icon Component
 const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 28 }: { 
@@ -243,6 +248,8 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
   const [particles, setParticles] = useState<any[]>([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [activePanel, setActivePanel] = useState<'coffee' | 'workspace' | 'community' | null>(null);
+  const [deliveredOrders, setDeliveredOrders] = useState<any[]>([]);
 
   // Update time every minute for dynamic lighting
   useEffect(() => {
@@ -292,6 +299,41 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
   };
+
+  const handleOrderComplete = (order: any) => {
+    setDeliveredOrders(prev => [...prev, order]);
+    // Add visual delivery animation
+    const newParticle = {
+      id: Date.now().toString(),
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      type: 'delivery',
+      timestamp: Date.now()
+    };
+    setParticles(prev => [...prev, newParticle]);
+  };
+
+  const handleProximityInteraction = (targetUserId: string, interactionType: string) => {
+    console.log(`Interaction: ${interactionType} with ${targetUserId}`);
+    // Add interaction animation
+    const newParticle = {
+      id: Date.now().toString(),
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      type: interactionType,
+      timestamp: Date.now()
+    };
+    setParticles(prev => [...prev, newParticle]);
+  };
+
+  const nearbyUsers = onlineUsers
+    .filter(user => user.seatId !== selectedSeat)
+    .map(user => ({
+      ...user,
+      distance: Math.floor(Math.random() * 5) + 1,
+      isInteractive: true
+    }))
+    .slice(0, 5);
 
   return (
     <div className={`w-full relative ${isFullscreen ? 'fixed inset-0 z-50 bg-black' : ''}`}>
@@ -356,6 +398,12 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         </div>
       )}
 
+      {/* Dynamic Environment Overlay */}
+      <DynamicEnvironment 
+        currentOccupancy={onlineUsers.length}
+        userPreferences={{}}
+      />
+
       {/* Fullscreen Toggle Button */}
       <div className="absolute top-4 right-4 z-40">
         <Button
@@ -392,6 +440,75 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         </div>
       )}
 
+      {/* Enhanced Side Panels */}
+      <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-30 space-y-2">
+        <Button
+          onClick={() => setActivePanel(activePanel === 'coffee' ? null : 'coffee')}
+          variant="outline"
+          size="sm"
+          className="bg-white/90 backdrop-blur-sm border-amber-300 hover:bg-amber-50"
+        >
+          <Coffee className="h-4 w-4" />
+        </Button>
+        <Button
+          onClick={() => setActivePanel(activePanel === 'workspace' ? null : 'workspace')}
+          variant="outline"
+          size="sm"
+          className="bg-white/90 backdrop-blur-sm border-purple-300 hover:bg-purple-50"
+        >
+          <Zap className="h-4 w-4" />
+        </Button>
+        <Button
+          onClick={() => setActivePanel(activePanel === 'community' ? null : 'community')}
+          variant="outline"
+          size="sm"
+          className="bg-white/90 backdrop-blur-sm border-emerald-300 hover:bg-emerald-50"
+        >
+          <Users className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Active Panel Content */}
+      {activePanel && (
+        <div className="absolute left-16 top-1/2 transform -translate-y-1/2 z-30 w-80">
+          {activePanel === 'coffee' && selectedSeat && (
+            <VirtualCoffeeOrdering
+              seatId={selectedSeat}
+              onOrderComplete={handleOrderComplete}
+            />
+          )}
+          {activePanel === 'workspace' && selectedSeat && (
+            <PersonalWorkspace
+              seatId={selectedSeat}
+              userLevel={7}
+              userAchievements={['coffee-lover', 'social-butterfly']}
+              onItemPlace={(itemId, position) => console.log('Item placed:', itemId, position)}
+            />
+          )}
+          {activePanel === 'community' && (
+            <CommunityFeatures
+              currentUser={{
+                id: 'current-user',
+                name: 'You',
+                skills: ['JavaScript', 'Coffee'],
+                interests: ['Tech', 'Music']
+              }}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Proximity Interactions */}
+      {selectedSeat && nearbyUsers.length > 0 && (
+        <div className="absolute bottom-24 left-4 z-30">
+          <ProximityInteractions
+            currentSeatId={selectedSeat}
+            nearbyUsers={nearbyUsers}
+            onInteraction={handleProximityInteraction}
+          />
+        </div>
+      )}
+
       {/* Main Interactive Canvas - Full page photo */}
       <div
         className={`relative w-full mx-auto overflow-hidden ${
@@ -415,6 +532,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           const isOccupied = occupants.length > 0;
           const isSelected = selectedSeat === seat.id;
           const isHovered = hoveredSeat === seat.id;
+          const hasDelivery = deliveredOrders.some(order => order.seatId === seat.id);
           
           return (
             <div
@@ -442,6 +560,15 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
                 isHovered={isHovered}
                 size={isFullscreen ? 36 : 28}
               />
+
+              {/* Delivery Animation */}
+              {hasDelivery && (
+                <div className="absolute -top-6 -right-6 z-20 animate-bounce">
+                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                    <Coffee className="h-2 w-2 text-white" />
+                  </div>
+                </div>
+              )}
 
               {/* Enhanced Occupancy Indicators */}
               {isOccupied && (
