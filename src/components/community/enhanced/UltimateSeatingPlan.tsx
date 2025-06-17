@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -103,59 +102,62 @@ const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 24, seatType }: 
   );
 };
 
-// Clean Coffee Bar Component
-const CleanCoffeeBar = () => {
+// L-Shaped Coffee Bar with Window
+const LShapedCoffeeBar = () => {
   return (
-    <div className="absolute top-[10%] left-[25%] w-[50%] h-[15%]">
-      <div className="relative w-full h-full">
-        {/* Main Coffee Bar */}
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-amber-800 to-orange-900 rounded-lg border-2 border-amber-700 shadow-xl">
-          {/* Counter Surface */}
-          <div className="absolute top-0 left-0 w-full h-[30%] bg-gradient-to-r from-amber-700 to-orange-700 rounded-t-lg">
-            <div className="w-full h-full bg-gradient-to-b from-amber-300/20 to-transparent rounded-t-lg flex items-center justify-around px-4">
-              <div className="w-3 h-5 bg-gradient-to-b from-amber-900 to-amber-800 rounded border border-amber-600"></div>
-              <div className="w-4 h-4 bg-gradient-to-b from-gray-300 to-gray-500 rounded border border-gray-400"></div>
-              <div className="w-2 h-4 bg-gradient-to-b from-gray-700 to-gray-900 rounded border border-gray-600"></div>
-            </div>
-          </div>
+    <div className="absolute top-[8%] left-[5%] w-[70%] h-[35%]">
+      {/* Left Window */}
+      <div className="absolute top-0 left-0 w-[20%] h-[60%] bg-gradient-to-b from-sky-200 to-sky-300 rounded-lg border-4 border-white shadow-xl">
+        {/* Window Frame */}
+        <div className="absolute inset-2 border-2 border-gray-300 rounded bg-gradient-to-b from-sky-100 to-sky-200">
+          {/* Window Panes */}
+          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-300"></div>
+          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-300"></div>
+          {/* Outdoor View */}
+          <div className="absolute inset-1 rounded bg-gradient-to-b from-green-200 via-green-300 to-green-400 opacity-70"></div>
+          {/* Trees/Bushes outside */}
+          <div className="absolute bottom-1 left-2 w-3 h-4 bg-green-600 rounded-full opacity-60"></div>
+          <div className="absolute bottom-1 right-2 w-2 h-3 bg-green-700 rounded-full opacity-60"></div>
+        </div>
+        {/* Window Sill */}
+        <div className="absolute -bottom-2 left-0 right-0 h-3 bg-gradient-to-b from-amber-200 to-amber-300 rounded-b-lg border-2 border-amber-400"></div>
+      </div>
 
-          {/* Main Counter */}
-          <div className="absolute top-[30%] left-0 w-full h-[70%] bg-gradient-to-b from-gray-700 to-gray-900 rounded-b-lg border-2 border-gray-600">
-            {/* Espresso Machine */}
-            <div className="absolute top-[15%] left-[20%] w-[20%] h-[50%] bg-gradient-to-b from-gray-300 to-gray-600 rounded shadow-lg border border-gray-400">
-              <div className="w-full h-[60%] bg-gradient-to-br from-gray-400 to-gray-700 rounded-t relative">
-                <div className="absolute right-1 top-1 w-0.5 h-3 bg-gray-800 rounded-full"></div>
-                <div className="absolute top-0.5 left-0.5 w-3 h-2 bg-gray-800 rounded">
-                  <div className="w-0.5 h-0.5 bg-green-400 rounded-full m-0.5 animate-pulse"></div>
-                </div>
-              </div>
-            </div>
-
-            {/* Grinder */}
-            <div className="absolute top-[15%] left-[50%] w-[15%] h-[40%] bg-gradient-to-b from-gray-800 to-black rounded shadow-lg border border-gray-700">
-              <div className="w-full h-[40%] bg-gradient-to-b from-gray-600 to-gray-800 rounded-t"></div>
-            </div>
-
-            {/* Scale */}
-            <div className="absolute top-[15%] right-[15%] w-[15%] h-[30%] bg-gradient-to-b from-gray-800 to-black rounded border border-gray-600">
-              <div className="absolute top-0.5 right-0.5 w-3 h-1 bg-green-900 rounded text-[0.3rem] text-green-400 flex items-center justify-center font-mono">
-                18.5g
-              </div>
-            </div>
+      {/* Horizontal Bar Section */}
+      <div className="absolute top-[60%] left-[20%] w-[50%] h-[25%] bg-gradient-to-b from-amber-800 to-orange-900 rounded-lg border-2 border-amber-700 shadow-xl">
+        {/* Counter Surface */}
+        <div className="absolute top-0 left-0 w-full h-[40%] bg-gradient-to-r from-amber-700 to-orange-700 rounded-t-lg">
+          <div className="w-full h-full bg-gradient-to-b from-amber-300/20 to-transparent rounded-t-lg flex items-center justify-around px-4">
+            <div className="w-3 h-4 bg-gradient-to-b from-amber-900 to-amber-800 rounded border border-amber-600"></div>
+            <div className="w-4 h-3 bg-gradient-to-b from-gray-300 to-gray-500 rounded border border-gray-400"></div>
+            <div className="w-2 h-3 bg-gradient-to-b from-gray-700 to-gray-900 rounded border border-gray-600"></div>
           </div>
         </div>
+        {/* Main Counter */}
+        <div className="absolute top-[40%] left-0 w-full h-[60%] bg-gradient-to-b from-gray-700 to-gray-900 rounded-b-lg border-2 border-gray-600"></div>
+      </div>
 
-        {/* Bar Stools */}
-        <div className="absolute -bottom-8 left-[20%] w-[60%] h-8 flex justify-around items-end">
-          {[1, 2, 3].map((stool) => (
-            <div key={stool} className="relative">
-              <div className="w-8 h-3 bg-gradient-to-b from-amber-700 to-amber-900 rounded-full border border-amber-600 shadow-md">
-                <div className="absolute inset-0.5 bg-gradient-to-b from-amber-600/30 to-transparent rounded-full"></div>
+      {/* Vertical Bar Section (L-shape) */}
+      <div className="absolute top-[10%] left-[70%] w-[25%] h-[45%] bg-gradient-to-b from-amber-800 to-orange-900 rounded-lg border-2 border-amber-700 shadow-xl">
+        {/* Counter Surface */}
+        <div className="absolute top-0 left-0 w-full h-[30%] bg-gradient-to-r from-amber-700 to-orange-700 rounded-t-lg">
+          <div className="w-full h-full bg-gradient-to-b from-amber-300/20 to-transparent rounded-t-lg"></div>
+        </div>
+        {/* Main Counter */}
+        <div className="absolute top-[30%] left-0 w-full h-[70%] bg-gradient-to-b from-gray-700 to-gray-900 rounded-b-lg border-2 border-gray-600">
+          {/* Espresso Machine */}
+          <div className="absolute top-[15%] left-[20%] w-[30%] h-[40%] bg-gradient-to-b from-gray-300 to-gray-600 rounded shadow-lg border border-gray-400">
+            <div className="w-full h-[60%] bg-gradient-to-br from-gray-400 to-gray-700 rounded-t relative">
+              <div className="absolute right-1 top-1 w-0.5 h-2 bg-gray-800 rounded-full"></div>
+              <div className="absolute top-0.5 left-0.5 w-2 h-1 bg-gray-800 rounded">
+                <div className="w-0.5 h-0.5 bg-green-400 rounded-full m-0.5 animate-pulse"></div>
               </div>
-              <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gradient-to-b from-gray-700 to-gray-900"></div>
-              <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-4 h-0.5 bg-gray-600 rounded-full"></div>
             </div>
-          ))}
+          </div>
+          {/* Grinder */}
+          <div className="absolute top-[15%] right-[15%] w-[25%] h-[35%] bg-gradient-to-b from-gray-800 to-black rounded shadow-lg border border-gray-700">
+            <div className="w-full h-[40%] bg-gradient-to-b from-gray-600 to-gray-800 rounded-t"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -218,90 +220,108 @@ const BaristaAvatar = ({ name, position }: { name: string; position: { x: number
   );
 };
 
-// Clean Seating Layout
+// Updated Seating Layout for L-shaped bar
 const CLEAN_CAFE_SEATS = [
-  // Bar counter seats
+  // Window seating area (left side)
   { 
-    id: 'counter-seats', x: 30, y: 35, w: 4, h: 4, type: 'bar', zone: 'counter',
-    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+    id: 'window-chair-1', x: 8, y: 25, w: 4, h: 4, type: 'chair', zone: 'window',
+    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'contemplative'
   },
   { 
-    id: 'bar-counter-2', x: 38, y: 35, w: 4, h: 4, type: 'bar', zone: 'counter',
-    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+    id: 'window-chair-2', x: 8, y: 35, w: 4, h: 4, type: 'chair', zone: 'window',
+    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'contemplative'
   },
   { 
-    id: 'bar-counter-3', x: 46, y: 35, w: 4, h: 4, type: 'bar', zone: 'counter',
-    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
-  },
-
-  // Window seating
-  { 
-    id: 'window-table-1', x: 75, y: 30, w: 5, h: 5, type: 'table', zone: 'window',
+    id: 'window-table-1', x: 15, y: 30, w: 5, h: 5, type: 'table', zone: 'window',
     ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'relaxed'
   },
+
+  // Bar counter seats (horizontal section)
   { 
-    id: 'window-chair-1', x: 85, y: 30, w: 4, h: 4, type: 'chair', zone: 'window',
-    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'contemplative'
+    id: 'bar-stool-1', x: 25, y: 48, w: 4, h: 4, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'window-chair-2', x: 75, y: 40, w: 4, h: 4, type: 'chair', zone: 'window',
-    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'contemplative'
+    id: 'bar-stool-2', x: 33, y: 48, w: 4, h: 4, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+  },
+  { 
+    id: 'bar-stool-3', x: 41, y: 48, w: 4, h: 4, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+  },
+  { 
+    id: 'bar-stool-4', x: 49, y: 48, w: 4, h: 4, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+  },
+  { 
+    id: 'bar-stool-5', x: 57, y: 48, w: 4, h: 4, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
 
-  // Central workspace
+  // Bar counter seats (vertical section)
   { 
-    id: 'workspace-zone', x: 55, y: 45, w: 5, h: 5, type: 'table', zone: 'central',
+    id: 'bar-stool-6', x: 68, y: 20, w: 4, h: 4, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+  },
+  { 
+    id: 'bar-stool-7', x: 68, y: 28, w: 4, h: 4, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+  },
+  { 
+    id: 'bar-stool-8', x: 68, y: 36, w: 4, h: 4, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+  },
+
+  // Central workspace tables
+  { 
+    id: 'central-table-1', x: 30, y: 60, w: 6, h: 5, type: 'table', zone: 'central',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'productive'
   },
   { 
-    id: 'central-table-2', x: 65, y: 45, w: 5, h: 5, type: 'table', zone: 'central',
+    id: 'central-table-2', x: 45, y: 60, w: 6, h: 5, type: 'table', zone: 'central',
+    ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'productive'
+  },
+  { 
+    id: 'central-table-3', x: 60, y: 60, w: 6, h: 5, type: 'table', zone: 'central',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'productive'
   },
 
-  // Interior seating
+  // Right side seating area
   { 
-    id: 'interior-chair-1', x: 20, y: 55, w: 4, h: 4, type: 'chair', zone: 'interior',
+    id: 'right-chair-1', x: 85, y: 25, w: 4, h: 4, type: 'chair', zone: 'interior',
     ambientSound: 'intimate', musicZone: 'ambient', vibe: 'focused'
   },
   { 
-    id: 'interior-table-1', x: 30, y: 55, w: 5, h: 5, type: 'table', zone: 'interior',
-    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'collaborative'
+    id: 'right-chair-2', x: 85, y: 35, w: 4, h: 4, type: 'chair', zone: 'interior',
+    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'focused'
   },
   { 
-    id: 'interior-table-2', x: 40, y: 55, w: 5, h: 5, type: 'table', zone: 'interior',
+    id: 'right-table-1', x: 78, y: 30, w: 5, h: 5, type: 'table', zone: 'interior',
     ambientSound: 'intimate', musicZone: 'ambient', vibe: 'collaborative'
   },
 
-  // Cozy corner
+  // Back area - cozy corner
   { 
-    id: 'cosmic-corner', x: 70, y: 65, w: 6, h: 5, type: 'sofa', zone: 'corner',
+    id: 'cozy-sofa-1', x: 20, y: 75, w: 6, h: 5, type: 'sofa', zone: 'corner',
     ambientSound: 'intimate', musicZone: 'chill', vibe: 'relaxed'
   },
   { 
-    id: 'corner-sofa-2', x: 80, y: 65, w: 6, h: 5, type: 'sofa', zone: 'corner',
+    id: 'cozy-sofa-2', x: 40, y: 75, w: 6, h: 5, type: 'sofa', zone: 'corner',
     ambientSound: 'intimate', musicZone: 'chill', vibe: 'relaxed'
   },
-
-  // Back area
   { 
-    id: 'social-hub', x: 25, y: 75, w: 5, h: 5, type: 'table', zone: 'back',
+    id: 'corner-table-1', x: 60, y: 75, w: 5, h: 5, type: 'table', zone: 'back',
     ambientSound: 'quiet', musicZone: 'ambient', vibe: 'social'
   },
   { 
-    id: 'zen-garden', x: 40, y: 75, w: 5, h: 5, type: 'chair', zone: 'back',
+    id: 'quiet-chair-1', x: 75, y: 75, w: 4, h: 4, type: 'chair', zone: 'back',
     ambientSound: 'quiet', musicZone: 'ambient', vibe: 'contemplative'
-  },
-  { 
-    id: 'vinyl-lounge', x: 55, y: 75, w: 5, h: 5, type: 'table', zone: 'back',
-    ambientSound: 'quiet', musicZone: 'ambient', vibe: 'musical'
   }
 ];
 
-// Barista positions
+// Barista position - behind the L-shaped bar
 const BARISTAS = [
-  { name: 'Ahmed', position: { x: 30, y: 15 } },
-  { name: 'Joy', position: { x: 38, y: 15 } },
-  { name: 'Muneeb', position: { x: 46, y: 15 } }
+  { name: 'Muneeb', position: { x: 50, y: 35 } }
 ];
 
 // Clean Zone colors
@@ -628,10 +648,10 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         {/* Particle Effects */}
         <EnhancedSeatingEffects particles={particles} />
 
-        {/* Clean Coffee Bar */}
-        <CleanCoffeeBar />
+        {/* L-Shaped Coffee Bar with Window */}
+        <LShapedCoffeeBar />
 
-        {/* Baristas */}
+        {/* Barista */}
         {BARISTAS.map((barista) => (
           <BaristaAvatar
             key={barista.name}
@@ -815,7 +835,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
               <span>See who's here real-time</span>
             </div>
             <div className="text-gray-600 mt-1 pt-1 border-t text-xs">
-              Baristas Ahmed, Joy & Muneeb ready to serve! ☕
+              Barista Muneeb ready to serve at the L-shaped bar! ☕
             </div>
           </div>
         </div>
