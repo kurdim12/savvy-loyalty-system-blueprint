@@ -1,8 +1,7 @@
 
-import React, { useRef, useState, useEffect, Suspense } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Environment, Text3D, Box, Plane, useTexture } from '@react-three/drei';
-import * as THREE from 'three';
+import React, { useState, useEffect, Suspense } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
+import { OrbitControls, Environment, Text3D, Box, Plane } from '@react-three/drei';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Maximize2, Minimize2, RotateCcw } from 'lucide-react';
@@ -107,7 +106,7 @@ const EspressoMachine = ({ position }: any) => {
       </Box>
       {/* Steam wand */}
       <Box position={[0.15, 0.5, 0.1]} args={[0.02, 0.3, 0.02]}>
-        <meshStandardMaterial color="#C0C0C0" roughness={0.1} metalness={0.9] />
+        <meshStandardMaterial color="#C0C0C0" roughness={0.1} metalness={0.9} />
       </Box>
       {/* Group head */}
       <Box position={[0, 0.4, 0.2]} args={[0.15, 0.1, 0.1]}>
@@ -241,7 +240,7 @@ const CoffeeShopInterior = () => {
         
         {/* Round side table */}
         <Box position={[0, 0.4, 0]} args={[0.4, 0.05, 0.4]}>
-          <meshStandardMaterial color="#1a1a1a" roughness={0.1] metalness={0.8} />
+          <meshStandardMaterial color="#1a1a1a" roughness={0.1} metalness={0.8} />
         </Box>
         
         {/* Table lamp */}
