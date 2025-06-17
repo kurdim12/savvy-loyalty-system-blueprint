@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -103,77 +102,74 @@ const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 24, seatType }: 
   );
 };
 
-// Real Open Window Component
+// Real Open Window Component - Left Side
 const OpenWindow = () => {
   return (
-    <div className="absolute top-[15%] left-[5%] w-[25%] h-[50%]">
-      {/* Window Frame */}
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg shadow-2xl">
-        {/* Window Opening - Sky View */}
-        <div className="absolute inset-3 bg-gradient-to-b from-blue-300 via-blue-200 to-green-200 rounded-md overflow-hidden">
-          {/* Outdoor View */}
+    <div className="absolute top-[20%] left-[2%] w-[18%] h-[40%]">
+      {/* Window Frame - Modern Style */}
+      <div className="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-800 rounded-lg shadow-2xl">
+        {/* Window Opening - Clear View Outside */}
+        <div className="absolute inset-2 bg-gradient-to-b from-sky-200 via-sky-100 to-green-100 rounded-md overflow-hidden">
+          {/* Outdoor Scene */}
           <div className="absolute inset-0">
-            {/* Sky */}
-            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-blue-400 to-blue-300">
-              {/* Clouds */}
-              <div className="absolute top-2 left-4 w-8 h-3 bg-white rounded-full opacity-80"></div>
-              <div className="absolute top-4 right-6 w-6 h-2 bg-white rounded-full opacity-70"></div>
+            {/* Sky with clouds */}
+            <div className="absolute top-0 left-0 right-0 h-2/3 bg-gradient-to-b from-sky-300 to-sky-200">
+              <div className="absolute top-2 left-3 w-6 h-2 bg-white rounded-full opacity-80"></div>
+              <div className="absolute top-3 right-4 w-4 h-1.5 bg-white rounded-full opacity-70"></div>
             </div>
             
-            {/* Ground/Street */}
-            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-green-400 to-green-300">
-              {/* Trees */}
-              <div className="absolute bottom-3 left-2 w-2 h-8 bg-green-700 rounded-full"></div>
-              <div className="absolute bottom-3 right-4 w-3 h-6 bg-green-800 rounded-full"></div>
-              {/* Street */}
-              <div className="absolute bottom-0 left-0 right-0 h-2 bg-gray-500"></div>
+            {/* Street level */}
+            <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-green-300 to-green-200">
+              {/* Street view elements */}
+              <div className="absolute bottom-1 left-1 w-2 h-6 bg-green-700 rounded-full"></div>
+              <div className="absolute bottom-1 right-2 w-1.5 h-4 bg-green-800 rounded-full"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-400"></div>
             </div>
           </div>
         </div>
         
-        {/* Window Frame Details */}
-        <div className="absolute top-1/2 left-2 right-2 h-1 bg-gray-700"></div>
-        <div className="absolute left-1/2 top-2 bottom-2 w-1 bg-gray-700"></div>
-        
-        {/* Window Sill */}
-        <div className="absolute -bottom-2 -left-1 -right-1 h-3 bg-gradient-to-b from-gray-600 to-gray-800 rounded-b-lg shadow-lg"></div>
+        {/* Window frame details */}
+        <div className="absolute top-1/2 left-1 right-1 h-0.5 bg-gray-600"></div>
+        <div className="absolute left-1/2 top-1 bottom-1 w-0.5 bg-gray-600"></div>
       </div>
     </div>
   );
 };
 
-// Professional L-Shaped Coffee Bar
+// Professional L-Shaped Coffee Bar - Based on Reference
 const LShapedCoffeeBar = () => {
   return (
     <div className="absolute">
-      {/* Main Horizontal Bar Section */}
-      <div className="absolute top-[30%] left-[35%] w-[50%] h-[20%] bg-gradient-to-b from-amber-900 to-amber-950 rounded-lg shadow-2xl border-2 border-amber-800">
-        {/* Bar Counter Top */}
-        <div className="absolute top-0 left-0 w-full h-[40%] bg-gradient-to-r from-amber-700 to-amber-800 rounded-t-lg border-b-2 border-amber-600">
-          <div className="w-full h-full bg-gradient-to-b from-amber-400/20 to-transparent rounded-t-lg"></div>
+      {/* Main Horizontal Bar Section - Center */}
+      <div className="absolute top-[35%] left-[30%] w-[45%] h-[15%] bg-gradient-to-b from-stone-300 to-stone-400 rounded-lg shadow-2xl border border-stone-500">
+        {/* Bar Counter Top - White/Light Marble Look */}
+        <div className="absolute top-0 left-0 w-full h-[35%] bg-gradient-to-r from-stone-100 to-stone-200 rounded-t-lg border-b border-stone-300">
+          <div className="w-full h-full bg-gradient-to-b from-white/40 to-transparent rounded-t-lg"></div>
         </div>
         
-        {/* Bar Equipment Area */}
-        <div className="absolute top-[40%] left-0 w-full h-[60%] bg-gradient-to-b from-amber-950 to-black rounded-b-lg">
-          {/* Coffee Equipment */}
-          <div className="absolute top-2 left-[20%] w-6 h-4 bg-gradient-to-b from-gray-400 to-gray-600 rounded shadow-md"></div>
-          <div className="absolute top-2 left-[40%] w-4 h-5 bg-gradient-to-b from-copper to-amber-700 rounded shadow-md"></div>
-          <div className="absolute top-2 left-[60%] w-5 h-4 bg-gradient-to-b from-silver to-gray-500 rounded shadow-md"></div>
+        {/* Equipment Storage Below */}
+        <div className="absolute top-[35%] left-0 w-full h-[65%] bg-gradient-to-b from-stone-400 to-stone-500 rounded-b-lg">
+          {/* Coffee Equipment on Counter */}
+          <div className="absolute -top-2 left-[15%] w-4 h-3 bg-gradient-to-b from-gray-800 to-black rounded shadow-lg"></div>
+          <div className="absolute -top-3 left-[35%] w-5 h-4 bg-gradient-to-b from-silver to-gray-400 rounded shadow-lg"></div>
+          <div className="absolute -top-2 left-[55%] w-3 h-2 bg-gradient-to-b from-copper to-amber-600 rounded shadow-lg"></div>
+          <div className="absolute -top-3 left-[75%] w-4 h-4 bg-gradient-to-b from-gray-300 to-gray-500 rounded shadow-lg"></div>
         </div>
       </div>
 
-      {/* Vertical Bar Section (L-Shape) */}
-      <div className="absolute top-[15%] left-[85%] w-[12%] h-[40%] bg-gradient-to-b from-amber-900 to-amber-950 rounded-lg shadow-2xl border-2 border-amber-800">
+      {/* Vertical Bar Section (L-Shape) - Right Side */}
+      <div className="absolute top-[25%] left-[75%] w-[12%] h-[35%] bg-gradient-to-b from-stone-300 to-stone-400 rounded-lg shadow-2xl border border-stone-500">
         {/* Counter Top */}
-        <div className="absolute top-0 left-0 w-full h-[30%] bg-gradient-to-r from-amber-700 to-amber-800 rounded-t-lg border-b-2 border-amber-600">
-          <div className="w-full h-full bg-gradient-to-b from-amber-400/20 to-transparent rounded-t-lg"></div>
+        <div className="absolute top-0 left-0 w-full h-[25%] bg-gradient-to-r from-stone-100 to-stone-200 rounded-t-lg border-b border-stone-300">
+          <div className="w-full h-full bg-gradient-to-b from-white/40 to-transparent rounded-t-lg"></div>
         </div>
         
-        {/* Equipment */}
-        <div className="absolute top-[30%] left-0 w-full h-[70%] bg-gradient-to-b from-amber-950 to-black rounded-b-lg">
-          {/* Espresso Machine */}
-          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-4 h-6 bg-gradient-to-b from-gray-300 to-gray-600 rounded shadow-lg">
-            <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
+        {/* Equipment Storage */}
+        <div className="absolute top-[25%] left-0 w-full h-[75%] bg-gradient-to-b from-stone-400 to-stone-500 rounded-b-lg">
+          {/* Main Espresso Machine */}
+          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-6 h-8 bg-gradient-to-b from-gray-200 to-gray-600 rounded shadow-xl">
+            <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
+            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-1 bg-gray-800 rounded"></div>
           </div>
         </div>
       </div>
@@ -207,7 +203,7 @@ const BaristaAvatar = ({ name, position }: { name: string; position: { x: number
       title={`${name} - Expert Barista`}
     >
       <div className="relative">
-        <div className="relative w-12 h-12 rounded-full border-2 border-amber-600 shadow-xl overflow-hidden group-hover:scale-110 transition-all duration-300"
+        <div className="relative w-10 h-10 rounded-full border-2 border-amber-600 shadow-xl overflow-hidden group-hover:scale-110 transition-all duration-300"
              style={{
                background: 'linear-gradient(135deg, #8B4513, #A0522D)',
                boxShadow: '0 0 15px rgba(139, 69, 19, 0.4)'
@@ -221,12 +217,12 @@ const BaristaAvatar = ({ name, position }: { name: string; position: { x: number
           <div className="absolute inset-0 rounded-full border border-amber-500 animate-pulse opacity-50" />
         </div>
         
-        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-amber-700 to-orange-700 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg whitespace-nowrap">
+        <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-amber-700 to-orange-700 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg whitespace-nowrap">
           ☕ {name}
         </div>
         
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-500 border border-white rounded-full animate-pulse shadow-md">
-          <div className="w-1 h-1 bg-white rounded-full m-0.5" />
+        <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-gradient-to-r from-green-500 to-emerald-500 border border-white rounded-full animate-pulse shadow-md">
+          <div className="w-0.5 h-0.5 bg-white rounded-full m-0.5" />
         </div>
       </div>
     </div>
@@ -235,14 +231,12 @@ const BaristaAvatar = ({ name, position }: { name: string; position: { x: number
 
 // Real Furniture Components
 const WoodenTable = ({ x, y }: { x: number; y: number }) => (
-  <div className="absolute" style={{ left: `${x}%`, top: `${y}%`, width: '8%', height: '8%' }}>
-    {/* Table Top */}
+  <div className="absolute" style={{ left: `${x}%`, top: `${y}%`, width: '6%', height: '6%' }}>
     <div className="absolute inset-0 bg-gradient-to-br from-amber-600 to-amber-800 rounded-lg shadow-lg border border-amber-700">
       <div className="absolute inset-1 bg-gradient-to-br from-amber-500/30 to-transparent rounded-md"></div>
     </div>
-    {/* Table Legs */}
-    <div className="absolute bottom-0 left-1 w-1 h-2 bg-amber-900 rounded-full"></div>
-    <div className="absolute bottom-0 right-1 w-1 h-2 bg-amber-900 rounded-full"></div>
+    <div className="absolute bottom-0 left-1 w-0.5 h-1.5 bg-amber-900 rounded-full"></div>
+    <div className="absolute bottom-0 right-1 w-0.5 h-1.5 bg-amber-900 rounded-full"></div>
   </div>
 );
 
@@ -252,112 +246,119 @@ const WoodenChair = ({ x, y, rotation = 0 }: { x: number; y: number; rotation?: 
     style={{ 
       left: `${x}%`, 
       top: `${y}%`, 
-      width: '4%', 
-      height: '4%',
+      width: '3%', 
+      height: '3%',
       transform: `rotate(${rotation}deg)`
     }}
   >
-    {/* Chair Seat */}
     <div className="absolute inset-0 bg-gradient-to-br from-amber-700 to-amber-900 rounded shadow-md">
       <div className="absolute inset-0.5 bg-gradient-to-br from-amber-600/20 to-transparent rounded"></div>
     </div>
-    {/* Chair Back */}
-    <div className="absolute -top-1 left-0 right-0 h-2 bg-gradient-to-b from-amber-700 to-amber-900 rounded-t shadow-sm"></div>
+    <div className="absolute -top-0.5 left-0 right-0 h-1.5 bg-gradient-to-b from-amber-700 to-amber-900 rounded-t shadow-sm"></div>
   </div>
 );
 
 const BarStool = ({ x, y }: { x: number; y: number }) => (
-  <div className="absolute" style={{ left: `${x}%`, top: `${y}%`, width: '3%', height: '3%' }}>
-    {/* Stool Seat */}
+  <div className="absolute" style={{ left: `${x}%`, top: `${y}%`, width: '2.5%', height: '2.5%' }}>
     <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full shadow-lg border border-gray-500">
       <div className="absolute inset-0.5 bg-gradient-to-br from-gray-500/30 to-transparent rounded-full"></div>
     </div>
-    {/* Stool Base */}
-    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-4 bg-gradient-to-b from-gray-700 to-gray-900 rounded-full"></div>
+    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-3 bg-gradient-to-b from-gray-700 to-gray-900 rounded-full"></div>
   </div>
 );
 
-// Seating Layout with Real Furniture
+// Window Bar Counter
+const WindowBarCounter = () => (
+  <div className="absolute top-[45%] left-[2%] w-[18%] h-[6%] bg-gradient-to-r from-stone-200 to-stone-300 rounded-lg shadow-lg border border-stone-400">
+    <div className="absolute inset-1 bg-gradient-to-r from-white/40 to-transparent rounded-md"></div>
+  </div>
+);
+
+// Seating Layout with Window Seats
 const CAFE_SEATS = [
-  // Window Bar Stools
+  // Window Bar Seats - NEW
   { 
-    id: 'window-bar-1', x: 8, y: 35, w: 3, h: 3, type: 'bar', zone: 'window',
-    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'relaxed'
-  },
-  { 
-    id: 'window-bar-2', x: 15, y: 35, w: 3, h: 3, type: 'bar', zone: 'window',
-    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'contemplative'
-  },
-  { 
-    id: 'window-bar-3', x: 22, y: 35, w: 3, h: 3, type: 'bar', zone: 'window',
+    id: 'window-seat-1', x: 5, y: 40, w: 3, h: 3, type: 'window-bar', zone: 'window',
     ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'peaceful'
+  },
+  { 
+    id: 'window-seat-2', x: 15, y: 40, w: 3, h: 3, type: 'window-bar', zone: 'window',
+    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'contemplative'
   },
 
   // Main Bar Counter Seats
   { 
-    id: 'main-bar-1', x: 40, y: 40, w: 3, h: 3, type: 'bar', zone: 'counter',
+    id: 'main-bar-1', x: 35, y: 45, w: 3, h: 3, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'main-bar-2', x: 48, y: 40, w: 3, h: 3, type: 'bar', zone: 'counter',
+    id: 'main-bar-2', x: 42, y: 45, w: 3, h: 3, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'main-bar-3', x: 56, y: 40, w: 3, h: 3, type: 'bar', zone: 'counter',
+    id: 'main-bar-3', x: 49, y: 45, w: 3, h: 3, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'main-bar-4', x: 64, y: 40, w: 3, h: 3, type: 'bar', zone: 'counter',
+    id: 'main-bar-4', x: 56, y: 45, w: 3, h: 3, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'main-bar-5', x: 72, y: 40, w: 3, h: 3, type: 'bar', zone: 'counter',
+    id: 'main-bar-5', x: 63, y: 45, w: 3, h: 3, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+  },
+  { 
+    id: 'main-bar-6', x: 70, y: 45, w: 3, h: 3, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
 
-  // Vertical Bar Section
+  // Vertical Bar Section Seats
   { 
-    id: 'side-bar-1', x: 82, y: 25, w: 3, h: 3, type: 'bar', zone: 'counter',
+    id: 'side-bar-1', x: 78, y: 30, w: 3, h: 3, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'side-bar-2', x: 82, y: 32, w: 3, h: 3, type: 'bar', zone: 'counter',
+    id: 'side-bar-2', x: 78, y: 37, w: 3, h: 3, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+  },
+  { 
+    id: 'side-bar-3', x: 78, y: 44, w: 3, h: 3, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
 
   // Dining Tables with Chairs
   { 
-    id: 'table-1', x: 20, y: 65, w: 4, h: 4, type: 'table', zone: 'dining',
+    id: 'table-1', x: 25, y: 65, w: 4, h: 4, type: 'table', zone: 'dining',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'collaborative'
   },
   { 
-    id: 'table-2', x: 35, y: 65, w: 4, h: 4, type: 'table', zone: 'dining',
+    id: 'table-2', x: 40, y: 65, w: 4, h: 4, type: 'table', zone: 'dining',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'productive'
   },
   { 
-    id: 'table-3', x: 50, y: 65, w: 4, h: 4, type: 'table', zone: 'dining',
+    id: 'table-3', x: 55, y: 65, w: 4, h: 4, type: 'table', zone: 'dining',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'social'
   },
   { 
-    id: 'table-4', x: 65, y: 65, w: 4, h: 4, type: 'table', zone: 'dining',
+    id: 'table-4', x: 70, y: 65, w: 4, h: 4, type: 'table', zone: 'dining',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'collaborative'
   },
 
   // Back Row Tables
   { 
-    id: 'table-5', x: 20, y: 80, w: 4, h: 4, type: 'table', zone: 'dining',
+    id: 'table-5', x: 25, y: 80, w: 4, h: 4, type: 'table', zone: 'dining',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'quiet'
   },
   { 
-    id: 'table-6', x: 35, y: 80, w: 4, h: 4, type: 'table', zone: 'dining',
+    id: 'table-6', x: 40, y: 80, w: 4, h: 4, type: 'table', zone: 'dining',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'study'
   },
   { 
-    id: 'table-7', x: 50, y: 80, w: 4, h: 4, type: 'table', zone: 'dining',
+    id: 'table-7', x: 55, y: 80, w: 4, h: 4, type: 'table', zone: 'dining',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'work'
   },
   { 
-    id: 'table-8', x: 65, y: 80, w: 4, h: 4, type: 'table', zone: 'dining',
+    id: 'table-8', x: 70, y: 80, w: 4, h: 4, type: 'table', zone: 'dining',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'meeting'
   },
 
@@ -372,14 +373,14 @@ const CAFE_SEATS = [
   }
 ];
 
-// Baristas positioned behind the bar
+// Baristas positioned behind the L-shaped bar
 const BARISTAS = [
-  { name: 'Muneeb', position: { x: 60, y: 35 } }, // Behind main bar
-  { name: 'Ahmed', position: { x: 45, y: 35 } },  // Behind main bar left side
-  { name: 'Joy', position: { x: 90, y: 30 } }      // Behind vertical bar section
+  { name: 'Ahmed', position: { x: 52, y: 32 } },   // Behind main bar center
+  { name: 'Muneeb', position: { x: 40, y: 32 } },  // Behind main bar left
+  { name: 'Joy', position: { x: 81, y: 35 } }      // Behind vertical bar section
 ];
 
-// Zone Colors
+// Zone Colors - Updated to include window zone
 const ZONE_COLORS = {
   counter: { 
     bg: 'rgba(139, 69, 19, 0.15)', 
@@ -390,7 +391,7 @@ const ZONE_COLORS = {
   window: { 
     bg: 'rgba(34, 139, 34, 0.15)', 
     border: '#228B22', 
-    name: '🪟 Window Bar',
+    name: '🪟 Window Seating',
     accent: 'rgba(34, 139, 34, 0.6)'
   },
   dining: { 
@@ -509,7 +510,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
             <h2 className="text-2xl font-bold text-amber-900">A Matter of Coffee</h2>
             <Coffee className="h-6 w-6 text-amber-800" />
           </div>
-          <p className="text-amber-800 mb-3">Experience our L-shaped bar with window seating & expert baristas!</p>
+          <p className="text-amber-800 mb-3">L-shaped bar • Window seating • Expert baristas behind the counter!</p>
           
           {/* Controls */}
           <div className="flex justify-center items-center gap-2 mb-3">
@@ -694,53 +695,58 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         {/* Open Window */}
         <OpenWindow />
 
+        {/* Window Bar Counter */}
+        <WindowBarCounter />
+
         {/* L-Shaped Coffee Bar */}
         <LShapedCoffeeBar />
 
         {/* Real Furniture */}
-        {/* Window Bar Counter */}
-        <div className="absolute top-[45%] left-[8%] w-[20%] h-[8%] bg-gradient-to-r from-amber-700 to-amber-800 rounded-lg shadow-lg border border-amber-600"></div>
-        
         {/* Dining Tables */}
-        <WoodenTable x={20} y={65} />
-        <WoodenTable x={35} y={65} />
-        <WoodenTable x={50} y={65} />
-        <WoodenTable x={65} y={65} />
-        <WoodenTable x={20} y={80} />
-        <WoodenTable x={35} y={80} />
-        <WoodenTable x={50} y={80} />
-        <WoodenTable x={65} y={80} />
+        <WoodenTable x={25} y={65} />
+        <WoodenTable x={40} y={65} />
+        <WoodenTable x={55} y={65} />
+        <WoodenTable x={70} y={65} />
+        <WoodenTable x={25} y={80} />
+        <WoodenTable x={40} y={80} />
+        <WoodenTable x={55} y={80} />
+        <WoodenTable x={70} y={80} />
 
         {/* Chairs around tables */}
-        <WoodenChair x={18} y={63} />
-        <WoodenChair x={22} y={67} />
-        <WoodenChair x={33} y={63} />
-        <WoodenChair x={37} y={67} />
-        <WoodenChair x={48} y={63} />
-        <WoodenChair x={52} y={67} />
-        <WoodenChair x={63} y={63} />
-        <WoodenChair x={67} y={67} />
+        <WoodenChair x={23} y={63} />
+        <WoodenChair x={27} y={67} />
+        <WoodenChair x={38} y={63} />
+        <WoodenChair x={42} y={67} />
+        <WoodenChair x={53} y={63} />
+        <WoodenChair x={57} y={67} />
+        <WoodenChair x={68} y={63} />
+        <WoodenChair x={72} y={67} />
         
-        <WoodenChair x={18} y={78} />
-        <WoodenChair x={22} y={82} />
-        <WoodenChair x={33} y={78} />
-        <WoodenChair x={37} y={82} />
-        <WoodenChair x={48} y={78} />
-        <WoodenChair x={52} y={82} />
-        <WoodenChair x={63} y={78} />
-        <WoodenChair x={67} y={82} />
+        <WoodenChair x={23} y={78} />
+        <WoodenChair x={27} y={82} />
+        <WoodenChair x={38} y={78} />
+        <WoodenChair x={42} y={82} />
+        <WoodenChair x={53} y={78} />
+        <WoodenChair x={57} y={82} />
+        <WoodenChair x={68} y={78} />
+        <WoodenChair x={72} y={82} />
 
-        {/* Bar Stools */}
-        <BarStool x={8} y={38} />
-        <BarStool x={15} y={38} />
-        <BarStool x={22} y={38} />
-        <BarStool x={40} y={43} />
-        <BarStool x={48} y={43} />
-        <BarStool x={56} y={43} />
-        <BarStool x={64} y={43} />
-        <BarStool x={72} y={43} />
-        <BarStool x={79} y={25} />
-        <BarStool x={79} y={32} />
+        {/* Bar Stools for Window Seating */}
+        <BarStool x={5} y={48} />
+        <BarStool x={15} y={48} />
+
+        {/* Main Bar Stools */}
+        <BarStool x={35} y={48} />
+        <BarStool x={42} y={48} />
+        <BarStool x={49} y={48} />
+        <BarStool x={56} y={48} />
+        <BarStool x={63} y={48} />
+        <BarStool x={70} y={48} />
+
+        {/* Vertical Bar Stools */}
+        <BarStool x={74} y={30} />
+        <BarStool x={74} y={37} />
+        <BarStool x={74} y={44} />
 
         {/* Professional Baristas - Behind the Bar */}
         {BARISTAS.map((barista) => (
@@ -914,19 +920,19 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg text-xs max-w-xs">
           <div className="font-bold mb-2 text-sm flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-amber-600" />
-            Real Café Experience
+            L-Shaped Bar Experience
           </div>
           <div className="space-y-1 text-xs">
             <div className="flex items-center gap-2">
               <CoffeeBean isOccupied={false} isSelected={false} isHovered={false} size={12} />
-              <span>L-shaped bar with window views</span>
+              <span>Window seating with street views</span>
             </div>
             <div className="flex items-center gap-2">
               <CoffeeBean isOccupied={true} isSelected={false} isHovered={false} size={12} />
-              <span>Real furniture & seating zones</span>
+              <span>Professional L-shaped coffee bar</span>
             </div>
             <div className="text-gray-600 mt-1 pt-1 border-t text-xs">
-              Expert baristas: Muneeb, Ahmed & Joy behind the bar! ☕
+              Expert baristas: Ahmed, Muneeb & Joy working behind the bar! ☕
             </div>
           </div>
         </div>
