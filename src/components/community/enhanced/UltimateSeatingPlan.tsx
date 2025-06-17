@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -102,61 +103,76 @@ const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 24, seatType }: 
   );
 };
 
-// L-Shaped Coffee Bar with Window
+// Professional L-Shaped Coffee Bar with Large Window
 const LShapedCoffeeBar = () => {
   return (
-    <div className="absolute top-[8%] left-[5%] w-[70%] h-[35%]">
-      {/* Left Window */}
-      <div className="absolute top-0 left-0 w-[20%] h-[60%] bg-gradient-to-b from-sky-200 to-sky-300 rounded-lg border-4 border-white shadow-xl">
-        {/* Window Frame */}
-        <div className="absolute inset-2 border-2 border-gray-300 rounded bg-gradient-to-b from-sky-100 to-sky-200">
-          {/* Window Panes */}
-          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-300"></div>
-          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-300"></div>
-          {/* Outdoor View */}
-          <div className="absolute inset-1 rounded bg-gradient-to-b from-green-200 via-green-300 to-green-400 opacity-70"></div>
-          {/* Trees/Bushes outside */}
-          <div className="absolute bottom-1 left-2 w-3 h-4 bg-green-600 rounded-full opacity-60"></div>
-          <div className="absolute bottom-1 right-2 w-2 h-3 bg-green-700 rounded-full opacity-60"></div>
-        </div>
-        {/* Window Sill */}
-        <div className="absolute -bottom-2 left-0 right-0 h-3 bg-gradient-to-b from-amber-200 to-amber-300 rounded-b-lg border-2 border-amber-400"></div>
-      </div>
-
-      {/* Horizontal Bar Section */}
-      <div className="absolute top-[60%] left-[20%] w-[50%] h-[25%] bg-gradient-to-b from-amber-800 to-orange-900 rounded-lg border-2 border-amber-700 shadow-xl">
-        {/* Counter Surface */}
-        <div className="absolute top-0 left-0 w-full h-[40%] bg-gradient-to-r from-amber-700 to-orange-700 rounded-t-lg">
-          <div className="w-full h-full bg-gradient-to-b from-amber-300/20 to-transparent rounded-t-lg flex items-center justify-around px-4">
-            <div className="w-3 h-4 bg-gradient-to-b from-amber-900 to-amber-800 rounded border border-amber-600"></div>
-            <div className="w-4 h-3 bg-gradient-to-b from-gray-300 to-gray-500 rounded border border-gray-400"></div>
-            <div className="w-2 h-3 bg-gradient-to-b from-gray-700 to-gray-900 rounded border border-gray-600"></div>
+    <div className="absolute top-[10%] left-[8%] w-[84%] h-[40%]">
+      {/* Large Professional Window - Left Side */}
+      <div className="absolute top-0 left-0 w-[25%] h-[80%] bg-gradient-to-b from-sky-100 to-sky-200 rounded-lg border-4 border-gray-300 shadow-2xl">
+        {/* Window Frame Structure */}
+        <div className="absolute inset-3 border-3 border-gray-400 rounded bg-gradient-to-b from-sky-50 to-sky-150">
+          {/* Window Grid Pattern */}
+          <div className="absolute top-1/3 left-0 right-0 h-1 bg-gray-400"></div>
+          <div className="absolute top-2/3 left-0 right-0 h-1 bg-gray-400"></div>
+          <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gray-400"></div>
+          
+          {/* Outdoor Street View */}
+          <div className="absolute inset-2 rounded bg-gradient-to-b from-green-100 via-green-200 to-green-300 opacity-80">
+            {/* Street elements */}
+            <div className="absolute bottom-2 left-2 w-4 h-6 bg-green-600 rounded-full opacity-70"></div>
+            <div className="absolute bottom-2 right-3 w-3 h-5 bg-green-700 rounded-full opacity-70"></div>
+            <div className="absolute top-3 left-4 w-2 h-2 bg-yellow-400 rounded-full opacity-80"></div>
+            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gray-600 rounded opacity-60"></div>
           </div>
         </div>
-        {/* Main Counter */}
-        <div className="absolute top-[40%] left-0 w-full h-[60%] bg-gradient-to-b from-gray-700 to-gray-900 rounded-b-lg border-2 border-gray-600"></div>
+        {/* Professional Window Sill */}
+        <div className="absolute -bottom-3 left-0 right-0 h-4 bg-gradient-to-b from-gray-200 to-gray-400 rounded-b-lg border-2 border-gray-500 shadow-md"></div>
       </div>
 
-      {/* Vertical Bar Section (L-shape) */}
-      <div className="absolute top-[10%] left-[70%] w-[25%] h-[45%] bg-gradient-to-b from-amber-800 to-orange-900 rounded-lg border-2 border-amber-700 shadow-xl">
-        {/* Counter Surface */}
-        <div className="absolute top-0 left-0 w-full h-[30%] bg-gradient-to-r from-amber-700 to-orange-700 rounded-t-lg">
-          <div className="w-full h-full bg-gradient-to-b from-amber-300/20 to-transparent rounded-t-lg"></div>
+      {/* Main L-Shaped Counter System */}
+      {/* Horizontal Section */}
+      <div className="absolute top-[55%] left-[25%] w-[55%] h-[30%] bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg border-2 border-gray-700 shadow-2xl">
+        {/* Counter Top */}
+        <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-r from-gray-600 to-gray-700 rounded-t-lg border-b-2 border-gray-500">
+          <div className="w-full h-full bg-gradient-to-b from-gray-300/30 to-transparent rounded-t-lg flex items-center justify-around px-4">
+            {/* Professional Equipment */}
+            <div className="w-4 h-5 bg-gradient-to-b from-gray-900 to-black rounded border border-gray-600"></div>
+            <div className="w-5 h-4 bg-gradient-to-b from-silver to-gray-400 rounded border border-gray-300"></div>
+            <div className="w-3 h-4 bg-gradient-to-b from-gray-800 to-gray-900 rounded border border-gray-600"></div>
+            <div className="w-4 h-3 bg-gradient-to-b from-copper to-amber-600 rounded border border-amber-500"></div>
+          </div>
         </div>
-        {/* Main Counter */}
-        <div className="absolute top-[30%] left-0 w-full h-[70%] bg-gradient-to-b from-gray-700 to-gray-900 rounded-b-lg border-2 border-gray-600">
-          {/* Espresso Machine */}
-          <div className="absolute top-[15%] left-[20%] w-[30%] h-[40%] bg-gradient-to-b from-gray-300 to-gray-600 rounded shadow-lg border border-gray-400">
-            <div className="w-full h-[60%] bg-gradient-to-br from-gray-400 to-gray-700 rounded-t relative">
-              <div className="absolute right-1 top-1 w-0.5 h-2 bg-gray-800 rounded-full"></div>
-              <div className="absolute top-0.5 left-0.5 w-2 h-1 bg-gray-800 rounded">
-                <div className="w-0.5 h-0.5 bg-green-400 rounded-full m-0.5 animate-pulse"></div>
+        {/* Base Counter */}
+        <div className="absolute top-[50%] left-0 w-full h-[50%] bg-gradient-to-b from-gray-900 to-black rounded-b-lg border-2 border-gray-800"></div>
+      </div>
+
+      {/* Vertical Section - Professional Setup */}
+      <div className="absolute top-[15%] left-[80%] w-[18%] h-[50%] bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg border-2 border-gray-700 shadow-2xl">
+        {/* Counter Surface */}
+        <div className="absolute top-0 left-0 w-full h-[40%] bg-gradient-to-r from-gray-600 to-gray-700 rounded-t-lg border-b-2 border-gray-500">
+          <div className="w-full h-full bg-gradient-to-b from-gray-300/30 to-transparent rounded-t-lg"></div>
+        </div>
+        
+        {/* Equipment Area */}
+        <div className="absolute top-[40%] left-0 w-full h-[60%] bg-gradient-to-b from-gray-900 to-black rounded-b-lg border-2 border-gray-800">
+          {/* Professional Espresso Machine */}
+          <div className="absolute top-[20%] left-[15%] w-[35%] h-[50%] bg-gradient-to-b from-silver to-gray-600 rounded shadow-lg border border-gray-400">
+            <div className="w-full h-[70%] bg-gradient-to-br from-gray-300 to-gray-700 rounded-t relative">
+              {/* Machine Details */}
+              <div className="absolute right-1 top-1 w-1 h-3 bg-gray-900 rounded-full"></div>
+              <div className="absolute top-1 left-1 w-3 h-1.5 bg-gray-900 rounded">
+                <div className="w-1 h-1 bg-green-500 rounded-full m-0.5 animate-pulse"></div>
               </div>
+              <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-1 bg-gray-800 rounded"></div>
             </div>
+            <div className="absolute bottom-0 left-0 w-full h-[30%] bg-gradient-to-b from-gray-700 to-gray-900 rounded-b"></div>
           </div>
-          {/* Grinder */}
-          <div className="absolute top-[15%] right-[15%] w-[25%] h-[35%] bg-gradient-to-b from-gray-800 to-black rounded shadow-lg border border-gray-700">
-            <div className="w-full h-[40%] bg-gradient-to-b from-gray-600 to-gray-800 rounded-t"></div>
+          
+          {/* Professional Grinder */}
+          <div className="absolute top-[20%] right-[10%] w-[30%] h-[45%] bg-gradient-to-b from-gray-900 to-black rounded shadow-lg border border-gray-800">
+            <div className="w-full h-[50%] bg-gradient-to-b from-gray-700 to-gray-900 rounded-t">
+              <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-red-500 rounded-full animate-pulse"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -164,7 +180,7 @@ const LShapedCoffeeBar = () => {
   );
 };
 
-// Clean Barista Avatar
+// Professional Barista Avatars
 const BaristaAvatar = ({ name, position }: { name: string; position: { x: number; y: number } }) => {
   const getAvatarImage = (name: string) => {
     switch (name) {
@@ -220,111 +236,113 @@ const BaristaAvatar = ({ name, position }: { name: string; position: { x: number
   );
 };
 
-// Updated Seating Layout for L-shaped bar
+// Professional Seating Layout - Inspired by Real Cafe
 const CLEAN_CAFE_SEATS = [
-  // Window seating area (left side)
+  // Window Lounge Area (Green Chairs)
   { 
-    id: 'window-chair-1', x: 8, y: 25, w: 4, h: 4, type: 'chair', zone: 'window',
-    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'contemplative'
-  },
-  { 
-    id: 'window-chair-2', x: 8, y: 35, w: 4, h: 4, type: 'chair', zone: 'window',
-    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'contemplative'
-  },
-  { 
-    id: 'window-table-1', x: 15, y: 30, w: 5, h: 5, type: 'table', zone: 'window',
+    id: 'window-lounge-1', x: 12, y: 25, w: 5, h: 5, type: 'lounge', zone: 'window',
     ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'relaxed'
   },
-
-  // Bar counter seats (horizontal section)
   { 
-    id: 'bar-stool-1', x: 25, y: 48, w: 4, h: 4, type: 'bar', zone: 'counter',
-    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
-  },
-  { 
-    id: 'bar-stool-2', x: 33, y: 48, w: 4, h: 4, type: 'bar', zone: 'counter',
-    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
-  },
-  { 
-    id: 'bar-stool-3', x: 41, y: 48, w: 4, h: 4, type: 'bar', zone: 'counter',
-    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
-  },
-  { 
-    id: 'bar-stool-4', x: 49, y: 48, w: 4, h: 4, type: 'bar', zone: 'counter',
-    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
-  },
-  { 
-    id: 'bar-stool-5', x: 57, y: 48, w: 4, h: 4, type: 'bar', zone: 'counter',
-    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+    id: 'window-lounge-2', x: 12, y: 35, w: 5, h: 5, type: 'lounge', zone: 'window',
+    ambientSound: 'street-ambience', musicZone: 'ambient', vibe: 'contemplative'
   },
 
-  // Bar counter seats (vertical section)
+  // Bar Counter Seating (High Stools)
   { 
-    id: 'bar-stool-6', x: 68, y: 20, w: 4, h: 4, type: 'bar', zone: 'counter',
+    id: 'bar-stool-1', x: 30, y: 55, w: 4, h: 4, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-7', x: 68, y: 28, w: 4, h: 4, type: 'bar', zone: 'counter',
+    id: 'bar-stool-2', x: 38, y: 55, w: 4, h: 4, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
   { 
-    id: 'bar-stool-8', x: 68, y: 36, w: 4, h: 4, type: 'bar', zone: 'counter',
+    id: 'bar-stool-3', x: 46, y: 55, w: 4, h: 4, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+  },
+  { 
+    id: 'bar-stool-4', x: 54, y: 55, w: 4, h: 4, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+  },
+  { 
+    id: 'bar-stool-5', x: 62, y: 55, w: 4, h: 4, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+  },
+  { 
+    id: 'bar-stool-6', x: 70, y: 55, w: 4, h: 4, type: 'bar', zone: 'counter',
     ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
   },
 
-  // Central workspace tables
+  // Vertical Bar Section
   { 
-    id: 'central-table-1', x: 30, y: 60, w: 6, h: 5, type: 'table', zone: 'central',
+    id: 'bar-stool-7', x: 85, y: 25, w: 4, h: 4, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+  },
+  { 
+    id: 'bar-stool-8', x: 85, y: 33, w: 4, h: 4, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+  },
+  { 
+    id: 'bar-stool-9', x: 85, y: 41, w: 4, h: 4, type: 'bar', zone: 'counter',
+    ambientSound: 'espresso-machine', musicZone: 'energetic', vibe: 'social'
+  },
+
+  // Central Dining Tables (Wood & Black Chairs)
+  { 
+    id: 'table-2chairs-1', x: 25, y: 70, w: 6, h: 5, type: 'table', zone: 'dining',
+    ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'collaborative'
+  },
+  { 
+    id: 'table-2chairs-2', x: 40, y: 70, w: 6, h: 5, type: 'table', zone: 'dining',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'productive'
   },
   { 
-    id: 'central-table-2', x: 45, y: 60, w: 6, h: 5, type: 'table', zone: 'central',
+    id: 'table-2chairs-3', x: 55, y: 70, w: 6, h: 5, type: 'table', zone: 'dining',
+    ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'social'
+  },
+  { 
+    id: 'table-2chairs-4', x: 70, y: 70, w: 6, h: 5, type: 'table', zone: 'dining',
+    ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'collaborative'
+  },
+
+  // Second Row Tables
+  { 
+    id: 'table-2chairs-5', x: 25, y: 82, w: 6, h: 5, type: 'table', zone: 'dining',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'productive'
   },
   { 
-    id: 'central-table-3', x: 60, y: 60, w: 6, h: 5, type: 'table', zone: 'central',
+    id: 'table-2chairs-6', x: 40, y: 82, w: 6, h: 5, type: 'table', zone: 'dining',
+    ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'social'
+  },
+  { 
+    id: 'table-2chairs-7', x: 55, y: 82, w: 6, h: 5, type: 'table', zone: 'dining',
+    ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'collaborative'
+  },
+  { 
+    id: 'table-2chairs-8', x: 70, y: 82, w: 6, h: 5, type: 'table', zone: 'dining',
     ambientSound: 'gentle-chatter', musicZone: 'focus', vibe: 'productive'
   },
 
-  // Right side seating area
+  // Outdoor Terrace Style Seating
   { 
-    id: 'right-chair-1', x: 85, y: 25, w: 4, h: 4, type: 'chair', zone: 'interior',
-    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'focused'
+    id: 'terrace-lounge-1', x: 85, y: 70, w: 5, h: 5, type: 'lounge', zone: 'terrace',
+    ambientSound: 'nature', musicZone: 'chill', vibe: 'relaxed'
   },
   { 
-    id: 'right-chair-2', x: 85, y: 35, w: 4, h: 4, type: 'chair', zone: 'interior',
-    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'focused'
-  },
-  { 
-    id: 'right-table-1', x: 78, y: 30, w: 5, h: 5, type: 'table', zone: 'interior',
-    ambientSound: 'intimate', musicZone: 'ambient', vibe: 'collaborative'
-  },
-
-  // Back area - cozy corner
-  { 
-    id: 'cozy-sofa-1', x: 20, y: 75, w: 6, h: 5, type: 'sofa', zone: 'corner',
-    ambientSound: 'intimate', musicZone: 'chill', vibe: 'relaxed'
-  },
-  { 
-    id: 'cozy-sofa-2', x: 40, y: 75, w: 6, h: 5, type: 'sofa', zone: 'corner',
-    ambientSound: 'intimate', musicZone: 'chill', vibe: 'relaxed'
-  },
-  { 
-    id: 'corner-table-1', x: 60, y: 75, w: 5, h: 5, type: 'table', zone: 'back',
-    ambientSound: 'quiet', musicZone: 'ambient', vibe: 'social'
-  },
-  { 
-    id: 'quiet-chair-1', x: 75, y: 75, w: 4, h: 4, type: 'chair', zone: 'back',
-    ambientSound: 'quiet', musicZone: 'ambient', vibe: 'contemplative'
+    id: 'terrace-lounge-2', x: 85, y: 82, w: 5, h: 5, type: 'lounge', zone: 'terrace',
+    ambientSound: 'nature', musicZone: 'chill', vibe: 'contemplative'
   }
 ];
 
-// Barista position - behind the L-shaped bar
+// Multiple Professional Baristas
 const BARISTAS = [
-  { name: 'Muneeb', position: { x: 50, y: 35 } }
+  { name: 'Muneeb', position: { x: 55, y: 40 } }, // Main barista at horizontal bar
+  { name: 'Ahmed', position: { x: 75, y: 35 } },  // At vertical bar section
+  { name: 'Joy', position: { x: 45, y: 42 } }      // Assistant at main bar
 ];
 
-// Clean Zone colors
+// Enhanced Zone Colors
 const ZONE_COLORS = {
   counter: { 
     bg: 'rgba(139, 69, 19, 0.15)', 
@@ -335,32 +353,20 @@ const ZONE_COLORS = {
   window: { 
     bg: 'rgba(34, 139, 34, 0.15)', 
     border: '#228B22', 
-    name: '🪟 Window Seating',
+    name: '🪟 Window Lounge',
     accent: 'rgba(34, 139, 34, 0.6)'
   },
-  interior: { 
-    bg: 'rgba(70, 130, 180, 0.15)', 
-    border: '#4682B4', 
-    name: '🎨 Interior Design',
-    accent: 'rgba(70, 130, 180, 0.6)'
-  },
-  corner: { 
-    bg: 'rgba(147, 112, 219, 0.15)', 
-    border: '#9370DB', 
-    name: '🛋️ Cozy Corner',
-    accent: 'rgba(147, 112, 219, 0.6)'
-  },
-  central: { 
+  dining: { 
     bg: 'rgba(218, 165, 32, 0.15)', 
     border: '#DAA520', 
-    name: '💼 Work Zone',
+    name: '🍽️ Dining Tables',
     accent: 'rgba(218, 165, 32, 0.6)'
   },
-  back: { 
-    bg: 'rgba(119, 136, 153, 0.15)', 
-    border: '#778899', 
-    name: '🧘 Quiet Zone',
-    accent: 'rgba(119, 136, 153, 0.6)'
+  terrace: { 
+    bg: 'rgba(70, 130, 180, 0.15)', 
+    border: '#4682B4', 
+    name: '🌿 Terrace Style',
+    accent: 'rgba(70, 130, 180, 0.6)'
   }
 };
 
@@ -466,7 +472,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
             <h2 className="text-2xl font-bold text-amber-900">A Matter of Coffee</h2>
             <Coffee className="h-6 w-6 text-amber-800" />
           </div>
-          <p className="text-amber-800 mb-3">Click on any coffee bean to claim your perfect spot!</p>
+          <p className="text-amber-800 mb-3">Experience our professional L-shaped bar & premium seating!</p>
           
           {/* Clean Controls */}
           <div className="flex justify-center items-center gap-2 mb-3">
@@ -480,7 +486,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           </div>
           
           {/* Zone Statistics */}
-          <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 px-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 px-6">
             {Object.entries(ZONE_COLORS).map(([zone, config]) => {
               const stats = getZoneStats(zone);
               const occupancyRate = (stats.occupied / stats.total) * 100;
@@ -631,7 +637,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
           isFullscreen ? 'h-screen' : hideHeader ? 'h-full' : 'h-[calc(100vh-220px)]'
         }`}
         style={{
-          background: 'linear-gradient(135deg, #F5DEB3, #DEB887, #D2B48C)',
+          background: 'linear-gradient(135deg, #F5F5DC, #F0E68C, #DDD8B0)',
           backgroundSize: '200% 200%',
           animation: 'gradient 15s ease infinite'
         }}
@@ -648,10 +654,10 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         {/* Particle Effects */}
         <EnhancedSeatingEffects particles={particles} />
 
-        {/* L-Shaped Coffee Bar with Window */}
+        {/* Professional L-Shaped Coffee Bar with Window */}
         <LShapedCoffeeBar />
 
-        {/* Barista */}
+        {/* Professional Baristas */}
         {BARISTAS.map((barista) => (
           <BaristaAvatar
             key={barista.name}
@@ -823,19 +829,19 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg text-xs max-w-xs">
           <div className="font-bold mb-2 text-sm flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-amber-600" />
-            Welcome!
+            Professional Coffee Experience
           </div>
           <div className="space-y-1 text-xs">
             <div className="flex items-center gap-2">
               <CoffeeBean isOccupied={false} isSelected={false} isHovered={false} size={12} />
-              <span>Click any bean to sit</span>
+              <span>L-shaped bar with window views</span>
             </div>
             <div className="flex items-center gap-2">
               <CoffeeBean isOccupied={true} isSelected={false} isHovered={false} size={12} />
-              <span>See who's here real-time</span>
+              <span>Multiple seating zones</span>
             </div>
             <div className="text-gray-600 mt-1 pt-1 border-t text-xs">
-              Barista Muneeb ready to serve at the L-shaped bar! ☕
+              Expert baristas: Muneeb, Ahmed & Joy ready to serve! ☕
             </div>
           </div>
         </div>
