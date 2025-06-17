@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Coffee, Cube, ArrowLeft, Users, Eye } from 'lucide-react';
+import { Coffee, Box, ArrowLeft, Users, Eye } from 'lucide-react';
 import { PhotoRealistic3DCoffeeShop } from './PhotoRealistic3DCoffeeShop';
 import { UltimateSeatingPlan } from './UltimateSeatingPlan';
 
@@ -27,7 +26,7 @@ export const EnhancedCoffeeShop3D: React.FC<EnhancedCoffeeShop3DProps> = ({ onBa
                 size="sm"
                 className="text-xs"
               >
-                <Cube className="h-3 w-3 mr-1" />
+                <Box className="h-3 w-3 mr-1" />
                 3D Realistic
               </Button>
               <Button

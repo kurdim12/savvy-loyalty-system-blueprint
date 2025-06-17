@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { PhysicalCafeFloorPlan } from './PhysicalCafeFloorPlan';
 import { EnhancedCoffeeShop3D } from './enhanced/EnhancedCoffeeShop3D';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Cube, Map, Coffee } from 'lucide-react';
+import { ArrowLeft, Box, Map, Coffee } from 'lucide-react';
 
 interface CoffeeShopExperienceProps {
   onBack?: () => void;
@@ -65,7 +64,7 @@ export const CoffeeShopExperience = ({ onBack }: CoffeeShopExperienceProps) => {
           >
             <CardContent className="p-6 text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
-                <Cube className="h-8 w-8 text-white" />
+                <Box className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-stone-800 mb-2">3D Realistic View</h3>
               <p className="text-stone-600 mb-4">

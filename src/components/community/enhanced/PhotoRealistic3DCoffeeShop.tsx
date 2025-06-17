@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Environment, Text3D, Box, Plane } from '@react-three/drei';
@@ -13,7 +12,6 @@ const ConcreteWall = ({ position, args, color = '#e0e0e0' }: any) => (
       color={color} 
       roughness={0.8} 
       metalness={0.1}
-      normalScale={[0.5, 0.5]}
     />
   </Box>
 );
