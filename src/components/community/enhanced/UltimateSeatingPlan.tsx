@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -229,41 +230,106 @@ const BaristaAvatar = ({ name, position }: { name: string; position: { x: number
   );
 };
 
-// Real Furniture Components
-const WoodenTable = ({ x, y }: { x: number; y: number }) => (
-  <div className="absolute" style={{ left: `${x}%`, top: `${y}%`, width: '6%', height: '6%' }}>
-    <div className="absolute inset-0 bg-gradient-to-br from-amber-600 to-amber-800 rounded-lg shadow-lg border border-amber-700">
-      <div className="absolute inset-1 bg-gradient-to-br from-amber-500/30 to-transparent rounded-md"></div>
+// Modern Furniture Components Based on Reference Images
+
+// Modern Round Dining Table
+const ModernDiningTable = ({ x, y }: { x: number; y: number }) => (
+  <div className="absolute" style={{ left: `${x}%`, top: `${y}%`, width: '8%', height: '8%' }}>
+    {/* Table Base */}
+    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-4 bg-gradient-to-b from-gray-600 to-gray-800 rounded-sm shadow-lg"></div>
+    {/* Table Top - Round */}
+    <div className="absolute inset-0 bg-gradient-to-br from-stone-100 to-stone-300 rounded-full shadow-2xl border-2 border-stone-400">
+      <div className="absolute inset-2 bg-gradient-to-br from-white/40 to-transparent rounded-full"></div>
+      {/* Wood grain effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-stone-200/30 to-transparent rounded-full transform rotate-45"></div>
     </div>
-    <div className="absolute bottom-0 left-1 w-0.5 h-1.5 bg-amber-900 rounded-full"></div>
-    <div className="absolute bottom-0 right-1 w-0.5 h-1.5 bg-amber-900 rounded-full"></div>
   </div>
 );
 
-const WoodenChair = ({ x, y, rotation = 0 }: { x: number; y: number; rotation?: number }) => (
+// Modern Dining Chair - Based on wireframe chair reference
+const ModernDiningChair = ({ x, y, rotation = 0 }: { x: number; y: number; rotation?: number }) => (
   <div 
     className="absolute" 
     style={{ 
       left: `${x}%`, 
       top: `${y}%`, 
-      width: '3%', 
-      height: '3%',
+      width: '3.5%', 
+      height: '3.5%',
       transform: `rotate(${rotation}deg)`
     }}
   >
-    <div className="absolute inset-0 bg-gradient-to-br from-amber-700 to-amber-900 rounded shadow-md">
-      <div className="absolute inset-0.5 bg-gradient-to-br from-amber-600/20 to-transparent rounded"></div>
+    {/* Chair Seat */}
+    <div className="absolute bottom-2 left-0 right-0 h-1 bg-gradient-to-b from-stone-200 to-stone-400 rounded shadow-md">
+      <div className="absolute inset-x-0.5 top-0 h-0.5 bg-gradient-to-b from-white/40 to-transparent rounded"></div>
     </div>
-    <div className="absolute -top-0.5 left-0 right-0 h-1.5 bg-gradient-to-b from-amber-700 to-amber-900 rounded-t shadow-sm"></div>
+    
+    {/* Chair Back */}
+    <div className="absolute top-0 left-1/4 right-1/4 h-3 bg-gradient-to-b from-stone-300 to-stone-500 rounded-t shadow-md">
+      <div className="absolute inset-x-0.5 top-0 h-1 bg-gradient-to-b from-white/30 to-transparent rounded-t"></div>
+    </div>
+    
+    {/* Chair Legs */}
+    <div className="absolute bottom-0 left-1 w-0.5 h-2 bg-gradient-to-b from-stone-400 to-stone-600 rounded-full"></div>
+    <div className="absolute bottom-0 right-1 w-0.5 h-2 bg-gradient-to-b from-stone-400 to-stone-600 rounded-full"></div>
+    <div className="absolute bottom-0 left-1 w-0.5 h-2 bg-gradient-to-b from-stone-400 to-stone-600 rounded-full transform translate-x-2"></div>
+    <div className="absolute bottom-0 right-1 w-0.5 h-2 bg-gradient-to-b from-stone-400 to-stone-600 rounded-full transform -translate-x-2"></div>
   </div>
 );
 
-const BarStool = ({ x, y }: { x: number; y: number }) => (
-  <div className="absolute" style={{ left: `${x}%`, top: `${y}%`, width: '2.5%', height: '2.5%' }}>
-    <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full shadow-lg border border-gray-500">
-      <div className="absolute inset-0.5 bg-gradient-to-br from-gray-500/30 to-transparent rounded-full"></div>
+// Modern Bar Stool - Based on black bar stool reference
+const ModernBarStool = ({ x, y }: { x: number; y: number }) => (
+  <div className="absolute" style={{ left: `${x}%`, top: `${y}%`, width: '3%', height: '4%' }}>
+    {/* Stool Seat - Curved like reference */}
+    <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-b from-gray-700 to-gray-900 rounded-full shadow-xl border border-gray-600">
+      <div className="absolute inset-0.5 bg-gradient-to-b from-gray-600/30 to-transparent rounded-full"></div>
+      {/* Seat indentation */}
+      <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 w-3 h-0.5 bg-gray-800 rounded-full opacity-60"></div>
     </div>
-    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-3 bg-gradient-to-b from-gray-700 to-gray-900 rounded-full"></div>
+    
+    {/* Stool Legs - Modern angled style */}
+    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2">
+      {/* Central pole */}
+      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gradient-to-b from-gray-600 to-gray-800 rounded-full"></div>
+      
+      {/* Angled legs */}
+      <div className="absolute bottom-0 w-0.5 h-4 bg-gradient-to-b from-gray-700 to-gray-900 rounded-full transform rotate-12 translate-x-1"></div>
+      <div className="absolute bottom-0 w-0.5 h-4 bg-gradient-to-b from-gray-700 to-gray-900 rounded-full transform -rotate-12 -translate-x-1"></div>
+      <div className="absolute bottom-0 w-0.5 h-4 bg-gradient-to-b from-gray-700 to-gray-900 rounded-full transform rotate-45 translate-x-0.5 translate-y-0.5"></div>
+      <div className="absolute bottom-0 w-0.5 h-4 bg-gradient-to-b from-gray-700 to-gray-900 rounded-full transform -rotate-45 -translate-x-0.5 translate-y-0.5"></div>
+    </div>
+  </div>
+);
+
+// Modern Lounge Chair - Based on beige curved chair reference
+const ModernLoungeChair = ({ x, y, rotation = 0 }: { x: number; y: number; rotation?: number }) => (
+  <div 
+    className="absolute" 
+    style={{ 
+      left: `${x}%`, 
+      top: `${y}%`, 
+      width: '5%', 
+      height: '5%',
+      transform: `rotate(${rotation}deg)`
+    }}
+  >
+    {/* Chair Base */}
+    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4 h-1 bg-gradient-to-b from-amber-800 to-amber-900 rounded shadow-lg"></div>
+    
+    {/* Main Chair Body - Curved modern style */}
+    <div className="absolute inset-0 bg-gradient-to-br from-stone-300 to-stone-500 rounded-2xl shadow-2xl overflow-hidden">
+      {/* Chair cushion effect */}
+      <div className="absolute inset-1 bg-gradient-to-br from-stone-200/60 to-transparent rounded-xl"></div>
+      
+      {/* Curved back design */}
+      <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-b from-stone-200 to-stone-400 rounded-t-2xl">
+        <div className="absolute inset-0.5 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl"></div>
+      </div>
+      
+      {/* Seat area */}
+      <div className="absolute bottom-1 left-1 right-1 h-2 bg-gradient-to-b from-stone-300 to-stone-500 rounded">
+        <div className="absolute inset-0.5 bg-gradient-to-b from-stone-200/40 to-transparent rounded"></div>
+      </div>
+    </div>
   </div>
 );
 
@@ -701,52 +767,80 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         {/* L-Shaped Coffee Bar */}
         <LShapedCoffeeBar />
 
-        {/* Real Furniture */}
-        {/* Dining Tables */}
-        <WoodenTable x={25} y={65} />
-        <WoodenTable x={40} y={65} />
-        <WoodenTable x={55} y={65} />
-        <WoodenTable x={70} y={65} />
-        <WoodenTable x={25} y={80} />
-        <WoodenTable x={40} y={80} />
-        <WoodenTable x={55} y={80} />
-        <WoodenTable x={70} y={80} />
-
-        {/* Chairs around tables */}
-        <WoodenChair x={23} y={63} />
-        <WoodenChair x={27} y={67} />
-        <WoodenChair x={38} y={63} />
-        <WoodenChair x={42} y={67} />
-        <WoodenChair x={53} y={63} />
-        <WoodenChair x={57} y={67} />
-        <WoodenChair x={68} y={63} />
-        <WoodenChair x={72} y={67} />
+        {/* Modern Furniture - Based on Reference Images */}
         
-        <WoodenChair x={23} y={78} />
-        <WoodenChair x={27} y={82} />
-        <WoodenChair x={38} y={78} />
-        <WoodenChair x={42} y={82} />
-        <WoodenChair x={53} y={78} />
-        <WoodenChair x={57} y={82} />
-        <WoodenChair x={68} y={78} />
-        <WoodenChair x={72} y={82} />
+        {/* Modern Round Dining Tables */}
+        <ModernDiningTable x={25} y={65} />
+        <ModernDiningTable x={40} y={65} />
+        <ModernDiningTable x={55} y={65} />
+        <ModernDiningTable x={70} y={65} />
+        <ModernDiningTable x={25} y={80} />
+        <ModernDiningTable x={40} y={80} />
+        <ModernDiningTable x={55} y={80} />
+        <ModernDiningTable x={70} y={80} />
 
-        {/* Bar Stools for Window Seating */}
-        <BarStool x={5} y={48} />
-        <BarStool x={15} y={48} />
+        {/* Modern Dining Chairs around tables */}
+        <ModernDiningChair x={22} y={62} rotation={45} />
+        <ModernDiningChair x={28} y={68} rotation={225} />
+        <ModernDiningChair x={25} y={61} rotation={0} />
+        <ModernDiningChair x={25} y={69} rotation={180} />
 
-        {/* Main Bar Stools */}
-        <BarStool x={35} y={48} />
-        <BarStool x={42} y={48} />
-        <BarStool x={49} y={48} />
-        <BarStool x={56} y={48} />
-        <BarStool x={63} y={48} />
-        <BarStool x={70} y={48} />
+        <ModernDiningChair x={37} y={62} rotation={45} />
+        <ModernDiningChair x={43} y={68} rotation={225} />
+        <ModernDiningChair x={40} y={61} rotation={0} />
+        <ModernDiningChair x={40} y={69} rotation={180} />
 
-        {/* Vertical Bar Stools */}
-        <BarStool x={74} y={30} />
-        <BarStool x={74} y={37} />
-        <BarStool x={74} y={44} />
+        <ModernDiningChair x={52} y={62} rotation={45} />
+        <ModernDiningChair x={58} y={68} rotation={225} />
+        <ModernDiningChair x={55} y={61} rotation={0} />
+        <ModernDiningChair x={55} y={69} rotation={180} />
+
+        <ModernDiningChair x={67} y={62} rotation={45} />
+        <ModernDiningChair x={73} y={68} rotation={225} />
+        <ModernDiningChair x={70} y={61} rotation={0} />
+        <ModernDiningChair x={70} y={69} rotation={180} />
+
+        {/* Back row chairs */}
+        <ModernDiningChair x={22} y={77} rotation={45} />
+        <ModernDiningChair x={28} y={83} rotation={225} />
+        <ModernDiningChair x={25} y={76} rotation={0} />
+        <ModernDiningChair x={25} y={84} rotation={180} />
+
+        <ModernDiningChair x={37} y={77} rotation={45} />
+        <ModernDiningChair x={43} y={83} rotation={225} />
+        <ModernDiningChair x={40} y={76} rotation={0} />
+        <ModernDiningChair x={40} y={84} rotation={180} />
+
+        <ModernDiningChair x={52} y={77} rotation={45} />
+        <ModernDiningChair x={58} y={83} rotation={225} />
+        <ModernDiningChair x={55} y={76} rotation={0} />
+        <ModernDiningChair x={55} y={84} rotation={180} />
+
+        <ModernDiningChair x={67} y={77} rotation={45} />
+        <ModernDiningChair x={73} y={83} rotation={225} />
+        <ModernDiningChair x={70} y={76} rotation={0} />
+        <ModernDiningChair x={70} y={84} rotation={180} />
+
+        {/* Modern Bar Stools for Window Seating */}
+        <ModernBarStool x={5} y={48} />
+        <ModernBarStool x={15} y={48} />
+
+        {/* Main Bar Modern Stools */}
+        <ModernBarStool x={35} y={53} />
+        <ModernBarStool x={42} y={53} />
+        <ModernBarStool x={49} y={53} />
+        <ModernBarStool x={56} y={53} />
+        <ModernBarStool x={63} y={53} />
+        <ModernBarStool x={70} y={53} />
+
+        {/* Vertical Bar Modern Stools */}
+        <ModernBarStool x={73} y={30} />
+        <ModernBarStool x={73} y={37} />
+        <ModernBarStool x={73} y={44} />
+
+        {/* Modern Lounge Chairs in Corner */}
+        <ModernLoungeChair x={85} y={65} rotation={-30} />
+        <ModernLoungeChair x={85} y={80} rotation={30} />
 
         {/* Professional Baristas - Behind the Bar */}
         {BARISTAS.map((barista) => (
@@ -920,7 +1014,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
         <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg text-xs max-w-xs">
           <div className="font-bold mb-2 text-sm flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-amber-600" />
-            L-Shaped Bar Experience
+            Modern Coffee Experience
           </div>
           <div className="space-y-1 text-xs">
             <div className="flex items-center gap-2">
@@ -929,7 +1023,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
             </div>
             <div className="flex items-center gap-2">
               <CoffeeBean isOccupied={true} isSelected={false} isHovered={false} size={12} />
-              <span>Professional L-shaped coffee bar</span>
+              <span>L-shaped bar with modern furniture</span>
             </div>
             <div className="text-gray-600 mt-1 pt-1 border-t text-xs">
               Expert baristas: Ahmed, Muneeb & Joy working behind the bar! ☕
