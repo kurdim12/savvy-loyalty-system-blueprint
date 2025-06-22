@@ -8,7 +8,7 @@ import { Coffee, Users, MapPin, Wifi, Volume2, ArrowLeft } from 'lucide-react';
 interface SeatArea {
   id: string;
   name: string;
-  type: 'window-counter' | 'booth' | 'square-table' | 'espresso-bar' | 'outdoor';
+  type: 'window-counter' | 'table-2' | 'table-4' | 'lounge' | 'outdoor';
   capacity: number;
   occupied: number;
   users: Array<{
@@ -18,6 +18,7 @@ interface SeatArea {
   }>;
   position: { x: number; y: number; width: number; height: number };
   features: string[];
+  furniture: string;
 }
 
 interface RawSmithFloorPlanProps {
@@ -29,154 +30,171 @@ export const RawSmithFloorPlan = ({ onSeatSelect, onBack }: RawSmithFloorPlanPro
   const [hoveredSeat, setHoveredSeat] = useState<string | null>(null);
 
   const seatAreas: SeatArea[] = [
-    // Zone 1: Window Counter Seating
+    // Window Bar Counter (Floor-to-ceiling windows)
     {
-      id: 'window-counter-1',
-      name: 'Window Counter Left',
+      id: 'window-bar-left',
+      name: 'Window Bar - Left',
       type: 'window-counter',
-      capacity: 3,
-      occupied: 2,
-      users: [
-        { name: 'Alex M.', mood: '☕', activity: 'Morning espresso' },
-        { name: 'Jordan K.', mood: '💻', activity: 'Remote work' }
-      ],
-      position: { x: 5, y: 15, width: 25, height: 8 },
-      features: ['Street View', 'Natural Light', 'USB Charging']
-    },
-    {
-      id: 'window-counter-2',
-      name: 'Window Counter Right',
-      type: 'window-counter',
-      capacity: 3,
-      occupied: 1,
-      users: [
-        { name: 'Sam L.', mood: '📱', activity: 'Social media' }
-      ],
-      position: { x: 35, y: 15, width: 25, height: 8 },
-      features: ['Street View', 'Natural Light', 'Power Outlets']
-    },
-
-    // Zone 2: Intimate Booth Corner
-    {
-      id: 'corner-booth',
-      name: 'Forest Green Banquette',
-      type: 'booth',
       capacity: 4,
       occupied: 3,
       users: [
-        { name: 'Maya R.', mood: '📚', activity: 'Reading design book' },
-        { name: 'Chris D.', mood: '🤝', activity: 'Client meeting' },
-        { name: 'Taylor S.', mood: '✍️', activity: 'Journal writing' }
+        { name: 'Alex M.', mood: '☕', activity: 'Morning espresso ritual' },
+        { name: 'Jordan K.', mood: '💻', activity: 'Remote work session' },
+        { name: 'Sam L.', mood: '📱', activity: 'Coffee photography' }
       ],
-      position: { x: 75, y: 25, width: 20, height: 20 },
-      features: ['Private Alcove', 'Pendant Lighting', 'Cozy Seating']
+      position: { x: 5, y: 12, width: 22, height: 6 },
+      features: ['Floor-to-ceiling Windows', 'Natural Daylight', 'Bar Height Seating'],
+      furniture: 'Black metal bar stools, wooden counter'
+    },
+    {
+      id: 'window-bar-right',
+      name: 'Window Bar - Right',
+      type: 'window-counter',
+      capacity: 4,
+      occupied: 2,
+      users: [
+        { name: 'Maya R.', mood: '📚', activity: 'Reading design magazine' },
+        { name: 'Chris D.', mood: '🤝', activity: 'Casual meeting' }
+      ],
+      position: { x: 35, y: 12, width: 22, height: 6 },
+      features: ['Street View', 'Power Outlets', 'Natural Light'],
+      furniture: 'Black metal bar stools, natural wood counter'
     },
 
-    // Zone 3: Flexible Square Tables
+    // Lounge Area with Teal Upholstery
     {
-      id: 'table-sq-1',
-      name: 'Square Table 1',
-      type: 'square-table',
+      id: 'teal-lounge-corner',
+      name: 'Teal Lounge Corner',
+      type: 'lounge',
+      capacity: 6,
+      occupied: 4,
+      users: [
+        { name: 'Taylor S.', mood: '✍️', activity: 'Creative writing' },
+        { name: 'River P.', mood: '🎵', activity: 'Playlist curation' },
+        { name: 'Quinn A.', mood: '☕', activity: 'Coffee tasting notes' },
+        { name: 'Casey M.', mood: '💼', activity: 'Strategy session' }
+      ],
+      position: { x: 70, y: 22, width: 25, height: 25 },
+      features: ['Teal Upholstered Chairs', 'Cozy Atmosphere', 'Soft Lighting'],
+      furniture: 'Teal fabric chairs, low wooden tables'
+    },
+
+    // Small 2-Seater Tables (Natural Wood)
+    {
+      id: 'wood-table-1',
+      name: 'Natural Wood Table 1',
+      type: 'table-2',
       capacity: 2,
       occupied: 2,
       users: [
-        { name: 'River P.', mood: '🎵', activity: 'Music curation' },
-        { name: 'Quinn A.', mood: '☕', activity: 'Coffee tasting' }
-      ],
-      position: { x: 15, y: 45, width: 12, height: 12 },
-      features: ['Oak Top', 'Steel Legs', 'Table Power']
-    },
-    {
-      id: 'table-sq-2',
-      name: 'Square Table 2',
-      type: 'square-table',
-      capacity: 4,
-      occupied: 1,
-      users: [
-        { name: 'Casey M.', mood: '💼', activity: 'Business planning' }
-      ],
-      position: { x: 35, y: 45, width: 15, height: 15 },
-      features: ['Oak Top', 'Steel Legs', 'Laptop Friendly']
-    },
-    {
-      id: 'table-sq-3',
-      name: 'Square Table 3',
-      type: 'square-table',
-      capacity: 2,
-      occupied: 0,
-      users: [],
-      position: { x: 55, y: 45, width: 12, height: 12 },
-      features: ['Available', 'Window Adjacent', 'Quiet Zone']
-    },
-    {
-      id: 'table-sq-4',
-      name: 'Square Table 4',
-      type: 'square-table',
-      capacity: 4,
-      occupied: 2,
-      users: [
-        { name: 'Avery L.', mood: '🎨', activity: 'Sketching ideas' },
+        { name: 'Avery L.', mood: '🎨', activity: 'Sketching concepts' },
         { name: 'Riley K.', mood: '📖', activity: 'Study session' }
       ],
-      position: { x: 20, y: 65, width: 15, height: 15 },
-      features: ['Central Location', 'Good Lighting', 'Collaborative']
+      position: { x: 15, y: 35, width: 10, height: 8 },
+      features: ['Natural Wood Finish', 'Intimate Setting', 'Black Metal Legs'],
+      furniture: 'Square wooden table, black metal chairs'
     },
-
-    // Coffee Preparation Theater (Espresso Bar)
     {
-      id: 'espresso-bar',
-      name: 'Espresso Theater',
-      type: 'espresso-bar',
+      id: 'wood-table-2',
+      name: 'Natural Wood Table 2',
+      type: 'table-2',
       capacity: 2,
       occupied: 1,
       users: [
-        { name: 'Phoenix R.', mood: '👀', activity: 'Watching pour-over' }
+        { name: 'Blake R.', mood: '🧠', activity: 'Deep thinking' }
       ],
-      position: { x: 45, y: 75, width: 20, height: 10 },
-      features: ['Barista View', 'Coffee Education', 'Standing Counter']
+      position: { x: 35, y: 35, width: 10, height: 8 },
+      features: ['Natural Wood', 'Quiet Zone', 'Minimalist Design'],
+      furniture: 'Square wooden table, leather upholstered chairs'
+    },
+    {
+      id: 'wood-table-3',
+      name: 'Natural Wood Table 3',
+      type: 'table-2',
+      capacity: 2,
+      occupied: 0,
+      users: [],
+      position: { x: 50, y: 35, width: 10, height: 8 },
+      features: ['Available', 'Natural Wood', 'Strategic Spotlighting'],
+      furniture: 'Rectangular wooden table, black metal chairs'
     },
 
-    // Outdoor Patio Extension
+    // Larger 4-Seater Tables
     {
-      id: 'outdoor-patio-1',
-      name: 'Sidewalk Table 1',
+      id: 'group-table-1',
+      name: 'Collaborative Table 1',
+      type: 'table-4',
+      capacity: 4,
+      occupied: 3,
+      users: [
+        { name: 'Ocean D.', mood: '🌊', activity: 'Team brainstorm' },
+        { name: 'Sky M.', mood: '☁️', activity: 'Project planning' },
+        { name: 'Storm P.', mood: '⚡', activity: 'Creative energy' }
+      ],
+      position: { x: 20, y: 55, width: 15, height: 12 },
+      features: ['Group Collaboration', 'Natural Wood Top', 'Power Access'],
+      furniture: 'Large rectangular table, mixed upholstery chairs'
+    },
+    {
+      id: 'group-table-2',
+      name: 'Collaborative Table 2',
+      type: 'table-4',
+      capacity: 4,
+      occupied: 2,
+      users: [
+        { name: 'Phoenix K.', mood: '🔥', activity: 'Business discussion' },
+        { name: 'Sage L.', mood: '🌿', activity: 'Mindful planning' }
+      ],
+      position: { x: 45, y: 55, width: 15, height: 12 },
+      features: ['Natural Wood', 'Black Metal Frame', 'Ambient Lighting'],
+      furniture: 'Rectangular table, black metal chairs with cushions'
+    },
+
+    // Covered Outdoor Seating
+    {
+      id: 'outdoor-terrace-1',
+      name: 'Covered Outdoor 1',
       type: 'outdoor',
       capacity: 2,
       occupied: 2,
       users: [
-        { name: 'Sky D.', mood: '🌤️', activity: 'Fresh air break' },
-        { name: 'Cloud S.', mood: '🚶', activity: 'People watching' }
+        { name: 'Sunny R.', mood: '☀️', activity: 'Fresh air coffee' },
+        { name: 'Breeze L.', mood: '🍃', activity: 'Outdoor work' }
       ],
-      position: { x: 5, y: 5, width: 10, height: 8 },
-      features: ['Outdoor', 'Street View', 'Weather Dependent']
+      position: { x: 75, y: 75, width: 10, height: 8 },
+      features: ['Covered Outdoor', 'Black Metal Furniture', 'Plant Integration'],
+      furniture: 'Black metal table and chairs, outdoor cushions'
     },
     {
-      id: 'outdoor-patio-2',
-      name: 'Sidewalk Table 2',
+      id: 'outdoor-terrace-2',
+      name: 'Covered Outdoor 2',
       type: 'outdoor',
       capacity: 2,
-      occupied: 0,
-      users: [],
-      position: { x: 18, y: 5, width: 10, height: 8 },
-      features: ['Outdoor', 'Available', 'Morning Sun']
+      occupied: 1,
+      users: [
+        { name: 'Cloud S.', mood: '☁️', activity: 'Evening ambiance' }
+      ],
+      position: { x: 87, y: 75, width: 10, height: 8 },
+      features: ['Evening Lighting', 'Indoor-Outdoor Flow', 'Greenery'],
+      furniture: 'Black metal bistro set, weatherproof cushions'
     }
   ];
 
   const getAreaColor = (type: string, occupied: number, capacity: number) => {
     const baseColors = {
-      'window-counter': 'bg-blue-100/60 border-blue-300/80',
-      'booth': 'bg-green-100/60 border-green-400/80',
-      'square-table': 'bg-amber-100/60 border-amber-300/80',
-      'espresso-bar': 'bg-purple-100/60 border-purple-300/80',
-      'outdoor': 'bg-emerald-100/60 border-emerald-300/80'
+      'window-counter': 'bg-blue-50/80 border-blue-300/90',
+      'lounge': 'bg-teal-50/80 border-teal-400/90',
+      'table-2': 'bg-amber-50/80 border-amber-300/90',
+      'table-4': 'bg-orange-50/80 border-orange-300/90',
+      'outdoor': 'bg-green-50/80 border-green-400/90'
     };
     
-    // Add red tint if fully occupied
+    // Add occupancy indication
     if (occupied >= capacity) {
-      return baseColors[type as keyof typeof baseColors].replace('100/60', '200/80').replace('300/80', '400/90');
+      return baseColors[type as keyof typeof baseColors].replace('50/80', '100/90').replace('300/90', '500/100');
     }
     
-    return baseColors[type as keyof typeof baseColors] || 'bg-gray-100/60 border-gray-300/80';
+    return baseColors[type as keyof typeof baseColors] || 'bg-gray-50/80 border-gray-300/90';
   };
 
   const getOccupancyColor = (occupied: number, capacity: number) => {
@@ -187,7 +205,7 @@ export const RawSmithFloorPlan = ({ onSeatSelect, onBack }: RawSmithFloorPlanPro
   };
 
   return (
-    <Card className="w-full h-full min-h-[700px] bg-gradient-to-br from-stone-50 to-zinc-100 border-stone-300">
+    <Card className="w-full h-full min-h-[700px] bg-gradient-to-br from-stone-100 via-gray-50 to-zinc-100 border-stone-400/30">
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center justify-between text-stone-800">
           <div className="flex items-center gap-3">
@@ -199,16 +217,16 @@ export const RawSmithFloorPlan = ({ onSeatSelect, onBack }: RawSmithFloorPlanPro
             )}
             <MapPin className="h-6 w-6 text-stone-600" />
             <div>
-              <span className="text-xl">RawSmith Coffee Floor Plan</span>
-              <div className="text-sm text-stone-600 font-normal">Industrial-Modern Specialty Coffee Experience</div>
+              <span className="text-xl">RawSmith Industrial Coffee</span>
+              <div className="text-sm text-stone-600 font-normal">Modern Industrial Specialty Experience</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Badge className="bg-stone-800 text-white">
               <Coffee className="h-3 w-3 mr-1" />
-              Live Seating
+              Live Floor Plan
             </Badge>
-            <Badge className="bg-amber-600 text-white">
+            <Badge className="bg-teal-600 text-white">
               <Users className="h-3 w-3 mr-1" />
               {seatAreas.reduce((sum, area) => sum + area.occupied, 0)} Present
             </Badge>
@@ -217,36 +235,43 @@ export const RawSmithFloorPlan = ({ onSeatSelect, onBack }: RawSmithFloorPlanPro
       </CardHeader>
       
       <CardContent className="p-0 h-full">
-        <div className="relative w-full h-[600px] bg-gradient-to-br from-stone-100 to-zinc-50 border-t border-stone-200">
+        <div className="relative w-full h-[600px] bg-gradient-to-br from-stone-100 to-gray-100 border-t border-stone-300/50">
           
-          {/* Stone Archway Entrance */}
-          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-16 h-6 bg-stone-600 rounded-t-lg opacity-80">
-            <div className="text-center text-xs text-white font-bold pt-1">ENTRANCE</div>
+          {/* Dramatic Stone Archway Entrance */}
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-10 border-4 border-stone-600 rounded-t-full bg-stone-200/50 backdrop-blur-sm">
+            <div className="text-center text-xs text-stone-700 font-bold pt-2">STONE ARCH</div>
+            <div className="text-center text-xs text-stone-600">ENTRANCE</div>
           </div>
           
-          {/* Host/Ordering Counter */}
-          <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 w-20 h-4 bg-stone-800 rounded-sm">
-            <div className="text-center text-xs text-white font-medium pt-1">ORDER HERE</div>
+          {/* Modern Coffee Counter */}
+          <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 w-24 h-6 bg-stone-800 rounded-sm border border-stone-700">
+            <div className="text-center text-xs text-white font-medium pt-1">COFFEE COUNTER</div>
           </div>
 
-          {/* Coffee Sample Wall */}
-          <div className="absolute left-2 top-20 w-8 h-20 bg-amber-200 border border-amber-400 rounded opacity-70">
-            <div className="text-center text-xs text-amber-800 font-bold pt-1 transform -rotate-90 origin-center">SAMPLES</div>
+          {/* Color Sample Wall Display */}
+          <div className="absolute left-2 top-20 w-8 h-16 bg-gradient-to-b from-amber-200 via-orange-300 to-red-400 border border-stone-400 rounded opacity-80">
+            <div className="text-center text-xs text-stone-800 font-bold pt-1 transform -rotate-90 origin-center mt-6">SAMPLES</div>
           </div>
 
-          {/* La Marzocco Espresso Station */}
-          <div className="absolute left-1/2 bottom-20 transform -translate-x-1/2 w-12 h-8 bg-gray-700 rounded border-2 border-gray-800">
+          {/* Glass Display Cases */}
+          <div className="absolute right-2 top-20 w-8 h-12 bg-blue-100/60 border-2 border-blue-300 rounded">
+            <div className="text-center text-xs text-blue-800 font-bold pt-1 transform -rotate-90 origin-center mt-4">PASTRIES</div>
+          </div>
+
+          {/* Modern Coffee Equipment Area */}
+          <div className="absolute left-1/2 bottom-20 transform -translate-x-1/2 w-16 h-8 bg-gray-800 rounded border-2 border-gray-700">
             <div className="text-center text-xs text-white font-bold pt-1">ESPRESSO</div>
+            <div className="text-center text-xs text-gray-300">STATION</div>
           </div>
 
           {/* Seat Areas */}
           {seatAreas.map((area) => (
             <div
               key={area.id}
-              className={`absolute cursor-pointer transition-all duration-300 border-2 rounded-lg ${getAreaColor(area.type, area.occupied, area.capacity)} ${
+              className={`absolute cursor-pointer transition-all duration-300 border-2 rounded-lg ${getAreaColor(area.type, area.occupied, area.capacity)} backdrop-blur-sm ${
                 hoveredSeat === area.id 
-                  ? 'scale-105 shadow-lg ring-2 ring-stone-400 z-10' 
-                  : 'hover:scale-102 hover:shadow-md'
+                  ? 'scale-110 shadow-xl ring-2 ring-stone-500 z-10' 
+                  : 'hover:scale-105 hover:shadow-lg'
               }`}
               style={{
                 left: `${area.position.x}%`,
@@ -266,9 +291,10 @@ export const RawSmithFloorPlan = ({ onSeatSelect, onBack }: RawSmithFloorPlanPro
                       <Users className="h-3 w-3" />
                       <span className="font-semibold">{area.occupied}/{area.capacity}</span>
                     </div>
-                    {area.features.includes('USB Charging') && <Wifi className="h-3 w-3 text-blue-600" />}
+                    {area.features.includes('Power Outlets') && <Wifi className="h-3 w-3 text-blue-600" />}
                     {area.features.includes('Natural Light') && <span className="text-xs">☀️</span>}
                     {area.type === 'outdoor' && <span className="text-xs">🌿</span>}
+                    {area.type === 'lounge' && <span className="text-xs">🛋️</span>}
                   </div>
                 </div>
 
@@ -294,26 +320,30 @@ export const RawSmithFloorPlan = ({ onSeatSelect, onBack }: RawSmithFloorPlanPro
           ))}
 
           {/* Zone Labels */}
-          <div className="absolute top-4 left-4 text-sm font-bold text-stone-600 opacity-70">WINDOW COUNTER</div>
-          <div className="absolute top-4 right-4 text-sm font-bold text-stone-600 opacity-70">BOOTH CORNER</div>
-          <div className="absolute bottom-1/3 left-1/4 text-sm font-bold text-stone-600 opacity-70">FLEXIBLE SEATING</div>
-          <div className="absolute top-2 left-1/4 text-sm font-bold text-stone-600 opacity-70">OUTDOOR PATIO</div>
+          <div className="absolute top-4 left-4 text-sm font-bold text-stone-600/80">WINDOW BAR</div>
+          <div className="absolute top-4 right-4 text-sm font-bold text-teal-600/80">TEAL LOUNGE</div>
+          <div className="absolute bottom-1/3 left-1/4 text-sm font-bold text-amber-600/80">NATURAL WOOD TABLES</div>
+          <div className="absolute top-2 left-1/3 text-sm font-bold text-green-600/80">COVERED OUTDOOR</div>
 
           {/* Material Palette Legend */}
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-lg p-2 text-xs">
-            <div className="font-bold text-stone-800 mb-1">MATERIALS</div>
-            <div className="flex gap-3">
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur-sm rounded-lg p-3 text-xs border border-stone-200">
+            <div className="font-bold text-stone-800 mb-2">INDUSTRIAL MATERIALS</div>
+            <div className="flex gap-4">
               <div className="flex items-center gap-1">
                 <div className="w-3 h-3 bg-stone-600 rounded-sm"></div>
                 <span>Concrete</span>
               </div>
               <div className="flex items-center gap-1">
                 <div className="w-3 h-3 bg-amber-600 rounded-sm"></div>
-                <span>Oak</span>
+                <span>Natural Wood</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-stone-800 rounded-sm"></div>
-                <span>Steel</span>
+                <div className="w-3 h-3 bg-stone-900 rounded-sm"></div>
+                <span>Black Metal</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-teal-500 rounded-sm"></div>
+                <span>Teal Accent</span>
               </div>
             </div>
           </div>
@@ -321,7 +351,7 @@ export const RawSmithFloorPlan = ({ onSeatSelect, onBack }: RawSmithFloorPlanPro
 
         {/* Hovered Area Details */}
         {hoveredSeat && (
-          <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-stone-200 max-w-sm z-20">
+          <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-4 shadow-xl border border-stone-200 max-w-sm z-20">
             {(() => {
               const area = seatAreas.find(a => a.id === hoveredSeat);
               if (!area) return null;
@@ -329,6 +359,7 @@ export const RawSmithFloorPlan = ({ onSeatSelect, onBack }: RawSmithFloorPlanPro
               return (
                 <>
                   <h3 className="font-bold text-stone-800 mb-2">{area.name}</h3>
+                  <div className="text-xs text-stone-600 mb-2 italic">{area.furniture}</div>
                   <div className="space-y-2">
                     <div className="flex flex-wrap gap-1 mb-2">
                       {area.features.map((feature, index) => (
@@ -346,11 +377,11 @@ export const RawSmithFloorPlan = ({ onSeatSelect, onBack }: RawSmithFloorPlanPro
                         </div>
                       ))
                     ) : (
-                      <div className="text-sm text-green-600 font-medium">Available for seating</div>
+                      <div className="text-sm text-green-600 font-medium">Available • Industrial modern seating</div>
                     )}
                   </div>
                   <div className="mt-3 text-xs text-stone-600 font-medium">
-                    Click to join this {area.type.replace('-', ' ')} area
+                    Click to join this industrial coffee experience
                   </div>
                 </>
               );
@@ -358,15 +389,15 @@ export const RawSmithFloorPlan = ({ onSeatSelect, onBack }: RawSmithFloorPlanPro
           </div>
         )}
 
-        {/* Coffee Preparation Theater Status */}
-        <div className="absolute bottom-4 right-4 bg-purple-50/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-purple-200">
+        {/* Ambient Lighting Status */}
+        <div className="absolute bottom-4 right-4 bg-amber-50/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-amber-200">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-amber-600 rounded-full flex items-center justify-center">
-              <Coffee className="h-4 w-4 text-white" />
+            <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center">
+              <Volume2 className="h-4 w-4 text-white" />
             </div>
             <div>
-              <h3 className="font-bold text-stone-800 text-sm">☕ Barista Theater</h3>
-              <p className="text-xs text-stone-600">Currently brewing: Ethiopian pour-over</p>
+              <h3 className="font-bold text-stone-800 text-sm">💡 Warm Ambient Lighting</h3>
+              <p className="text-xs text-stone-600">Pendant lights & strategic spotlighting active</p>
             </div>
           </div>
         </div>
