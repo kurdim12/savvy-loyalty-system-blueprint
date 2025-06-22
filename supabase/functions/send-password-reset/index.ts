@@ -2,8 +2,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4'
 import { Resend } from "npm:resend@4.0.0"
-import { renderAsync } from 'npm:@react-email/components@0.0.22'
-import React from 'npm:react@18.3.1'
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"))
 
@@ -105,11 +103,11 @@ const handler = async (req: Request): Promise<Response> => {
     const resetLink = data.properties.action_link
     console.log('Generated reset link:', resetLink)
 
-    // Send email using Resend
+    // Send email using Resend with verified domain
     const emailHtml = PasswordResetEmailSimple({ resetLink, userEmail: email })
 
     const emailResponse = await resend.emails.send({
-      from: "Raw Smith Coffee <noreply@rawsmithcoffee.com>",
+      from: "Raw Smith Coffee <onboarding@resend.dev>",
       to: [email],
       subject: "Reset your Raw Smith Coffee password",
       html: emailHtml,
