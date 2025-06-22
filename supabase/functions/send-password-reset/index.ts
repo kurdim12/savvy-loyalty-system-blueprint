@@ -82,7 +82,7 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Generate password reset link with correct redirect URL
+    // Generate password reset link with correct deployed domain
     const { data, error } = await supabase.auth.admin.generateLink({
       type: 'recovery',
       email: email,
