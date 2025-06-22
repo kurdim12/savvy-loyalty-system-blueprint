@@ -133,17 +133,24 @@ const UserActions = () => {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/auth`
+      console.log('Sending custom password reset email to:', email.trim());
+      
+      // Use our custom edge function instead of Supabase's default
+      const { data, error: functionError } = await supabase.functions.invoke('send-password-reset', {
+        body: { email: email.trim() }
       });
 
-      if (error) {
-        throw error;
+      if (functionError) {
+        throw functionError;
       }
 
-      toast.success('Password reset email sent successfully');
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      toast.success('Password reset email sent successfully with custom branding!');
     } catch (err: any) {
-      console.error('Error sending password reset:', err);
+      console.error('Error sending custom password reset:', err);
       setError(`Failed to send password reset: ${err.message}`);
       toast.error('Failed to send password reset email');
     } finally {
