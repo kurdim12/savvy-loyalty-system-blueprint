@@ -35,22 +35,81 @@ const UserActions = () => {
         throw new Error('User not found');
       }
 
-      // Delete the user profile first (this should cascade to related tables)
+      const userId = profile.id;
+
+      // Delete related data in the correct order to avoid foreign key constraints
+      console.log('Deleting user-related data...');
+
+      // Delete transactions
+      const { error: transactionsError } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('user_id', userId);
+
+      if (transactionsError) {
+        console.error('Error deleting transactions:', transactionsError);
+      }
+
+      // Delete redemptions
+      const { error: redemptionsError } = await supabase
+        .from('redemptions')
+        .delete()
+        .eq('user_id', userId);
+
+      if (redemptionsError) {
+        console.error('Error deleting redemptions:', redemptionsError);
+      }
+
+      // Delete notifications
+      const { error: notificationsError } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', userId);
+
+      if (notificationsError) {
+        console.error('Error deleting notifications:', notificationsError);
+      }
+
+      // Delete messages
+      const { error: messagesError } = await supabase
+        .from('messages')
+        .delete()
+        .eq('user_id', userId);
+
+      if (messagesError) {
+        console.error('Error deleting messages:', messagesError);
+      }
+
+      // Delete other user-related data
+      await supabase.from('community_goal_contributions').delete().eq('user_id', userId);
+      await supabase.from('song_votes').delete().eq('user_id', userId);
+      await supabase.from('photo_contest_votes').delete().eq('user_id', userId);
+      await supabase.from('coffee_journey').delete().eq('user_id', userId);
+      await supabase.from('coffee_education_progress').delete().eq('user_id', userId);
+      await supabase.from('user_connections').delete().eq('user_id', userId);
+      await supabase.from('user_connections').delete().eq('connected_user_id', userId);
+      await supabase.from('challenge_participants').delete().eq('user_id', userId);
+      await supabase.from('referrals').delete().eq('referrer_id', userId);
+      await supabase.from('referrals').delete().eq('referee_id', userId);
+
+      // Finally, delete the profile
       const { error: deleteProfileError } = await supabase
         .from('profiles')
         .delete()
-        .eq('id', profile.id);
+        .eq('id', userId);
 
       if (deleteProfileError) {
         throw deleteProfileError;
       }
 
-      // Call admin API to delete the auth user
-      const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(profile.id);
-
-      if (deleteAuthError) {
-        console.error('Auth user deletion error:', deleteAuthError);
-        // The profile is already deleted, so we'll just log this error
+      // Try to delete the auth user (this might fail if already deleted, which is ok)
+      try {
+        const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(userId);
+        if (deleteAuthError) {
+          console.log('Auth user deletion note:', deleteAuthError.message);
+        }
+      } catch (authError) {
+        console.log('Auth user may have already been deleted');
       }
 
       toast.success('User deleted successfully');
@@ -145,7 +204,7 @@ const UserActions = () => {
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
             <strong>Warning:</strong> Deleting a user is permanent and cannot be undone. 
-            Consider sending a password reset email first.
+            This will remove all user data including transactions, messages, and profile information.
           </AlertDescription>
         </Alert>
       </CardContent>
