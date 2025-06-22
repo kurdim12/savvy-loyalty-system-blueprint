@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import CustomersList from '@/components/admin/CustomersList';
 import ManagePointsDialog from '@/components/admin/ManagePointsDialog';
+import UserActions from '@/components/admin/UserActions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
@@ -69,6 +70,7 @@ const UserManagement = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList>
             <TabsTrigger value="customers">All Customers</TabsTrigger>
+            <TabsTrigger value="user-actions">User Actions</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
           
@@ -77,6 +79,17 @@ const UserManagement = () => {
               onManagePoints={handleManagePoints} 
               onRankChange={handleRankChange}
             />
+          </TabsContent>
+
+          <TabsContent value="user-actions" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Management Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <UserActions />
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="analytics">
