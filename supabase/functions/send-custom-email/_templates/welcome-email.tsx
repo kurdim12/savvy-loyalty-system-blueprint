@@ -1,4 +1,3 @@
-
 import {
   Body,
   Container,
@@ -32,7 +31,7 @@ export const WelcomeEmail = ({
       <Container style={container}>
         <Section style={logoSection}>
           <Img
-            src="https://raw-smith-coffee.lovableproject.com/logo.png"
+            src="https://raw-smith-loyalty.lovable.app/logo.png"
             width="120"
             height="120"
             alt="Raw Smith Coffee"

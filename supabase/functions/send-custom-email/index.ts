@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     // Handle different types of auth emails
     if (email_action_type === 'recovery') {
       // Password reset email
-      const resetLink = `${site_url}/auth?token=${token_hash}&type=recovery&redirect_to=${redirect_to}`
+      const resetLink = `https://raw-smith-loyalty.lovable.app/auth?token=${token_hash}&type=recovery&redirect_to=${redirect_to}`
       
       emailHtml = await renderAsync(
         React.createElement(PasswordResetEmail, {
@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
       
     } else if (email_action_type === 'signup' || email_action_type === 'email_change') {
       // Welcome/confirmation email
-      const confirmationLink = `${site_url}/auth?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`
+      const confirmationLink = `https://raw-smith-loyalty.lovable.app/auth?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`
       
       emailHtml = await renderAsync(
         React.createElement(WelcomeEmail, {

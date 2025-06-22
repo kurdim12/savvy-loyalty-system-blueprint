@@ -22,7 +22,7 @@ const PasswordResetEmailSimple = ({ resetLink, userEmail }: { resetLink: string,
 </head>
 <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FAF6F0;">
   <div style="text-align: center; margin-bottom: 40px;">
-    <img src="https://raw-smith-coffee.lovableproject.com/logo.png" alt="Raw Smith Coffee" style="width: 120px; height: 120px;">
+    <img src="https://raw-smith-loyalty.lovable.app/logo.png" alt="Raw Smith Coffee" style="width: 120px; height: 120px;">
   </div>
   
   <h1 style="color: #8B4513; text-align: center; font-size: 32px; margin-bottom: 30px;">Reset Your Password</h1>
@@ -89,7 +89,7 @@ const handler = async (req: Request): Promise<Response> => {
       type: 'recovery',
       email: email,
       options: {
-        redirectTo: `${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovableproject.com') || 'https://raw-smith-coffee.lovableproject.com'}/auth`
+        redirectTo: `https://raw-smith-loyalty.lovable.app/auth`
       }
     })
 
