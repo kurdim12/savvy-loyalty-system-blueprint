@@ -1087,7 +1087,7 @@ export type Database = {
         Returns: undefined
       }
       increment_song_votes: {
-        Args: { request_id: string }
+        Args: { request_id: string } | { song_id: number }
         Returns: undefined
       }
       is_admin: {
