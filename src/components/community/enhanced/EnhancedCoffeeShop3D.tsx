@@ -1,9 +1,9 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Coffee, Box, ArrowLeft, Users, Eye } from 'lucide-react';
-import { PhotoRealistic3DCoffeeShop } from './PhotoRealistic3DCoffeeShop';
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowLeft, Box, Eye } from 'lucide-react';
+import { PhotoRealistic3DCafe } from './PhotoRealistic3DCafe';
 import { UltimateSeatingPlan } from './UltimateSeatingPlan';
 
 interface EnhancedCoffeeShop3DProps {
@@ -45,7 +45,7 @@ export const EnhancedCoffeeShop3D: React.FC<EnhancedCoffeeShop3DProps> = ({ onBa
 
       {/* Current View */}
       {currentView === '3d-realistic' ? (
-        <PhotoRealistic3DCoffeeShop onBack={onBack} />
+        <PhotoRealistic3DCafe onBack={onBack} />
       ) : (
         <div className="w-full h-full">
           {onBack && (

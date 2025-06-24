@@ -1,30 +1,19 @@
 
 import React, { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import {
-  OrbitControls,
-  Environment,
-  useGLTF,
-  Html,
-  ContactShadows
-} from "@react-three/drei";
+import { OrbitControls, Environment } from "@react-three/drei";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 
-/* ---------- Helpers ---------- */
-
 function Loader() {
   return (
-    <Html center style={{ color: "#fff", fontSize: "14px" }}>
+    <div style={{ color: "#fff", fontSize: "14px", textAlign: "center", padding: "20px" }}>
       Loading café interior...
-    </Html>
+    </div>
   );
 }
 
-/* ---------- Bar ---------- */
-
 function Bar() {
-  /* Dimensions in metres (Blender units = metres) */
   const LONG = 3.665;
   const DEPTH = 0.75;
   const HEIGHT = 0.9;
@@ -34,53 +23,42 @@ function Bar() {
   return (
     <group>
       {/* Long section */}
-      <mesh position={[LONG / 2 - 0.05, HEIGHT / 2, -DEPTH / 2]}>
+      <mesh position={[LONG / 2 - 0.05, HEIGHT / 2, -DEPTH / 2]} castShadow receiveShadow>
         <boxGeometry args={[LONG, HEIGHT, DEPTH]} />
         <meshStandardMaterial color="#808080" roughness={0.6} metalness={0.2} />
       </mesh>
 
       {/* Return leg */}
-      <mesh position={[-DEPTH / 2, HEIGHT / 2, -(DEPTH + RETURN) / 2]}>
+      <mesh position={[-DEPTH / 2, HEIGHT / 2, -(DEPTH + RETURN) / 2]} castShadow receiveShadow>
         <boxGeometry args={[DEPTH, HEIGHT, RETURN]} />
         <meshStandardMaterial color="#808080" roughness={0.6} metalness={0.2} />
       </mesh>
 
       {/* Brass kick plates */}
-      <mesh position={[LONG / 2 - 0.05, KICK / 2, -DEPTH / 2]}>
+      <mesh position={[LONG / 2 - 0.05, KICK / 2, -DEPTH / 2]} castShadow receiveShadow>
         <boxGeometry args={[LONG, KICK, DEPTH + 0.01]} />
-        <meshStandardMaterial
-          color="#bfa35a"
-          roughness={0.25}
-          metalness={1}
-        />
+        <meshStandardMaterial color="#bfa35a" roughness={0.25} metalness={0.8} />
       </mesh>
-      <mesh position={[-DEPTH / 2, KICK / 2, -(DEPTH + RETURN) / 2]}>
+      <mesh position={[-DEPTH / 2, KICK / 2, -(DEPTH + RETURN) / 2]} castShadow receiveShadow>
         <boxGeometry args={[DEPTH + 0.01, KICK, RETURN]} />
-        <meshStandardMaterial
-          color="#bfa35a"
-          roughness={0.25}
-          metalness={1}
-        />
+        <meshStandardMaterial color="#bfa35a" roughness={0.25} metalness={0.8} />
       </mesh>
     </group>
   );
 }
 
-/* ---------- Furniture Components ---------- */
-
 function Chair(props: any) {
-  // Fallback geometry for when GLB models aren't available
   return (
     <group {...props}>
-      <mesh position={[0, 0.4, 0]} castShadow>
+      <mesh position={[0, 0.4, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.4, 0.05, 0.4]} />
         <meshStandardMaterial color="#2c2c2c" roughness={0.8} />
       </mesh>
-      <mesh position={[0, 0.2, 0]} castShadow>
+      <mesh position={[0, 0.2, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.05, 0.4, 0.05]} />
         <meshStandardMaterial color="#1a1a1a" roughness={0.9} metalness={0.1} />
       </mesh>
-      <mesh position={[0, 0.6, -0.15]} castShadow>
+      <mesh position={[0, 0.6, -0.15]} castShadow receiveShadow>
         <boxGeometry args={[0.4, 0.5, 0.05]} />
         <meshStandardMaterial color="#2c2c2c" roughness={0.8} />
       </mesh>
@@ -91,36 +69,21 @@ function Chair(props: any) {
 function Armchair(props: any) {
   return (
     <group {...props}>
-      <mesh position={[0, 0.35, 0]} castShadow>
+      <mesh position={[0, 0.35, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.6, 0.1, 0.6]} />
         <meshStandardMaterial color="#2d5a4a" roughness={0.9} />
       </mesh>
-      <mesh position={[0, 0.6, -0.2]} castShadow>
+      <mesh position={[0, 0.6, -0.2]} castShadow receiveShadow>
         <boxGeometry args={[0.6, 0.6, 0.1]} />
         <meshStandardMaterial color="#2d5a4a" roughness={0.9} />
       </mesh>
-      <mesh position={[-0.25, 0.6, 0]} castShadow>
+      <mesh position={[-0.25, 0.6, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.1, 0.3, 0.4]} />
         <meshStandardMaterial color="#2d5a4a" roughness={0.9} />
       </mesh>
-      <mesh position={[0.25, 0.6, 0]} castShadow>
+      <mesh position={[0.25, 0.6, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.1, 0.3, 0.4]} />
         <meshStandardMaterial color="#2d5a4a" roughness={0.9} />
-      </mesh>
-    </group>
-  );
-}
-
-function Bench(props: any) {
-  return (
-    <group {...props}>
-      <mesh position={[0, 0.4, 0]} castShadow>
-        <boxGeometry args={[1.2, 0.08, 0.4]} />
-        <meshStandardMaterial color="#d2b48c" roughness={0.8} />
-      </mesh>
-      <mesh position={[0, 0.2, 0]} castShadow>
-        <boxGeometry args={[0.08, 0.4, 0.08]} />
-        <meshStandardMaterial color="#8b7355" roughness={0.9} />
       </mesh>
     </group>
   );
@@ -129,19 +92,17 @@ function Bench(props: any) {
 function Table(props: any) {
   return (
     <group {...props}>
-      <mesh position={[0, 0.75, 0]} castShadow>
+      <mesh position={[0, 0.75, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.8, 0.05, 0.8]} />
         <meshStandardMaterial color="#d2b48c" roughness={0.8} />
       </mesh>
-      <mesh position={[0, 0.375, 0]} castShadow>
+      <mesh position={[0, 0.375, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.05, 0.75, 0.05]} />
         <meshStandardMaterial color="#1a1a1a" roughness={0.9} metalness={0.1} />
       </mesh>
     </group>
   );
 }
-
-/* ---------- Main Scene Component ---------- */
 
 interface PhotoRealistic3DCafeProps {
   onBack?: () => void;
@@ -197,10 +158,7 @@ export const PhotoRealistic3DCafe = ({ onBack }: PhotoRealistic3DCafeProps) => {
       >
         <Suspense fallback={<Loader />}>
           {/* Environment lighting */}
-          <Environment
-            preset="night"
-            background
-          />
+          <Environment preset="night" />
 
           {/* Additional ambient lighting */}
           <ambientLight intensity={0.3} />
@@ -248,8 +206,6 @@ export const PhotoRealistic3DCafe = ({ onBack }: PhotoRealistic3DCafeProps) => {
           <Table position={[1, 0, 1.5]} />
           <Chair position={[0.6, 0, 1.2]} />
           <Chair position={[1.4, 0, 1.2]} />
-
-          <Bench position={[3.5, 0, 2]} rotation={[0, 0, 0]} />
 
           {/* Teal armchair in corner */}
           <Armchair position={[-2, 0, 2]} rotation={[0, Math.PI / 4, 0]} />
@@ -299,15 +255,6 @@ export const PhotoRealistic3DCafe = ({ onBack }: PhotoRealistic3DCafeProps) => {
             intensity={1.5}
             color="#ffe6c4"
             distance={4}
-          />
-
-          {/* Soft contact shadows */}
-          <ContactShadows
-            position={[0, 0.01, 0]}
-            opacity={0.4}
-            scale={12}
-            blur={2}
-            far={6}
           />
 
           {/* Camera controls */}
