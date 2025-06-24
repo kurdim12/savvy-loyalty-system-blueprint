@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -82,17 +81,77 @@ export const PhysicalCafeFloorPlan = () => {
                   L-SHAPED BAR
                 </div>
                 
-                {/* Barista behind the bar */}
-                <div className="absolute top-[-25px] left-1/2 transform -translate-x-1/2">
-                  <div className="w-6 h-6 bg-amber-800 rounded-full border-2 border-amber-900 relative">
-                    {/* Head */}
-                    <div className="absolute top-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 bg-pink-300 rounded-full border border-pink-400"></div>
-                    {/* Apron */}
-                    <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-5 h-3 bg-white rounded-sm border border-gray-300"></div>
-                    {/* Movement indicator */}
-                    <div className="absolute -top-2 -right-2 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                {/* Three Baristas behind the bar */}
+                <div className="absolute top-[-35px] left-4 right-4 flex justify-around">
+                  {/* Muneeb - First barista */}
+                  <div className="relative group cursor-pointer" title="Muneeb - Lead Barista">
+                    <div className="w-8 h-8 bg-amber-800 rounded-full border-2 border-amber-900 relative">
+                      {/* Head with brown hair */}
+                      <div className="absolute top-[-10px] left-1/2 transform -translate-x-1/2 w-6 h-6 bg-pink-300 rounded-full border border-pink-400 relative">
+                        <div className="absolute -top-1 left-0 right-0 w-6 h-3 bg-amber-900 rounded-t-full"></div>
+                        {/* Eyes and smile */}
+                        <div className="absolute top-2 left-1 w-1 h-1 bg-black rounded-full"></div>
+                        <div className="absolute top-2 right-1 w-1 h-1 bg-black rounded-full"></div>
+                        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-1 bg-black rounded-full"></div>
+                      </div>
+                      {/* Black t-shirt */}
+                      <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-7 h-4 bg-black rounded-sm border border-gray-700 relative">
+                        <div className="absolute top-1 left-1/2 transform -translate-x-1/2 text-white text-xs font-bold" style={{fontSize: '6px'}}>MUNEEB</div>
+                      </div>
+                      {/* Movement indicator */}
+                      <div className="absolute -top-2 -right-2 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      {/* Peace sign hand */}
+                      <div className="absolute -right-3 top-0 text-xs">✌️</div>
+                    </div>
+                    <div className="text-xs text-center mt-1 text-amber-900 font-bold">MUNEEB</div>
                   </div>
-                  <div className="text-xs text-center mt-1 text-amber-900 font-bold">BARISTA</div>
+
+                  {/* Ahmed - Second barista */}
+                  <div className="relative group cursor-pointer" title="Ahmed - Senior Barista">
+                    <div className="w-8 h-8 bg-amber-800 rounded-full border-2 border-amber-900 relative">
+                      {/* Head with beard and cap */}
+                      <div className="absolute top-[-10px] left-1/2 transform -translate-x-1/2 w-6 h-6 bg-orange-300 rounded-full border border-orange-400 relative">
+                        {/* Black cap */}
+                        <div className="absolute -top-1 left-0 right-0 w-6 h-2 bg-black rounded-t-full"></div>
+                        {/* Beard */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4 h-2 bg-black rounded-b-full"></div>
+                        {/* Eyes and smile */}
+                        <div className="absolute top-1 left-1 w-1 h-1 bg-black rounded-full"></div>
+                        <div className="absolute top-1 right-1 w-1 h-1 bg-black rounded-full"></div>
+                      </div>
+                      {/* Black t-shirt */}
+                      <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-7 h-4 bg-black rounded-sm border border-gray-700 relative">
+                        <div className="absolute top-1 left-1/2 transform -translate-x-1/2 text-white text-xs font-bold" style={{fontSize: '6px'}}>AHMED</div>
+                      </div>
+                      {/* Movement indicator */}
+                      <div className="absolute -top-2 -right-2 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    </div>
+                    <div className="text-xs text-center mt-1 text-amber-900 font-bold">AHMED</div>
+                  </div>
+
+                  {/* Joy - Third barista */}
+                  <div className="relative group cursor-pointer" title="Joy - Barista">
+                    <div className="w-8 h-8 bg-amber-800 rounded-full border-2 border-amber-900 relative">
+                      {/* Head with blonde hair in bun */}
+                      <div className="absolute top-[-10px] left-1/2 transform -translate-x-1/2 w-6 h-6 bg-pink-200 rounded-full border border-pink-300 relative">
+                        {/* Blonde hair bun */}
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-yellow-400 rounded-full"></div>
+                        <div className="absolute -top-1 left-0 right-0 w-6 h-2 bg-yellow-400 rounded-t-full"></div>
+                        {/* Eyes and smile */}
+                        <div className="absolute top-2 left-1 w-1 h-1 bg-black rounded-full"></div>
+                        <div className="absolute top-2 right-1 w-1 h-1 bg-black rounded-full"></div>
+                        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-3 h-1 bg-black rounded-full"></div>
+                      </div>
+                      {/* Black t-shirt with flower */}
+                      <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-7 h-4 bg-black rounded-sm border border-gray-700 relative">
+                        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 text-white text-xs font-bold" style={{fontSize: '6px'}}>JOY</div>
+                        <div className="absolute bottom-0 right-1 text-xs">🌸</div>
+                      </div>
+                      {/* Movement indicator */}
+                      <div className="absolute -top-2 -right-2 w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                    </div>
+                    <div className="text-xs text-center mt-1 text-amber-900 font-bold">JOY</div>
+                  </div>
                 </div>
                 
                 {/* Bar stools facing the bar */}
@@ -293,15 +352,15 @@ export const PhysicalCafeFloorPlan = () => {
             <div className="space-y-1 text-xs">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span>Barista working at bar</span>
+                <span>Muneeb making espresso</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <span>Sarah at Bar Stool 2</span>
+                <span>Ahmed preparing latte art</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                <span>Mike in Garden G1</span>
+                <span>Joy taking orders</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
@@ -320,7 +379,7 @@ export const PhysicalCafeFloorPlan = () => {
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-gray-700 rounded"></div>
-                <span>Bar & Barista</span>
+                <span>Bar & Baristas</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-black rounded-full"></div>
@@ -340,7 +399,7 @@ export const PhysicalCafeFloorPlan = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-pink-300 rounded-full"></div>
-                <span>Staff</span>
+                <span>Barista Staff</span>
               </div>
             </div>
           </div>
