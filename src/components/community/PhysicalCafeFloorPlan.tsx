@@ -82,15 +82,31 @@ export const PhysicalCafeFloorPlan = () => {
                   L-SHAPED BAR
                 </div>
                 
-                {/* Bar stools */}
-                <div className="absolute bottom-[-20px] left-2 right-2 flex justify-between">
+                {/* Barista behind the bar */}
+                <div className="absolute top-[-25px] left-1/2 transform -translate-x-1/2">
+                  <div className="w-6 h-6 bg-amber-800 rounded-full border-2 border-amber-900 relative">
+                    {/* Head */}
+                    <div className="absolute top-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 bg-pink-300 rounded-full border border-pink-400"></div>
+                    {/* Apron */}
+                    <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-5 h-3 bg-white rounded-sm border border-gray-300"></div>
+                    {/* Movement indicator */}
+                    <div className="absolute -top-2 -right-2 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  </div>
+                  <div className="text-xs text-center mt-1 text-amber-900 font-bold">BARISTA</div>
+                </div>
+                
+                {/* Bar stools facing the bar */}
+                <div className="absolute bottom-[-25px] left-2 right-2 flex justify-between">
                   {[1, 2, 3, 4].map((stool) => (
                     <div
                       key={stool}
-                      className="w-5 h-5 bg-black rounded-full border-2 border-gray-600 cursor-pointer hover:bg-gray-800 transition-colors"
+                      className="w-6 h-6 bg-black rounded-full border-2 border-gray-600 cursor-pointer hover:bg-gray-800 transition-colors relative"
                       onClick={() => handleSeatSelect(`bar-stool-${stool}`)}
                       title={`Bar Stool ${stool}`}
-                    />
+                    >
+                      {/* Stool back */}
+                      <div className="absolute top-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-2 bg-black rounded-t-md"></div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -101,41 +117,80 @@ export const PhysicalCafeFloorPlan = () => {
               <div className="w-full h-full bg-gray-700 border-2 border-gray-800 rounded-lg shadow-lg relative">
                 <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-yellow-600 to-yellow-500 rounded-b-lg"></div>
                 
-                {/* Side bar stools */}
-                <div className="absolute right-[-20px] top-2 bottom-2 flex flex-col justify-between">
+                {/* Side bar stools facing the bar */}
+                <div className="absolute right-[-25px] top-4 bottom-4 flex flex-col justify-between">
                   {[1, 2].map((stool) => (
                     <div
                       key={stool}
-                      className="w-5 h-5 bg-black rounded-full border-2 border-gray-600 cursor-pointer hover:bg-gray-800 transition-colors"
+                      className="w-6 h-6 bg-black rounded-full border-2 border-gray-600 cursor-pointer hover:bg-gray-800 transition-colors relative"
                       onClick={() => handleSeatSelect(`side-bar-stool-${stool}`)}
                       title={`Side Bar Stool ${stool}`}
-                    />
+                    >
+                      {/* Stool back */}
+                      <div className="absolute left-[-8px] top-1/2 transform -translate-y-1/2 w-2 h-4 bg-black rounded-l-md"></div>
+                    </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Central seating area */}
+            {/* Central seating area with proper table setup */}
             <div className="absolute" style={{ left: '25%', top: '55%', width: '35%', height: '25%' }}>
               <div className="w-full h-full bg-green-100 border-2 border-green-300 rounded-lg p-3 relative">
                 <h3 className="text-green-800 font-bold text-center mb-2 text-sm">CENTRAL SEATING</h3>
                 
-                <div className="grid grid-cols-2 gap-3 h-full">
-                  <div
-                    className="bg-teal-600 rounded-lg cursor-pointer hover:bg-teal-700 transition-colors flex items-center justify-center text-white font-bold text-xs relative"
-                    onClick={() => handleSeatSelect('teal-chair-1')}
-                  >
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full"></div>
-                    TEAL
+                {/* Table with chairs around it */}
+                <div className="relative w-full h-full flex items-center justify-center">
+                  {/* Central table */}
+                  <div className="w-8 h-8 bg-amber-600 rounded-lg border border-amber-700 relative">
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-xs font-bold">T</div>
                   </div>
                   
+                  {/* Chairs around the table */}
                   <div
-                    className="bg-amber-600 rounded-lg cursor-pointer hover:bg-amber-700 transition-colors flex items-center justify-center text-white font-bold text-xs relative"
-                    onClick={() => handleSeatSelect('central-table-1')}
-                  >
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-500 rounded-full"></div>
-                    TABLE
-                  </div>
+                    className="absolute top-[-12px] left-1/2 transform -translate-x-1/2 w-5 h-5 bg-teal-600 rounded cursor-pointer hover:bg-teal-700 transition-colors"
+                    onClick={() => handleSeatSelect('central-chair-1')}
+                    title="Chair 1"
+                  ></div>
+                  <div
+                    className="absolute bottom-[-12px] left-1/2 transform -translate-x-1/2 w-5 h-5 bg-teal-600 rounded cursor-pointer hover:bg-teal-700 transition-colors"
+                    onClick={() => handleSeatSelect('central-chair-2')}
+                    title="Chair 2"
+                  ></div>
+                  <div
+                    className="absolute left-[-12px] top-1/2 transform -translate-y-1/2 w-5 h-5 bg-teal-600 rounded cursor-pointer hover:bg-teal-700 transition-colors"
+                    onClick={() => handleSeatSelect('central-chair-3')}
+                    title="Chair 3"
+                  ></div>
+                  <div
+                    className="absolute right-[-12px] top-1/2 transform -translate-y-1/2 w-5 h-5 bg-teal-600 rounded cursor-pointer hover:bg-teal-700 transition-colors"
+                    onClick={() => handleSeatSelect('central-chair-4')}
+                    title="Chair 4"
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Window seating area */}
+            <div className="absolute" style={{ left: '5%', top: '45%', width: '15%', height: '20%' }}>
+              <div className="w-full h-full bg-blue-100 border-2 border-blue-300 rounded-lg p-2 relative">
+                <h4 className="text-blue-800 font-bold text-center text-xs mb-1">WINDOW</h4>
+                
+                {/* Small table with chairs */}
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <div className="w-6 h-6 bg-amber-500 rounded border border-amber-600"></div>
+                  
+                  {/* Chairs facing each other */}
+                  <div
+                    className="absolute top-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-600 rounded cursor-pointer hover:bg-gray-700 transition-colors"
+                    onClick={() => handleSeatSelect('window-chair-1')}
+                    title="Window Chair 1"
+                  ></div>
+                  <div
+                    className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-600 rounded cursor-pointer hover:bg-gray-700 transition-colors"
+                    onClick={() => handleSeatSelect('window-chair-2')}
+                    title="Window Chair 2"
+                  ></div>
                 </div>
               </div>
             </div>
@@ -167,13 +222,21 @@ export const PhysicalCafeFloorPlan = () => {
                 
                 <div className="flex justify-between items-center h-full">
                   {[1, 2].map((table) => (
-                    <div
-                      key={table}
-                      className="w-12 h-10 bg-amber-600 rounded-lg cursor-pointer hover:bg-amber-700 transition-colors relative group flex items-center justify-center text-white text-xs font-bold"
-                      onClick={() => handleSeatSelect(`outdoor-street-${table}`)}
-                    >
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full"></div>
-                      T{table}
+                    <div key={table} className="relative">
+                      {/* Table */}
+                      <div className="w-8 h-6 bg-amber-600 rounded-lg border border-amber-700"></div>
+                      
+                      {/* Chairs */}
+                      <div
+                        className="absolute top-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 bg-amber-800 rounded cursor-pointer hover:bg-amber-900 transition-colors"
+                        onClick={() => handleSeatSelect(`outdoor-street-${table}-1`)}
+                        title={`Street Table ${table} Chair 1`}
+                      ></div>
+                      <div
+                        className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 bg-amber-800 rounded cursor-pointer hover:bg-amber-900 transition-colors"
+                        onClick={() => handleSeatSelect(`outdoor-street-${table}-2`)}
+                        title={`Street Table ${table} Chair 2`}
+                      ></div>
                     </div>
                   ))}
                 </div>
@@ -185,15 +248,23 @@ export const PhysicalCafeFloorPlan = () => {
               <div className="w-full h-full bg-green-200 border-2 border-green-400 rounded-lg p-3 relative">
                 <h3 className="text-green-800 font-bold text-center mb-2 text-sm">GARDEN AREA</h3>
                 
-                <div className="grid grid-cols-2 gap-3 h-full">
+                <div className="grid grid-cols-2 gap-4 h-full">
                   {[1, 2, 3, 4].map((table) => (
-                    <div
-                      key={table}
-                      className="bg-green-600 rounded-lg cursor-pointer hover:bg-green-700 transition-colors relative group flex items-center justify-center text-white text-xs font-bold"
-                      onClick={() => handleSeatSelect(`outdoor-garden-${table}`)}
-                    >
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full"></div>
-                      G{table}
+                    <div key={table} className="relative flex items-center justify-center">
+                      {/* Table */}
+                      <div className="w-6 h-6 bg-green-600 rounded border border-green-700"></div>
+                      
+                      {/* Chairs around table */}
+                      <div
+                        className="absolute top-[-6px] left-1/2 transform -translate-x-1/2 w-3 h-3 bg-green-800 rounded cursor-pointer hover:bg-green-900 transition-colors"
+                        onClick={() => handleSeatSelect(`garden-${table}-1`)}
+                        title={`Garden Table ${table} Chair 1`}
+                      ></div>
+                      <div
+                        className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-3 h-3 bg-green-800 rounded cursor-pointer hover:bg-green-900 transition-colors"
+                        onClick={() => handleSeatSelect(`garden-${table}-2`)}
+                        title={`Garden Table ${table} Chair 2`}
+                      ></div>
                     </div>
                   ))}
                 </div>
@@ -222,18 +293,22 @@ export const PhysicalCafeFloorPlan = () => {
             <div className="space-y-1 text-xs">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span>Sarah at Bar Stool 2</span>
+                <span>Barista working at bar</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <span>Mike in Garden G1</span>
+                <span>Sarah at Bar Stool 2</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                <span>Emma in Teal Chair</span>
+                <span>Mike in Garden G1</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                <span>Emma in Central Seating</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse"></div>
                 <span>Alex at Street Table</span>
               </div>
             </div>
@@ -245,19 +320,27 @@ export const PhysicalCafeFloorPlan = () => {
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-gray-700 rounded"></div>
-                <span>Indoor Bar</span>
+                <span>Bar & Barista</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-black rounded-full"></div>
+                <span>Bar Stools</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-teal-600 rounded"></div>
+                <span>Chairs</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-amber-600 rounded"></div>
+                <span>Tables</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-green-600 rounded"></div>
                 <span>Outdoor Garden</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-teal-600 rounded"></div>
-                <span>Lounge Seating</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-amber-600 rounded"></div>
-                <span>Street Tables</span>
+                <div className="w-3 h-3 bg-pink-300 rounded-full"></div>
+                <span>Staff</span>
               </div>
             </div>
           </div>
@@ -265,13 +348,17 @@ export const PhysicalCafeFloorPlan = () => {
           {/* Capacity overview */}
           <div className="absolute bottom-4 right-1/3 bg-white/95 backdrop-blur-sm rounded-lg p-3 border border-gray-200">
             <div className="text-sm font-bold text-gray-800 mb-2">Capacity</div>
-            <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="grid grid-cols-3 gap-3 text-xs">
               <div className="text-center">
-                <div className="text-lg font-bold text-gray-600">12</div>
-                <div>Indoor Seats</div>
+                <div className="text-lg font-bold text-gray-600">10</div>
+                <div>Bar Seats</div>
               </div>
               <div className="text-center">
-                <div className="text-lg font-bold text-green-600">16</div>
+                <div className="text-lg font-bold text-blue-600">8</div>
+                <div>Table Seats</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-green-600">12</div>
                 <div>Outdoor Seats</div>
               </div>
             </div>
