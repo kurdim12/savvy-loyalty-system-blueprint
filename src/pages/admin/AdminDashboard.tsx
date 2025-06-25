@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -10,6 +8,7 @@ import {
   AlertCircle, ChevronsRight, ArrowRightLeft, LayoutDashboard
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import AdminLayout from '@/components/admin/AdminLayout';
 
 type DashboardMetrics = {
   totalCustomers: number;
@@ -215,243 +214,241 @@ const AdminDashboard = () => {
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-500">Welcome to your loyalty program admin dashboard.</p>
-          </div>
-          <Button
-            onClick={() => navigate('/admin/settings')}
-            variant="outline"
-            className="flex items-center"
-          >
-            View System Settings
-            <ChevronsRight className="ml-2 h-4 w-4" />
-          </Button>
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-500">Welcome to your loyalty program admin dashboard.</p>
         </div>
+        <Button
+          onClick={() => navigate('/admin/settings')}
+          variant="outline"
+          className="flex items-center"
+        >
+          View System Settings
+          <ChevronsRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
 
-        {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {/* Total Customers */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Customers
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {metricsLoading ? '...' : metrics?.totalCustomers}
+      {/* KPI Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Total Customers */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Customers
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {metricsLoading ? '...' : metrics?.totalCustomers}
+            </div>
+            <p className="text-xs text-muted-foreground flex items-center">
+              {metrics?.customerGrowth !== undefined && metrics.customerGrowth >= 0 ? (
+                <>
+                  <ArrowUpRight className="mr-1 h-3 w-3 text-green-500" />
+                  <span className="text-green-500">{metrics.customerGrowth}%</span> from last month
+                </>
+              ) : metrics?.customerGrowth !== undefined ? (
+                <>
+                  <ArrowDownRight className="mr-1 h-3 w-3 text-red-500" />
+                  <span className="text-red-500">{Math.abs(metrics.customerGrowth)}%</span> from last month
+                </>
+              ) : ''}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Points Issued (Month) */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Points Issued (Month)
+            </CardTitle>
+            <Coffee className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {metricsLoading ? '...' : metrics?.pointsIssuedThisMonth.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground flex items-center">
+              {metrics?.pointsGrowth !== undefined && metrics.pointsGrowth >= 0 ? (
+                <>
+                  <ArrowUpRight className="mr-1 h-3 w-3 text-green-500" />
+                  <span className="text-green-500">{metrics.pointsGrowth}%</span> from last month
+                </>
+              ) : metrics?.pointsGrowth !== undefined ? (
+                <>
+                  <ArrowDownRight className="mr-1 h-3 w-3 text-red-500" />
+                  <span className="text-red-500">{Math.abs(metrics.pointsGrowth)}%</span> from last month
+                </>
+              ) : ''}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Active Rewards */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Active Rewards
+            </CardTitle>
+            <Gift className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {metricsLoading ? '...' : metrics?.activeRewards}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Available for customers
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Redemptions (Month) */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Redemptions (Month)
+            </CardTitle>
+            <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {metricsLoading ? '...' : metrics?.redemptionsThisMonth}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              In the current month
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Activity Feed */}
+        <Card className="md:col-span-1">
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>
+              Latest transactions and customer actions
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {activityLoading ? (
+              <div className="flex items-center justify-center h-40">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500"></div>
               </div>
-              <p className="text-xs text-muted-foreground flex items-center">
-                {metrics?.customerGrowth !== undefined && metrics.customerGrowth >= 0 ? (
-                  <>
-                    <ArrowUpRight className="mr-1 h-3 w-3 text-green-500" />
-                    <span className="text-green-500">{metrics.customerGrowth}%</span> from last month
-                  </>
-                ) : metrics?.customerGrowth !== undefined ? (
-                  <>
-                    <ArrowDownRight className="mr-1 h-3 w-3 text-red-500" />
-                    <span className="text-red-500">{Math.abs(metrics.customerGrowth)}%</span> from last month
-                  </>
-                ) : ''}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Points Issued (Month) */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Points Issued (Month)
-              </CardTitle>
-              <Coffee className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {metricsLoading ? '...' : metrics?.pointsIssuedThisMonth.toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground flex items-center">
-                {metrics?.pointsGrowth !== undefined && metrics.pointsGrowth >= 0 ? (
-                  <>
-                    <ArrowUpRight className="mr-1 h-3 w-3 text-green-500" />
-                    <span className="text-green-500">{metrics.pointsGrowth}%</span> from last month
-                  </>
-                ) : metrics?.pointsGrowth !== undefined ? (
-                  <>
-                    <ArrowDownRight className="mr-1 h-3 w-3 text-red-500" />
-                    <span className="text-red-500">{Math.abs(metrics.pointsGrowth)}%</span> from last month
-                  </>
-                ) : ''}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Active Rewards */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Active Rewards
-              </CardTitle>
-              <Gift className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {metricsLoading ? '...' : metrics?.activeRewards}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Available for customers
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Redemptions (Month) */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Redemptions (Month)
-              </CardTitle>
-              <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {metricsLoading ? '...' : metrics?.redemptionsThisMonth}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                In the current month
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Activity Feed */}
-          <Card className="md:col-span-1">
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>
-                Latest transactions and customer actions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {activityLoading ? (
-                <div className="flex items-center justify-center h-40">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500"></div>
-                </div>
-              ) : activity && activity.length > 0 ? (
-                <div className="space-y-4">
-                  {activity.map((item) => (
-                    <div key={item.id} className="flex items-start space-x-4">
-                      <div className={`mt-0.5 rounded-full p-1.5 ${
-                        item.type === 'signup' ? 'bg-green-100 text-green-600' : 
-                        item.type === 'redemption' ? 'bg-purple-100 text-purple-600' : 
-                        'bg-blue-100 text-blue-600'
-                      }`}>
-                        {item.type === 'signup' ? (
-                          <Users className="h-3 w-3" />
-                        ) : item.type === 'redemption' ? (
-                          <Gift className="h-3 w-3" />
-                        ) : (
-                          <Coffee className="h-3 w-3" />
-                        )}
-                      </div>
-                      <div className="space-y-1 flex-1">
-                        <p className="text-sm font-medium">
-                          {item.customerId} {item.customerName ? `(${item.customerName})` : ''} {' '}
-                          {item.type === 'signup' ? 'signed up' :
-                           item.type === 'redemption' ? `redeemed ${item.reward || 'a reward'}` :
-                           `earned ${item.points} points`}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {item.timeAgo}
-                        </p>
-                      </div>
+            ) : activity && activity.length > 0 ? (
+              <div className="space-y-4">
+                {activity.map((item) => (
+                  <div key={item.id} className="flex items-start space-x-4">
+                    <div className={`mt-0.5 rounded-full p-1.5 ${
+                      item.type === 'signup' ? 'bg-green-100 text-green-600' : 
+                      item.type === 'redemption' ? 'bg-purple-100 text-purple-600' : 
+                      'bg-blue-100 text-blue-600'
+                    }`}>
+                      {item.type === 'signup' ? (
+                        <Users className="h-3 w-3" />
+                      ) : item.type === 'redemption' ? (
+                        <Gift className="h-3 w-3" />
+                      ) : (
+                        <Coffee className="h-3 w-3" />
+                      )}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center py-8 text-gray-500">No recent activity</p>
-              )}
-            </CardContent>
-            <CardFooter>
+                    <div className="space-y-1 flex-1">
+                      <p className="text-sm font-medium">
+                        {item.customerId} {item.customerName ? `(${item.customerName})` : ''} {' '}
+                        {item.type === 'signup' ? 'signed up' :
+                         item.type === 'redemption' ? `redeemed ${item.reward || 'a reward'}` :
+                         `earned ${item.points} points`}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {item.timeAgo}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center py-8 text-gray-500">No recent activity</p>
+            )}
+          </CardContent>
+          <CardFooter>
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={() => navigate('/admin/transactions')}
+            >
+              View All Activity
+              <ChevronsRight className="ml-2 h-4 w-4" />
+            </Button>
+          </CardFooter>
+        </Card>
+
+        {/* System Status and Quick Actions */}
+        <div className="md:col-span-1 space-y-6">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Frequently used admin tools</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-1 lg:grid-cols-3">
               <Button 
-                variant="outline" 
-                className="w-full" 
+                className="h-24 flex-col justify-center space-y-2"
+                onClick={() => navigate('/admin/users')}
+              >
+                <Users className="h-6 w-6" />
+                <span>Manage Customers</span>
+              </Button>
+              <Button 
+                className="h-24 flex-col justify-center space-y-2"
                 onClick={() => navigate('/admin/transactions')}
               >
-                View All Activity
-                <ChevronsRight className="ml-2 h-4 w-4" />
+                <ArrowRightLeft className="h-6 w-6" />
+                <span>Record Transaction</span>
               </Button>
-            </CardFooter>
+              <Button 
+                className="h-24 flex-col justify-center space-y-2" 
+                onClick={() => navigate('/admin/drinks')}
+              >
+                <Gift className="h-6 w-6" />
+                <span>Manage Rewards</span>
+              </Button>
+            </CardContent>
           </Card>
 
-          {/* System Status and Quick Actions */}
-          <div className="md:col-span-1 space-y-6">
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-                <CardDescription>Frequently used admin tools</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-1 lg:grid-cols-3">
-                <Button 
-                  className="h-24 flex-col justify-center space-y-2"
-                  onClick={() => navigate('/admin/customers')}
-                >
-                  <Users className="h-6 w-6" />
-                  <span>Manage Customers</span>
-                </Button>
-                <Button 
-                  className="h-24 flex-col justify-center space-y-2"
-                  onClick={() => navigate('/admin/transactions')}
-                >
-                  <ArrowRightLeft className="h-6 w-6" />
-                  <span>Record Transaction</span>
-                </Button>
-                <Button 
-                  className="h-24 flex-col justify-center space-y-2" 
-                  onClick={() => navigate('/admin/drinks')}
-                >
-                  <Gift className="h-6 w-6" />
-                  <span>Manage Rewards</span>
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* System Status */}
-            <Card>
-              <CardHeader>
-                <CardTitle>System Status</CardTitle>
-                <CardDescription>Current system health and status</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {systemStatus.map((item) => (
-                    <div key={item.name} className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{item.name}</span>
-                      <div className="flex items-center">
-                        <span className={`mr-2 text-xs ${getStatusColor(item.status)}`}>
-                          {item.status === 'operational' ? 'Operational' :
-                           item.status === 'degraded' ? 'Degraded' : 'Outage'}
-                        </span>
-                        {item.status === 'operational' ? (
-                          <CheckCircle className={`h-4 w-4 ${getStatusColor(item.status)}`} />
-                        ) : (
-                          <AlertCircle className={`h-4 w-4 ${getStatusColor(item.status)}`} />
-                        )}
-                      </div>
+          {/* System Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle>System Status</CardTitle>
+              <CardDescription>Current system health and status</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {systemStatus.map((item) => (
+                  <div key={item.name} className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{item.name}</span>
+                    <div className="flex items-center">
+                      <span className={`mr-2 text-xs ${getStatusColor(item.status)}`}>
+                        {item.status === 'operational' ? 'Operational' :
+                         item.status === 'degraded' ? 'Degraded' : 'Outage'}
+                      </span>
+                      {item.status === 'operational' ? (
+                        <CheckCircle className={`h-4 w-4 ${getStatusColor(item.status)}`} />
+                      ) : (
+                        <AlertCircle className={`h-4 w-4 ${getStatusColor(item.status)}`} />
+                      )}
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
-    </AdminLayout>
+    </div>
   );
 };
 
