@@ -98,7 +98,7 @@ const App = () => {
                   <Route path="/admin/login" element={<AdminLogin />} />
                   
                   {/* All Admin Routes with Single Layout Wrapper */}
-                  <Route path="/admin" element={
+                  <Route path="/admin/*" element={
                     <AdminRoute>
                       <AdminLayout>
                         <Routes>
