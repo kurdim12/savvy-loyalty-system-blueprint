@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
@@ -19,7 +19,11 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-const AdminLayout = () => {
+interface AdminLayoutProps {
+  children: React.ReactNode;
+}
+
+const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -141,7 +145,7 @@ const AdminLayout = () => {
         {/* Page content */}
         <main className="flex-1 p-4 md:p-6 overflow-auto">
           <div className="max-w-full">
-            <Outlet />
+            {children}
           </div>
         </main>
       </div>
