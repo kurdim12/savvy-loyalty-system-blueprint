@@ -97,23 +97,81 @@ const App = () => {
                   {/* Admin Routes */}
                   <Route path="/admin/login" element={<AdminLogin />} />
                   
-                  {/* All Admin Routes with Single Layout Wrapper */}
-                  <Route path="/admin/*" element={
+                  {/* Individual Admin Routes with Single Layout Wrapper */}
+                  <Route path="/admin" element={
                     <AdminRoute>
                       <AdminLayout>
-                        <Routes>
-                          <Route index element={<AdminDashboard />} />
-                          <Route path="users" element={<UserManagement />} />
-                          <Route path="transactions" element={<TransactionsManagement />} />
-                          <Route path="rewards" element={<RewardsManagement />} />
-                          <Route path="redemptions" element={<RedemptionManagement />} />
-                          <Route path="settings" element={<SettingsManagement />} />
-                          <Route path="community" element={<CommunityManagement />} />
-                          <Route path="community-goals" element={<CommunityGoalsAdmin />} />
-                          <Route path="drinks" element={<DrinksList />} />
-                          <Route path="rewards-admin" element={<RewardsAdmin />} />
-                          <Route path="community-hub" element={<CommunityHubManagement />} />
-                        </Routes>
+                        <AdminDashboard />
+                      </AdminLayout>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/users" element={
+                    <AdminRoute>
+                      <AdminLayout>
+                        <UserManagement />
+                      </AdminLayout>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/transactions" element={
+                    <AdminRoute>
+                      <AdminLayout>
+                        <TransactionsManagement />
+                      </AdminLayout>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/rewards" element={
+                    <AdminRoute>
+                      <AdminLayout>
+                        <RewardsManagement />
+                      </AdminLayout>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/redemptions" element={
+                    <AdminRoute>
+                      <AdminLayout>
+                        <RedemptionManagement />
+                      </AdminLayout>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/settings" element={
+                    <AdminRoute>
+                      <AdminLayout>
+                        <SettingsManagement />
+                      </AdminLayout>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/community" element={
+                    <AdminRoute>
+                      <AdminLayout>
+                        <CommunityManagement />
+                      </AdminLayout>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/community-goals" element={
+                    <AdminRoute>
+                      <AdminLayout>
+                        <CommunityGoalsAdmin />
+                      </AdminLayout>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/drinks" element={
+                    <AdminRoute>
+                      <AdminLayout>
+                        <DrinksList />
+                      </AdminLayout>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/rewards-admin" element={
+                    <AdminRoute>
+                      <AdminLayout>
+                        <RewardsAdmin />
+                      </AdminLayout>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/community-hub" element={
+                    <AdminRoute>
+                      <AdminLayout>
+                        <CommunityHubManagement />
                       </AdminLayout>
                     </AdminRoute>
                   } />
