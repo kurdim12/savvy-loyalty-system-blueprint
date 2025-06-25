@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
@@ -13,19 +13,23 @@ import {
   X,
   LogOut,
   BarChart3,
-  Target
+  Target,
+  MessageSquare
 } from 'lucide-react';
-import { supabase, secureSignOut } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-const AdminLayout = ({ children }: { children: React.ReactNode }) => {
+const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   const handleSignOut = async () => {
     try {
-      await secureSignOut();
+      await signOut();
       toast.success('Signed out successfully');
+      navigate('/admin/login');
     } catch (error) {
       console.error('Sign out error:', error);
       toast.error('Error signing out');
@@ -34,11 +38,13 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-    { name: 'Community Hub', href: '/admin/hub', icon: Target },
     { name: 'User Management', href: '/admin/users', icon: Users },
     { name: 'Rewards Management', href: '/admin/rewards', icon: Trophy },
     { name: 'Drinks Management', href: '/admin/drinks', icon: Package },
     { name: 'Transactions', href: '/admin/transactions', icon: CreditCard },
+    { name: 'Community Hub', href: '/admin/hub', icon: Target },
+    { name: 'Community Goals', href: '/admin/community-goals', icon: Target },
+    { name: 'Community Posts', href: '/admin/community', icon: MessageSquare },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
@@ -135,7 +141,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         {/* Page content */}
         <main className="flex-1 p-4 md:p-6 overflow-auto">
           <div className="max-w-full">
-            {children}
+            <Outlet />
           </div>
         </main>
       </div>
