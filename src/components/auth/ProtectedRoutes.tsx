@@ -17,7 +17,7 @@ export function UserRoute({ children }: { children: ReactNode }) {
     pathname: location.pathname
   });
 
-  // Show loading state briefly
+  // Show loading state
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
@@ -29,19 +29,19 @@ export function UserRoute({ children }: { children: ReactNode }) {
     );
   }
 
-  // Not authenticated at all - redirect to auth
+  // Not authenticated - redirect to auth
   if (!user) {
     console.log('UserRoute: No user found, redirecting to auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // User is authenticated and has proper role - allow access
+  // User is authenticated and has proper role
   if (isUser || isAdmin) {
     console.log('UserRoute: Access granted to', location.pathname);
     return <>{children}</>;
   }
 
-  // Fallback - redirect to auth if no valid role
+  // Fallback
   console.log('UserRoute: No valid role found, redirecting to auth');
   return <Navigate to="/auth" replace />;
 }
@@ -58,7 +58,7 @@ export function AdminRoute({ children }: { children: ReactNode }) {
     pathname: location.pathname
   });
 
-  // Show loading state briefly
+  // Show loading state
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
@@ -70,7 +70,7 @@ export function AdminRoute({ children }: { children: ReactNode }) {
     );
   }
 
-  // Not authenticated at all
+  // Not authenticated
   if (!user) {
     console.log('AdminRoute: No user found, redirecting to admin login');
     return <Navigate to="/admin/login" state={{ from: location }} replace />;

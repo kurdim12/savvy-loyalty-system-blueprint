@@ -20,8 +20,6 @@ interface AuthContextType {
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
 
-const AUTH_CHECK_TIMEOUT_MS = 2000; // Reduced timeout for better UX
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -29,121 +27,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [authInitialized, setAuthInitialized] = useState<boolean>(false);
+  const [profileLoading, setProfileLoading] = useState(false);
   
   const membershipTier = profile?.membership_tier || 'bronze';
   const isAdmin = profile?.role === 'admin';
   const isUser = profile?.role === 'customer';
 
-  // Initialize authentication with improved error handling
-  useEffect(() => {
-    console.log('AuthContext: Initializing authentication...');
-    
-    let mounted = true;
-    let authTimeout: NodeJS.Timeout;
-
-    const initializeAuth = async () => {
-      try {
-        // Set up auth state listener FIRST
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, newSession) => {
-            console.log('AuthContext: Auth event received:', event);
-            
-            if (!mounted) return;
-            
-            // Update session and user state immediately
-            setSession(newSession);
-            setUser(newSession?.user ?? null);
-
-            // Handle different auth events
-            if (event === 'SIGNED_IN' && newSession?.user) {
-              console.log('AuthContext: User signed in, fetching profile');
-              // Use setTimeout to prevent blocking the auth state change
-              setTimeout(() => {
-                if (mounted) {
-                  fetchUserProfile(newSession.user.id);
-                }
-              }, 100);
-            } else if (event === 'SIGNED_OUT') {
-              console.log('AuthContext: User signed out, clearing profile');
-              setProfile(null);
-              setLoading(false);
-              setAuthInitialized(true);
-            } else if (event === 'TOKEN_REFRESHED') {
-              console.log('AuthContext: Token refreshed');
-              if (newSession?.user && !profile) {
-                setTimeout(() => {
-                  if (mounted) {
-                    fetchUserProfile(newSession.user.id);
-                  }
-                }, 100);
-              }
-            }
-          }
-        );
-
-        // THEN check for existing session
-        console.log('AuthContext: Getting initial session');
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-        
-        if (error && !error.message.includes('session_not_found')) {
-          console.error('AuthContext: Error getting initial session:', error);
-        }
-        
-        console.log('AuthContext: Initial session found:', currentSession ? 'Yes' : 'No');
-        
-        if (!mounted) return;
-        
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (currentSession?.user) {
-          await fetchUserProfile(currentSession.user.id);
-        } else {
-          setLoading(false);
-          setAuthInitialized(true);
-        }
-
-        // Clear timeout since we completed successfully
-        if (authTimeout) {
-          clearTimeout(authTimeout);
-        }
-
-        // Clean up function
-        return () => {
-          mounted = false;
-          subscription?.unsubscribe();
-        };
-      } catch (error) {
-        console.error('AuthContext: Error initializing auth:', error);
-        if (mounted) {
-          setLoading(false);
-          setAuthInitialized(true);
-        }
-      }
-    };
-
-    // Set timeout as fallback
-    authTimeout = setTimeout(() => {
-      console.log('AuthContext: Force completing auth check after timeout');
-      if (mounted) {
-        setLoading(false);
-        setAuthInitialized(true);
-      }
-    }, AUTH_CHECK_TIMEOUT_MS);
-
-    // Initialize auth
-    initializeAuth();
-
-    return () => {
-      mounted = false;
-      if (authTimeout) {
-        clearTimeout(authTimeout);
-      }
-    };
-  }, []);
-
+  // Prevent duplicate profile fetches
   const fetchUserProfile = async (userId: string) => {
+    if (profileLoading) {
+      console.log('AuthContext: Profile fetch already in progress, skipping');
+      return;
+    }
+    
+    setProfileLoading(true);
+    
     try {
       console.log('AuthContext: Fetching profile for user:', userId);
       
@@ -151,12 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .maybeSingle(); // Use maybeSingle instead of single to avoid errors
+        .maybeSingle();
 
       if (error) {
         console.error('AuthContext: Error fetching profile:', error);
-        setLoading(false);
-        setAuthInitialized(true);
         return;
       }
 
@@ -170,15 +66,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('AuthContext: Unexpected error fetching profile:', error);
     } finally {
-      setLoading(false);
-      setAuthInitialized(true);
+      setProfileLoading(false);
     }
   };
   
-  // Create a user profile if it doesn't exist
   const createUserProfile = async (userId: string) => {
     try {
-      // Get user data from auth
       const { data: userData, error: userError } = await supabase.auth.getUser();
       
       if (userError || !userData?.user) {
@@ -186,7 +79,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       
-      // Create new profile with default values
       const { data: newProfile, error } = await supabase
         .from('profiles')
         .insert({
@@ -200,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           visits: 0
         })
         .select()
-        .maybeSingle(); // Use maybeSingle for consistency
+        .maybeSingle();
         
       if (error) {
         console.error('AuthContext: Error creating user profile:', error);
@@ -217,8 +109,98 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Initialize authentication with better error handling
+  useEffect(() => {
+    console.log('AuthContext: Initializing authentication...');
+    
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        // Set up auth state listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, newSession) => {
+            console.log('AuthContext: Auth event received:', event);
+            
+            if (!mounted) return;
+            
+            // Update session and user state immediately
+            setSession(newSession);
+            setUser(newSession?.user ?? null);
+
+            // Handle different auth events
+            if (event === 'SIGNED_IN' && newSession?.user) {
+              console.log('AuthContext: User signed in, will fetch profile');
+              // Use a small delay to prevent multiple concurrent calls
+              setTimeout(() => {
+                if (mounted && !profileLoading) {
+                  fetchUserProfile(newSession.user.id);
+                }
+              }, 100);
+            } else if (event === 'SIGNED_OUT') {
+              console.log('AuthContext: User signed out, clearing profile');
+              setProfile(null);
+              setLoading(false);
+            } else if (event === 'TOKEN_REFRESHED' && newSession?.user && !profile) {
+              console.log('AuthContext: Token refreshed, checking profile');
+              setTimeout(() => {
+                if (mounted && !profileLoading) {
+                  fetchUserProfile(newSession.user.id);
+                }
+              }, 100);
+            }
+            
+            // Mark loading as complete for sign out or when no user
+            if (!newSession?.user) {
+              setLoading(false);
+            }
+          }
+        );
+
+        // Check for existing session
+        console.log('AuthContext: Getting initial session');
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (error && !error.message.includes('session_not_found')) {
+          console.error('AuthContext: Error getting initial session:', error);
+        }
+        
+        console.log('AuthContext: Initial session found:', currentSession ? 'Yes' : 'No');
+        
+        if (!mounted) return;
+        
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        if (currentSession?.user) {
+          await fetchUserProfile(currentSession.user.id);
+        }
+        
+        // Mark loading as complete
+        setLoading(false);
+
+        // Clean up function
+        return () => {
+          mounted = false;
+          subscription?.unsubscribe();
+        };
+      } catch (error) {
+        console.error('AuthContext: Error initializing auth:', error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const refreshProfile = async () => {
-    if (user?.id) {
+    if (user?.id && !profileLoading) {
       await fetchUserProfile(user.id);
     }
   };
@@ -237,7 +219,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw error;
     }
     
-    // Refresh the profile after updating
     await refreshProfile();
   };
 
@@ -246,7 +227,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('AuthContext: Signing out user...');
       setLoading(true);
       
-      // Attempt global sign out
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
