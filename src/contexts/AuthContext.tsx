@@ -1,7 +1,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase, cleanupAuthState } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 
@@ -20,7 +20,7 @@ interface AuthContextType {
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
 
-const AUTH_CHECK_TIMEOUT_MS = 3000; // Increased timeout for better reliability
+const AUTH_CHECK_TIMEOUT_MS = 2000; // Reduced timeout for better UX
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = profile?.role === 'admin';
   const isUser = profile?.role === 'customer';
 
-  // Initialize authentication with better error handling
+  // Initialize authentication with improved error handling
   useEffect(() => {
     console.log('AuthContext: Initializing authentication...');
     
@@ -86,9 +86,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('AuthContext: Getting initial session');
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
-        if (error) {
+        if (error && !error.message.includes('session_not_found')) {
           console.error('AuthContext: Error getting initial session:', error);
-          throw error;
         }
         
         console.log('AuthContext: Initial session found:', currentSession ? 'Yes' : 'No');
@@ -120,7 +119,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (mounted) {
           setLoading(false);
           setAuthInitialized(true);
-          // Don't show error toast here as it might be expected during logout
         }
       }
     };
@@ -153,19 +151,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to avoid errors
 
       if (error) {
         console.error('AuthContext: Error fetching profile:', error);
-        
-        // Check if the error is because the profile wasn't found
-        if (error.code === 'PGRST116') {
-          console.log('AuthContext: Profile not found, attempting to create it');
-          await createUserProfile(userId);
-          return;
-        }
-        
-        // For other errors, still mark as initialized
         setLoading(false);
         setAuthInitialized(true);
         return;
@@ -174,6 +163,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data) {
         console.log('AuthContext: Profile fetched successfully');
         setProfile(data as Profile);
+      } else {
+        console.log('AuthContext: No profile found, creating one');
+        await createUserProfile(userId);
       }
     } catch (error) {
       console.error('AuthContext: Unexpected error fetching profile:', error);
@@ -208,11 +200,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           visits: 0
         })
         .select()
-        .single();
+        .maybeSingle(); // Use maybeSingle for consistency
         
       if (error) {
         console.error('AuthContext: Error creating user profile:', error);
-        toast.error('Could not create user profile. Please try again or contact support.');
         return;
       }
       
@@ -255,9 +246,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('AuthContext: Signing out user...');
       setLoading(true);
       
-      // Clean up auth state first
-      cleanupAuthState();
-      
       // Attempt global sign out
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
@@ -265,21 +253,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('AuthContext: Error during sign out:', error);
       }
       
-      // Clear state immediately regardless of sign out result
+      // Clear state immediately
       setProfile(null);
       setUser(null);
       setSession(null);
       setLoading(false);
       
-      console.log('AuthContext: Signed out successfully, redirecting...');
-      
-      // Force page reload for a clean state
-      window.location.href = '/auth';
+      console.log('AuthContext: Signed out successfully');
     } catch (error) {
       console.error('AuthContext: Error during sign out:', error);
-      
-      // Force reload anyway as fallback
-      window.location.href = '/auth';
+      setLoading(false);
     }
   };
 

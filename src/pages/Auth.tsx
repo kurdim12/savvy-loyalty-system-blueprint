@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase, cleanupAuthState } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -38,7 +39,7 @@ const Auth = () => {
     const timeout = setTimeout(() => {
       console.log('Auth: Auth check timeout reached, allowing page to render');
       setAuthChecked(true);
-    }, 2000);
+    }, 1500); // Reduced timeout
     
     return () => clearTimeout(timeout);
   }, []);
@@ -70,9 +71,6 @@ const Auth = () => {
     try {
       console.log("Auth: Attempting to sign in");
       
-      // Clean up existing auth state first
-      cleanupAuthState();
-      
       // Sign in
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -95,7 +93,17 @@ const Auth = () => {
       
     } catch (error: any) {
       console.error('Auth: Error signing in:', error);
-      const errorMessage = error.message || "Failed to sign in. Please check your credentials.";
+      let errorMessage = "Failed to sign in. Please check your credentials.";
+      
+      // Handle specific error cases
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = "Invalid email or password. Please try again.";
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = "Please check your email and click the confirmation link before signing in.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -121,9 +129,6 @@ const Auth = () => {
     
     try {
       console.log("Auth: Attempting to sign up");
-      
-      // Clean up existing auth state first
-      cleanupAuthState();
       
       // Sign up
       const { data, error } = await supabase.auth.signUp({
@@ -158,7 +163,17 @@ const Auth = () => {
       
     } catch (error: any) {
       console.error('Auth: Error signing up:', error);
-      const errorMessage = error.message || "Failed to create account. Please try again.";
+      let errorMessage = "Failed to create account. Please try again.";
+      
+      // Handle specific error cases
+      if (error.message?.includes('User already registered')) {
+        errorMessage = "An account with this email already exists. Please sign in instead.";
+      } else if (error.message?.includes('Password should be at least')) {
+        errorMessage = "Password should be at least 6 characters long.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -177,19 +192,14 @@ const Auth = () => {
     setIsResettingPassword(true);
     
     try {
-      console.log('Sending custom password reset email to:', forgotPasswordEmail.trim());
+      console.log('Sending password reset email to:', forgotPasswordEmail.trim());
       
-      // Use the custom password reset function
-      const { data, error } = await supabase.functions.invoke('send-password-reset', {
-        body: { email: forgotPasswordEmail.trim() }
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail.trim(), {
+        redirectTo: `${window.location.origin}/auth`,
       });
 
       if (error) {
         throw error;
-      }
-
-      if (data?.error) {
-        throw new Error(data.error);
       }
 
       toast.success('Password reset email sent! Please check your inbox.');

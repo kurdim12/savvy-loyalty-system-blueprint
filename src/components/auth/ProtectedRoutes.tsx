@@ -22,8 +22,8 @@ export function UserRoute({ children }: { children: ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center p-6">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#95A5A6] text-sm">Loading...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-[#8B4513] text-sm">Loading...</p>
         </div>
       </div>
     );
@@ -63,8 +63,8 @@ export function AdminRoute({ children }: { children: ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
         <div className="text-center p-6">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#95A5A6] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#95A5A6] text-sm">Loading admin access...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-[#8B4513] text-sm">Checking admin access...</p>
         </div>
       </div>
     );
