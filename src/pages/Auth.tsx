@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { CoffeeIcon, User, Mail, Lock } from 'lucide-react';
+import { User, Mail, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
@@ -230,7 +229,11 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
-            <CoffeeIcon className="h-12 w-12 text-[#8B4513]" />
+            <img 
+              src="/lovable-uploads/3065d86c-e6b8-4d0f-b9d5-c9b3445ce445.png" 
+              alt="Raw Smith Coffee" 
+              className="h-12 w-auto"
+            />
           </div>
           <CardTitle className="text-2xl font-bold text-[#8B4513]">Raw Smith Coffee</CardTitle>
           <CardDescription>Loyalty program sign in</CardDescription>
