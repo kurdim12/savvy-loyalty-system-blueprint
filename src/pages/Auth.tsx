@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,7 +22,6 @@ const Auth = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [isResettingPassword, setIsResettingPassword] = useState(false);
@@ -31,25 +31,6 @@ const Auth = () => {
     pathname: location.pathname,
     loading 
   });
-
-  // Set a maximum wait time for initial auth check
-  useEffect(() => {
-    console.log('Auth: Setting up auth check timeout');
-    const timeout = setTimeout(() => {
-      console.log('Auth: Auth check timeout reached, allowing page to render');
-      setAuthChecked(true);
-    }, 1500); // Reduced timeout
-    
-    return () => clearTimeout(timeout);
-  }, []);
-  
-  // Mark auth as checked when loading completes
-  useEffect(() => {
-    if (!loading) {
-      console.log('Auth: Loading complete, marking auth as checked');
-      setAuthChecked(true);
-    }
-  }, [loading]);
   
   // Redirect if user is already logged in
   useEffect(() => {
@@ -70,7 +51,6 @@ const Auth = () => {
     try {
       console.log("Auth: Attempting to sign in");
       
-      // Sign in
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password
@@ -88,13 +68,10 @@ const Auth = () => {
       console.log("Auth: Sign in successful");
       toast.success("Signed in successfully");
       
-      // Don't manually navigate - let the auth state change handle it
-      
     } catch (error: any) {
       console.error('Auth: Error signing in:', error);
       let errorMessage = "Failed to sign in. Please check your credentials.";
       
-      // Handle specific error cases
       if (error.message?.includes('Invalid login credentials')) {
         errorMessage = "Invalid email or password. Please try again.";
       } else if (error.message?.includes('Email not confirmed')) {
@@ -129,7 +106,6 @@ const Auth = () => {
     try {
       console.log("Auth: Attempting to sign up");
       
-      // Sign up
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -164,7 +140,6 @@ const Auth = () => {
       console.error('Auth: Error signing up:', error);
       let errorMessage = "Failed to create account. Please try again.";
       
-      // Handle specific error cases
       if (error.message?.includes('User already registered')) {
         errorMessage = "An account with this email already exists. Please sign in instead.";
       } else if (error.message?.includes('Password should be at least')) {
@@ -212,13 +187,13 @@ const Auth = () => {
     }
   };
 
-  // Show loading state while checking auth
-  if (!authChecked || (loading && !user)) {
+  // Show loading state while auth is initializing
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAF6F0]">
         <div className="text-center p-6 max-w-md">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#8B4513] mb-4">Verifying authentication status...</p>
+          <p className="text-[#8B4513] mb-4">Loading...</p>
         </div>
       </div>
     );

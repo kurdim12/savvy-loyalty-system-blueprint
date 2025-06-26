@@ -27,21 +27,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [profileLoading, setProfileLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   
   const membershipTier = profile?.membership_tier || 'bronze';
   const isAdmin = profile?.role === 'admin';
   const isUser = profile?.role === 'customer';
 
-  // Prevent duplicate profile fetches
   const fetchUserProfile = async (userId: string) => {
-    if (profileLoading) {
-      console.log('AuthContext: Profile fetch already in progress, skipping');
-      return;
-    }
-    
-    setProfileLoading(true);
-    
     try {
       console.log('AuthContext: Fetching profile for user:', userId);
       
@@ -65,8 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('AuthContext: Unexpected error fetching profile:', error);
-    } finally {
-      setProfileLoading(false);
     }
   };
   
@@ -102,84 +92,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (newProfile) {
         console.log('AuthContext: New profile created');
         setProfile(newProfile as Profile);
-        toast.success('Welcome! Your profile has been created.');
       }
     } catch (error) {
       console.error('AuthContext: Error in profile creation:', error);
     }
   };
 
-  // Initialize authentication with better error handling
+  // Initialize authentication
   useEffect(() => {
-    console.log('AuthContext: Initializing authentication...');
-    
     let mounted = true;
 
     const initializeAuth = async () => {
       try {
+        console.log('AuthContext: Initializing authentication...');
+        
+        // Get initial session
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        
+        if (error && !error.message.includes('session_not_found')) {
+          console.error('AuthContext: Error getting initial session:', error);
+        }
+        
+        if (!mounted) return;
+        
+        console.log('AuthContext: Initial session:', initialSession ? 'Found' : 'None');
+        
+        // Set initial state
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
+        
+        // Fetch profile if user exists
+        if (initialSession?.user) {
+          await fetchUserProfile(initialSession.user.id);
+        }
+        
         // Set up auth state listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, newSession) => {
-            console.log('AuthContext: Auth event received:', event);
+            console.log('AuthContext: Auth event:', event);
             
             if (!mounted) return;
             
-            // Update session and user state immediately
+            // Update session and user immediately
             setSession(newSession);
             setUser(newSession?.user ?? null);
 
-            // Handle different auth events
+            // Handle specific events
             if (event === 'SIGNED_IN' && newSession?.user) {
-              console.log('AuthContext: User signed in, will fetch profile');
-              // Use a small delay to prevent multiple concurrent calls
+              console.log('AuthContext: User signed in, fetching profile');
+              // Defer profile fetch to avoid potential issues
               setTimeout(() => {
-                if (mounted && !profileLoading) {
+                if (mounted) {
                   fetchUserProfile(newSession.user.id);
                 }
               }, 100);
             } else if (event === 'SIGNED_OUT') {
               console.log('AuthContext: User signed out, clearing profile');
               setProfile(null);
-              setLoading(false);
-            } else if (event === 'TOKEN_REFRESHED' && newSession?.user && !profile) {
-              console.log('AuthContext: Token refreshed, checking profile');
-              setTimeout(() => {
-                if (mounted && !profileLoading) {
-                  fetchUserProfile(newSession.user.id);
-                }
-              }, 100);
-            }
-            
-            // Mark loading as complete for sign out or when no user
-            if (!newSession?.user) {
-              setLoading(false);
             }
           }
         );
 
-        // Check for existing session
-        console.log('AuthContext: Getting initial session');
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-        
-        if (error && !error.message.includes('session_not_found')) {
-          console.error('AuthContext: Error getting initial session:', error);
-        }
-        
-        console.log('AuthContext: Initial session found:', currentSession ? 'Yes' : 'No');
-        
-        if (!mounted) return;
-        
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (currentSession?.user) {
-          await fetchUserProfile(currentSession.user.id);
-        }
-        
-        // Mark loading as complete
+        setInitialized(true);
         setLoading(false);
 
-        // Clean up function
         return () => {
           mounted = false;
           subscription?.unsubscribe();
@@ -187,6 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('AuthContext: Error initializing auth:', error);
         if (mounted) {
+          setInitialized(true);
           setLoading(false);
         }
       }
@@ -200,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshProfile = async () => {
-    if (user?.id && !profileLoading) {
+    if (user?.id) {
       await fetchUserProfile(user.id);
     }
   };
@@ -225,7 +202,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     try {
       console.log('AuthContext: Signing out user...');
-      setLoading(true);
       
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
@@ -233,16 +209,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('AuthContext: Error during sign out:', error);
       }
       
-      // Clear state immediately
+      // Clear state
       setProfile(null);
       setUser(null);
       setSession(null);
-      setLoading(false);
       
       console.log('AuthContext: Signed out successfully');
     } catch (error) {
       console.error('AuthContext: Error during sign out:', error);
-      setLoading(false);
     }
   };
 
@@ -250,7 +224,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     user,
     profile,
-    loading,
+    loading: loading || !initialized,
     signOut,
     isAdmin,
     isUser,
