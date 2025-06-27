@@ -38,7 +38,7 @@ const createEmailTemplate = (firstName: string) => `
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fresh Beans Arriving Tomorrow!</title>
+  <title>Fresh Beans Have Arrived at Raw Smith Coffee!</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -88,6 +88,21 @@ const createEmailTemplate = (firstName: string) => `
       text-align: center;
       margin: 25px 0;
     }
+    .urgent-banner {
+      background: linear-gradient(45deg, #FF6B35, #F7931E);
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      margin: 20px 0;
+      font-weight: bold;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
     .footer {
       margin-top: 40px;
       padding-top: 20px;
@@ -112,32 +127,42 @@ const createEmailTemplate = (firstName: string) => `
   <div class="container">
     <div class="header">
       <div class="logo">☕ Raw Smith Coffee</div>
-      <div class="beans-emoji">🌱☕🌱</div>
+      <div class="beans-emoji">🎉☕🎉</div>
     </div>
     
-    <h1 class="title">Fresh Beans Arriving Tomorrow!</h1>
+    <div class="urgent-banner">
+      🚨 THE BEANS HAVE ARRIVED TODAY! 🚨
+    </div>
+    
+    <h1 class="title">Fresh Premium Beans Are Here - Visit Us Today!</h1>
     
     <div class="content">
       <p>Dear ${firstName},</p>
       
-      <p>We're thrilled to announce that our freshest batch of premium coffee beans is arriving <strong>tomorrow</strong>!</p>
+      <p><strong>Great news!</strong> Our premium coffee beans have just arrived and are ready for you to experience today!</p>
       
       <div class="highlight">
-        <h3 style="margin: 0 0 10px 0;">🎉 What's Coming Tomorrow 🎉</h3>
-        <p style="margin: 0;">Freshly roasted, premium quality beans that will transform your coffee experience!</p>
+        <h3 style="margin: 0 0 10px 0;">🎊 Available Right Now! 🎊</h3>
+        <p style="margin: 0;">Fresh, premium quality beans - roasted to perfection and waiting for you!</p>
       </div>
       
-      <p>As a valued member of our Raw Smith Coffee loyalty program, you'll be among the first to experience these exceptional beans. Whether you're a fan of our smooth medium roasts or prefer the bold intensity of our dark roasts, we have something special waiting for you.</p>
+      <p>As a valued member of our Raw Smith Coffee community, we wanted you to be among the first to know that these exceptional beans are now available in our shop.</p>
       
-      <p><strong>Why you'll love these beans:</strong></p>
+      <p><strong>Why visit us today:</strong></p>
       <ul>
-        <li>🌟 Freshly roasted for maximum flavor</li>
-        <li>🌍 Ethically sourced from premium coffee regions</li>
-        <li>☕ Perfect for your loyalty program points redemption</li>
-        <li>🎯 Carefully selected for the Raw Smith Coffee experience</li>
+        <li>🌟 Get the freshest beans while they're at peak flavor</li>
+        <li>☕ Experience the perfect cup with our expert brewing</li>
+        <li>🎯 Earn loyalty points with every purchase</li>
+        <li>👥 Join fellow coffee enthusiasts in our cozy space</li>
+        <li>🆕 Be the first to try these premium beans</li>
       </ul>
       
-      <p>Visit us tomorrow to get the first taste of these amazing beans. Don't forget - as a loyalty member, you'll earn points with every purchase!</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <p style="font-size: 18px; font-weight: bold; color: #8B4513;">Don't wait - Visit us today!</p>
+        <p>These premium beans are available now and ready to elevate your coffee experience.</p>
+      </div>
+      
+      <p>Come in today and taste the difference that fresh, premium beans make. Our baristas are ready to craft you the perfect cup!</p>
     </div>
     
     <div class="footer">
@@ -233,7 +258,7 @@ const handler = async (req: Request): Promise<Response> => {
         const emailPayload = {
           from: "Raw Smith Coffee <onboarding@resend.dev>",
           to: [recipient.email],
-          subject: "🌱 Fresh Beans Arriving Tomorrow at Raw Smith Coffee!",
+          subject: "🎉 Fresh Beans Have Arrived - Visit Raw Smith Coffee Today!",
           html: createEmailTemplate(recipient.firstName),
         };
         
