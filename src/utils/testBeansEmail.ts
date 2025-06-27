@@ -26,7 +26,7 @@ export const sendTestBeansEmail = async (testEmail: string) => {
 };
 
 // Call the function immediately to test
-sendTestBeansEmail('abdelrhmankurdi12@gmail.com')
+sendTestBeansEmail('abdalrhmankurdi12@gmail.com')
   .then((result) => {
     console.log('Test email sent successfully:', result);
   })
