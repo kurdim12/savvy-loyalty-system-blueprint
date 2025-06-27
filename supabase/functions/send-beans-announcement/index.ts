@@ -4,9 +4,23 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { Resend } from "npm:resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+console.log('🚀 Edge function starting up...');
+
+const resendApiKey = Deno.env.get("RESEND_API_KEY");
+console.log('🔑 RESEND_API_KEY available:', !!resendApiKey);
+console.log('🔑 RESEND_API_KEY length:', resendApiKey?.length || 0);
+
+if (!resendApiKey) {
+  console.error('❌ RESEND_API_KEY not found in environment variables!');
+}
+
+const resend = new Resend(resendApiKey);
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+console.log('🏗️ Environment variables check:');
+console.log('  - SUPABASE_URL:', !!supabaseUrl);
+console.log('  - SUPABASE_SERVICE_ROLE_KEY:', !!supabaseServiceKey);
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -137,16 +151,34 @@ const createEmailTemplate = (firstName: string) => `
 `;
 
 const handler = async (req: Request): Promise<Response> => {
+  console.log('📨 Incoming request:', req.method, req.url);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('✅ Handling CORS preflight request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { testEmail, sendToAll }: EmailRequest = await req.json();
+    console.log('🔍 Processing email request...');
+    const requestBody = await req.text();
+    console.log('📄 Raw request body:', requestBody);
+    
+    let parsedBody: EmailRequest;
+    try {
+      parsedBody = JSON.parse(requestBody);
+      console.log('✅ Parsed request body:', parsedBody);
+    } catch (parseError) {
+      console.error('❌ Failed to parse request body:', parseError);
+      throw new Error('Invalid JSON in request body');
+    }
+    
+    const { testEmail, sendToAll } = parsedBody;
+    console.log('📧 Email parameters:', { testEmail, sendToAll });
     
     // Initialize Supabase client with service role
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    console.log('✅ Supabase client initialized');
     
     let recipients: Array<{email: string, firstName: string}> = [];
     let results = {
@@ -158,14 +190,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (testEmail) {
       // Test mode - send to specific email
-      console.log(`Sending test email to: ${testEmail}`);
+      console.log(`🎯 Test mode: Sending email to ${testEmail}`);
       recipients = [{
         email: testEmail,
         firstName: 'Coffee Lover' // Default name for test
       }];
     } else if (sendToAll) {
       // Production mode - send to all customers
-      console.log('Fetching all customer emails...');
+      console.log('📊 Production mode: Fetching all customer emails...');
       
       const { data: profiles, error } = await supabase
         .from('profiles')
@@ -174,6 +206,7 @@ const handler = async (req: Request): Promise<Response> => {
         .not('email', 'is', null);
 
       if (error) {
+        console.error('❌ Database error:', error);
         throw new Error(`Failed to fetch customer emails: ${error.message}`);
       }
 
@@ -182,45 +215,63 @@ const handler = async (req: Request): Promise<Response> => {
         firstName: profile.first_name || 'Coffee Lover'
       }));
       
-      console.log(`Found ${recipients.length} customers to email`);
+      console.log(`📊 Found ${recipients.length} customers to email`);
     } else {
-      throw new Error('Must specify either testEmail or sendToAll=true');
+      const errorMsg = 'Must specify either testEmail or sendToAll=true';
+      console.error('❌', errorMsg);
+      throw new Error(errorMsg);
     }
 
     results.total = recipients.length;
+    console.log(`📮 Starting to send ${results.total} emails...`);
 
     // Send emails
-    for (const recipient of recipients) {
+    for (const [index, recipient] of recipients.entries()) {
       try {
-        console.log(`Sending email to: ${recipient.email}`);
+        console.log(`📧 [${index + 1}/${results.total}] Sending email to: ${recipient.email}`);
         
-        const emailResponse = await resend.emails.send({
+        const emailPayload = {
           from: "Raw Smith Coffee <onboarding@resend.dev>",
           to: [recipient.email],
           subject: "🌱 Fresh Beans Arriving Tomorrow at Raw Smith Coffee!",
           html: createEmailTemplate(recipient.firstName),
+        };
+        
+        console.log('📮 Resend payload:', { 
+          from: emailPayload.from, 
+          to: emailPayload.to, 
+          subject: emailPayload.subject 
         });
-
-        console.log(`Email sent successfully to ${recipient.email}:`, emailResponse);
+        
+        const emailResponse = await resend.emails.send(emailPayload);
+        
+        console.log(`✅ Email sent successfully to ${recipient.email}:`, emailResponse);
         results.successful++;
         
         // Add small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
+        if (recipients.length > 1) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
         
       } catch (emailError: any) {
-        console.error(`Failed to send email to ${recipient.email}:`, emailError);
+        console.error(`❌ Failed to send email to ${recipient.email}:`, emailError);
+        console.error('❌ Email error details:', JSON.stringify(emailError, null, 2));
         results.failed++;
         results.errors.push(`${recipient.email}: ${emailError.message}`);
       }
     }
 
-    console.log('Email sending completed:', results);
+    console.log('📊 Email sending completed:', results);
 
-    return new Response(JSON.stringify({
+    const response = {
       success: true,
       message: testEmail ? 'Test email sent successfully!' : 'Bulk email campaign completed!',
       results
-    }), {
+    };
+    
+    console.log('✅ Sending response:', response);
+
+    return new Response(JSON.stringify(response), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
@@ -229,12 +280,19 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
   } catch (error: any) {
-    console.error("Error in send-beans-announcement function:", error);
+    console.error("💥 Error in send-beans-announcement function:", error);
+    console.error("💥 Error stack:", error.stack);
+    
+    const errorResponse = { 
+      success: false,
+      error: error.message,
+      details: error.stack
+    };
+    
+    console.log('❌ Sending error response:', errorResponse);
+    
     return new Response(
-      JSON.stringify({ 
-        success: false,
-        error: error.message 
-      }),
+      JSON.stringify(errorResponse),
       {
         status: 500,
         headers: { 
@@ -246,4 +304,5 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
+console.log('🎧 Starting server...');
 serve(handler);
