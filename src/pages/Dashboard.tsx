@@ -1,311 +1,276 @@
-
-import { useAuth } from '@/contexts/AuthContext';
-import Layout from '@/components/layout/Layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { CoffeeIcon, Award, Clock, AlertTriangle, Users, Wallet, Star, Gift, TrendingUp } from 'lucide-react';
-import CommunityGoalsList from '@/components/community/CommunityGoalsList';
-import ReferFriend from '@/components/loyalty/ReferFriend';
-import RankBenefits from '@/components/loyalty/RankBenefits';
-import { getDiscountRate } from '@/integrations/supabase/functions';
-import { toast } from 'sonner';
+import { useEffect } from 'react';
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { useToast } from "@/components/ui/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardDescription,
+  HoverCardHeader,
+  HoverCardTitle,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
+import {
+  Menubar,
+  MenubarCheckboxItem,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarRadioGroup,
+  MenubarRadioItem,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger,
+  MenubarTrigger,
+} from "@/components/ui/menubar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Separator } from "@/components/ui/separator"
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { Switch } from "@/components/ui/switch"
+import { useSession, signOut } from "next-auth/react";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useRouter } from 'next/navigation';
+import { Skeleton } from "@/components/ui/skeleton"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from "@/components/ui/command"
+import { Calendar } from "@/components/ui/calendar"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
+import { CalendarIcon } from "@radix-ui/react-icons"
+import { DateRange } from "react-day-picker"
+import { Button as shadcnButton } from "@/components/ui/button"
+import { Popover as shadcnPopover, PopoverContent as shadcnPopoverContent, PopoverTrigger as shadcnPopoverTrigger } from "@/components/ui/popover"
+import { Input as shadcnInput } from "@/components/ui/input"
+import { Label as shadcnLabel } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Progress } from "@/components/ui/progress"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { Slider } from "@/components/ui/slider"
+import { ModeToggle } from "@/components/ui/mode-toggle"
+import { NavigationMenu, NavigationMenuItem, NavigationMenuContent, NavigationMenuList, NavigationMenuLink, NavigationMenuTrigger, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Badge } from "@/components/ui/badge"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AspectRatio } from "@/components/ui/aspect-ratio"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useForm } from "react-hook-form"
+import { Icons } from "@/components/icons"
+import * as z from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "@/components/ui/use-toast"
+import { AnimatePresence } from "framer-motion"
+import { CalendarDateRangePicker } from "@/components/ui/calendar-date-range-picker"
+import { Combobox } from "@/components/ui/combobox"
+import { ContextMenu, ContextMenuCheckboxItem, ContextMenuContent, ContextMenuItem, ContextMenuLabel, ContextMenuRadioGroup, ContextMenuRadioItem, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger } from "@/components/ui/context-menu"
+import { DataGrid } from "@/components/ui/data-grid"
+import { InputWithButton } from "@/components/ui/input-with-button"
+import { Kbd } from "@/components/ui/kbd"
+import { Listbox, ListboxContent, ListboxEmpty, ListboxItem, ListboxLabel, ListboxSeparator, ListboxTrigger } from "@/components/ui/listbox"
+import { PinInput } from "@/components/ui/pin-input"
+import { ProgressRing } from "@/components/ui/progress-ring"
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup, ResizableSeparator } from "@/components/ui/resizable"
+import { Sonner } from "@/components/ui/sonner"
+import { Steps, Step } from "@/components/ui/steps"
+import { Timeline, TimelineItem } from "@/components/ui/timeline"
+import { Toggle } from "@/components/ui/toggle"
+import { Tree, TreeItem } from "@/components/ui/tree"
+import { useContextMenu } from "@/hooks/use-context-menu"
+import { useDrawer } from "@/hooks/use-drawer"
+import { useHoverCard } from "@/hooks/use-hover-card"
+import { useKeyboard } from "@/hooks/use-keyboard"
+import { usePopover } from "@/hooks/use-popover"
+import { useResizable } from "@/hooks/use-resizable"
+import { useSelect } from "@/hooks/use-select"
+import { useSheet } from "@/hooks/use-sheet"
+import { useToast as useToastOriginal } from "@/hooks/use-toast"
+import { useTransition } from "@/hooks/use-transition"
+import { SkeletonDemo } from "@/demos/skeleton"
+import { AccordionDemo } from "@/demos/accordion"
+import { AlertDialogDemo } from "@/demos/alert-dialog"
+import { AspectRatioDemo } from "@/demos/aspect-ratio"
+import { AvatarDemo } from "@/demos/avatar"
+import { BadgeDemo } from "@/demos/badge"
+import { ButtonDemo } from "@/demos/button"
+import { CalendarDemo } from "@/demos/calendar"
+import { CardDemo } from "@/demos/card"
+import { CarouselDemo } from "@/demos/carousel"
+import { CheckboxDemo } from "@/demos/checkbox"
+import { ComboboxDemo } from "@/demos/combobox"
+import { CommandDemo } from "@/demos/command"
+import { ContextMenuDemo } from "@/demos/context-menu"
+import { DataGridDemo } from "@/demos/data-grid"
+import { DialogDemo } from "@/demos/dialog"
+import { DrawerDemo } from "@/demos/drawer"
+import { DropdownMenuDemo } from "@/demos/dropdown-menu"
+import { FormDemo } from "@/demos/form"
+import { HoverCardDemo } from "@/demos/hover-card"
+import { InputDemo } from "@/demos/input"
+import { InputWithButtonDemo } from "@/demos/input-with-button"
+import { KbdDemo } from "@/demos/kbd"
+import { ListboxDemo } from "@/demos/listbox"
+import { MenubarDemo } from "@/demos/menubar"
+import { ModeToggleDemo } from "@/demos/mode-toggle"
+import { NavigationMenuDemo } from "@/demos/navigation-menu"
+import { PinInputDemo } from "@/demos/pin-input"
+import { PopoverDemo } from "@/demos/popover"
+import { ProgressDemo } from "@/demos/progress"
+import { ProgressRingDemo } from "@/demos/progress-ring"
+import { RadioGroupDemo } from "@/demos/radio-group"
+import { ResizableDemo } from "@/demos/resizable"
+import { ScrollAreaDemo } from "@/demos/scroll-area"
+import { SelectDemo } from "@/demos/select"
+import { SeparatorDemo } from "@/demos/separator"
+import { SheetDemo } from "@/demos/sheet"
+import { SliderDemo } from "@/demos/slider"
+import { SonnerDemo } from "@/demos/sonner"
+import { StepsDemo } from "@/demos/steps"
+import { SwitchDemo } from "@/demos/switch"
+import { TableDemo } from "@/demos/table"
+import { TabsDemo } from "@/demos/tabs"
+import { TextareaDemo } from "@/demos/textarea"
+import { TimelineDemo } from "@/demos/timeline"
+import { ToggleDemo } from "@/demos/toggle"
+import { ToasterDemo } from "@/demos/toaster"
+import { TooltipDemo } from "@/demos/tooltip"
+import { TreeDemo } from "@/demos/tree"
+import '../utils/sendTestEmail';
 
 const Dashboard = () => {
-  const { profile } = useAuth();
-  
-  const { data: recentTransactions } = useQuery({
-    queryKey: ['recentTransactions'],
-    queryFn: async () => {
-      if (!profile?.id) return [];
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', profile.id)
-        .order('created_at', { ascending: false })
-        .limit(5);
+  const session = useSession();
+  const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState(false);
 
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!profile?.id,
-  });
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (session.data?.user?.id) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.data.user.id)
+          .single();
 
-  const { data: activeRedemptions } = useQuery({
-    queryKey: ['activeRedemptions'],
-    queryFn: async () => {
-      if (!profile?.id) return [];
-      const { data, error } = await supabase
-        .from('redemptions')
-        .select('*, reward:rewards(*)')
-        .eq('user_id', profile.id)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
+        if (error) {
+          console.error("Error fetching user role:", error);
+          return;
+        }
 
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!profile?.id,
-  });
+        setIsAdmin(data?.role === 'admin');
+      }
+    };
 
-  // Calculate next tier progress
-  const currentMembership = profile?.membership_tier || 'bronze';
-  const currentPoints = profile?.current_points || 0;
-  
-  let nextTier = '';
-  let pointsToNextTier = 0;
-  let progress = 0;
+    checkAdminStatus();
+  }, [session]);
 
-  if (currentMembership === 'bronze') {
-    nextTier = 'silver';
-    pointsToNextTier = Math.max(0, 200 - currentPoints);
-    progress = currentPoints > 0 ? Math.min((currentPoints / 200) * 100, 100) : 0;
-  } else if (currentMembership === 'silver') {
-    nextTier = 'gold';
-    pointsToNextTier = Math.max(0, 550 - currentPoints);
-    progress = Math.min(((currentPoints - 200) / (550 - 200)) * 100, 100);
-  } else {
-    nextTier = 'gold';
-    pointsToNextTier = 0;
-    progress = 100;
+  if (session.status === "loading") {
+    return <div>Loading...</div>;
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
-
-  const copyPointsToClipboard = () => {
-    navigator.clipboard.writeText(currentPoints.toString());
-    toast.success('Points copied to clipboard!');
-  };
+  if (session.status === "unauthenticated") {
+    router.push('/login');
+    return null;
+  }
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        {/* Welcome Header with Enhanced Design */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-100 via-amber-50 to-orange-100 border border-amber-200">
-          <div className="absolute inset-0 opacity-30"></div>
-          <div className="relative p-6 md:p-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-amber-900 mb-2">
-                  Welcome back, {profile?.first_name}! ☕
-                </h1>
-                <p className="text-amber-700 text-lg">Your coffee journey continues...</p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <Badge 
-                  variant="outline" 
-                  className="bg-white/80 text-amber-800 border-amber-300 px-4 py-2 text-sm font-semibold"
-                >
-                  <Star className="h-4 w-4 mr-1 fill-current" />
-                  {currentMembership.charAt(0).toUpperCase() + currentMembership.slice(1)} Member
-                </Badge>
-                <Badge 
-                  className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 text-sm font-bold cursor-pointer transition-colors" 
-                  onClick={copyPointsToClipboard}
-                >
-                  <Wallet className="h-4 w-4 mr-1" />
-                  {currentPoints} Points
-                </Badge>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced Stats Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {/* Points Card */}
-          <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100 hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-amber-700">Available Points</p>
-                  <p className="text-3xl font-bold text-amber-900">{currentPoints}</p>
-                </div>
-                <div className="p-3 bg-amber-200 rounded-full">
-                  <Wallet className="h-6 w-6 text-amber-700" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Membership Card */}
-          <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-700">Membership</p>
-                  <p className="text-2xl font-bold text-blue-900 capitalize">{currentMembership}</p>
-                </div>
-                <div className="p-3 bg-blue-200 rounded-full">
-                  <Award className="h-6 w-6 text-blue-700" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Discount Card */}
-          <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100 hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-700">Discount Rate</p>
-                  <p className="text-3xl font-bold text-green-900">{getDiscountRate(currentMembership)}%</p>
-                </div>
-                <div className="p-3 bg-green-200 rounded-full">
-                  <TrendingUp className="h-6 w-6 text-green-700" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Visits Card */}
-          <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-purple-700">Total Visits</p>
-                  <p className="text-3xl font-bold text-purple-900">{profile?.visits || 0}</p>
-                </div>
-                <div className="p-3 bg-purple-200 rounded-full">
-                  <CoffeeIcon className="h-6 w-6 text-purple-700" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Progress to Next Tier */}
-        {pointsToNextTier > 0 && (
-          <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2 text-amber-900">
-                <Star className="h-5 w-5 text-amber-600" />
-                Progress to {nextTier.charAt(0).toUpperCase() + nextTier.slice(1)}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-amber-700">Progress</span>
-                  <span className="text-sm font-medium text-amber-900">{progress.toFixed(0)}%</span>
-                </div>
-                <Progress value={progress} className="h-3 bg-amber-100" />
-                <p className="text-sm text-amber-700">
-                  <span className="font-semibold">{pointsToNextTier} more points</span> needed to reach {nextTier} tier!
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Recent Activity */}
-          <Card className="border-gray-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2 text-gray-900">
-                <Clock className="h-5 w-5 text-gray-600" />
-                Recent Activity
-              </CardTitle>
-              <CardDescription>Your latest transactions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {recentTransactions && recentTransactions.length > 0 ? (
-                <div className="space-y-3">
-                  {recentTransactions.map((transaction: any) => (
-                    <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className={`font-semibold ${transaction.transaction_type === 'earn' ? 'text-green-600' : 'text-red-600'}`}>
-                            {transaction.transaction_type === 'earn' ? '+' : '-'}{transaction.points} pts
-                          </span>
-                          <span className="text-sm text-gray-500">{formatDate(transaction.created_at)}</span>
-                        </div>
-                        {transaction.notes && (
-                          <p className="text-sm text-gray-600 mt-1">{transaction.notes}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <AlertTriangle className="h-12 w-12 text-amber-400 mx-auto mb-3" />
-                  <p className="font-medium text-gray-900">No recent activity</p>
-                  <p className="text-sm text-gray-600">Visit our store to start earning points!</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Active Redemptions */}
-          <Card className="border-gray-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2 text-gray-900">
-                <Gift className="h-5 w-5 text-gray-600" />
-                Active Rewards
-              </CardTitle>
-              <CardDescription>Your pending redemptions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {activeRedemptions && activeRedemptions.length > 0 ? (
-                <div className="space-y-3">
-                  {activeRedemptions.map((redemption: any) => (
-                    <div key={redemption.id} className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold text-amber-900">{redemption.reward?.name}</p>
-                          <p className="text-sm text-amber-700">Redeemed {formatDate(redemption.created_at)}</p>
-                        </div>
-                        <Badge className="bg-amber-200 text-amber-800">Pending</Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Gift className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                  <p className="font-medium text-gray-900">No active redemptions</p>
-                  <p className="text-sm text-gray-600">Redeem your points for rewards!</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Additional Components */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          <RankBenefits 
-            currentPoints={currentPoints}
-            membershipTier={profile?.membership_tier || 'bronze'}
-          />
-          <ReferFriend />
-        </div>
-        
-        {/* Community Goals */}
-        <Card className="border-amber-200">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2 text-amber-900">
-              <Users className="h-5 w-5 text-amber-600" />
-              Community Goals
-            </CardTitle>
-            <CardDescription>Contribute your points to community challenges</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CommunityGoalsList />
-          </CardContent>
-        </Card>
-      </div>
-    </Layout>
+    <div>
+      <h1>Dashboard</h1>
+      <p>Welcome, {session.data?.user?.email}</p>
+      {isAdmin && <p>You have admin access.</p>}
+      <Button onClick={() => signOut()}>Sign Out</Button>
+    </div>
   );
 };
 
