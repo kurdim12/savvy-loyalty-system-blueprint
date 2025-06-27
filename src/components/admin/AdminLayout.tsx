@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,8 @@ import {
   LogOut,
   BarChart3,
   Target,
-  MessageSquare
+  MessageSquare,
+  Mail
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -46,6 +46,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { name: 'Rewards Management', href: '/admin/rewards', icon: Trophy },
     { name: 'Drinks Management', href: '/admin/drinks', icon: Package },
     { name: 'Transactions', href: '/admin/transactions', icon: CreditCard },
+    { name: 'Bulk Email', href: '/admin/bulk-email', icon: Mail },
     { name: 'Community Hub', href: '/admin/hub', icon: Target },
     { name: 'Community Goals', href: '/admin/community-goals', icon: Target },
     { name: 'Community Posts', href: '/admin/community', icon: MessageSquare },

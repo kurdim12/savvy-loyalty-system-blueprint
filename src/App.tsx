@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -34,6 +33,7 @@ import RewardsAdmin from "./pages/admin/RewardsAdmin";
 import CommunityHubManagement from "./pages/admin/CommunityHubManagement";
 import AdminCommunityHub from "./pages/AdminCommunityHub";
 import AdminLayout from "./components/admin/AdminLayout";
+import BulkEmailManagement from "./pages/admin/BulkEmailManagement";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -181,7 +181,15 @@ const App = () => {
                       <AdminCommunityHub />
                     </AdminRoute>
                   } />
-
+                  
+                  <Route path="/admin/bulk-email" element={
+                    <AdminRoute>
+                      <AdminLayout>
+                        <BulkEmailManagement />
+                      </AdminLayout>
+                    </AdminRoute>
+                  } />
+                  
                   {/* 404 Route */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
