@@ -37,3 +37,6 @@ cookie_secure = true
 
 [functions.create-admin]
 verify_jwt = false
+
+[secrets]
+RESEND_API_KEY = "re_Qse6YSbn_7staK5yu7e8E17t6eRgw73tp"
