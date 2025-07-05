@@ -1,11 +1,7 @@
 
 import React, { useState } from 'react';
-import AdminLayout from '@/components/admin/AdminLayout';
 import CustomersList from '@/components/admin/CustomersList';
 import ManagePointsDialog from '@/components/admin/ManagePointsDialog';
-import UserActions from '@/components/admin/UserActions';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,7 +22,6 @@ const UserManagement = () => {
     name: string;
   } | null>(null);
   const [isPointsDialogOpen, setIsPointsDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("customers");
 
   const handleManagePoints = (customerId: string, customerName: string) => {
     setSelectedCustomer({ id: customerId, name: customerName });
@@ -58,52 +53,18 @@ const UserManagement = () => {
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Customer Management</h2>
-          <p className="text-muted-foreground">
-            View and manage all customers, their profiles, points, and membership tiers.
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Customer Management</h1>
+          <p className="text-gray-600 mt-2">View and manage all customers, their profiles, points, and membership tiers.</p>
         </div>
-        
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="customers">All Customers</TabsTrigger>
-            <TabsTrigger value="user-actions">User Actions</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="customers" className="space-y-4">
-            <CustomersList 
-              onManagePoints={handleManagePoints} 
-              onRankChange={handleRankChange}
-            />
-          </TabsContent>
-
-          <TabsContent value="user-actions" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <UserActions />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle>Customer Analytics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>Customer analytics will be implemented in a future update.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
       </div>
+      
+      <CustomersList 
+        onManagePoints={handleManagePoints} 
+        onRankChange={handleRankChange}
+      />
       
       {selectedCustomer && (
         <ManagePointsDialog
@@ -113,7 +74,7 @@ const UserManagement = () => {
           customerName={selectedCustomer.name}
         />
       )}
-    </AdminLayout>
+    </div>
   );
 };
 
