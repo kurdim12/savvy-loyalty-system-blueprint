@@ -60,15 +60,13 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }> {
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 
 root.render(
-  <React.StrictMode>
-    <ErrorBoundary>
-      <AuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <SonnerToaster position="top-right" expand={false} richColors />
-          <Toaster />
-          <App />
-        </QueryClientProvider>
-      </AuthProvider>
-    </ErrorBoundary>
-  </React.StrictMode>,
+  <ErrorBoundary>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <SonnerToaster position="top-right" expand={false} richColors />
+        <Toaster />
+        <App />
+      </QueryClientProvider>
+    </AuthProvider>
+  </ErrorBoundary>
 );
