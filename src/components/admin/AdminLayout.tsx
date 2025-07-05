@@ -47,10 +47,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { name: 'Drinks Management', href: '/admin/drinks', icon: Package },
     { name: 'Transactions', href: '/admin/transactions', icon: CreditCard },
     { name: 'Bulk Email', href: '/admin/bulk-email', icon: Mail },
-    { name: 'Community Hub', href: '/admin/hub', icon: Target },
+    { name: 'Community Hub', href: '/admin/community-hub', icon: Target },
     { name: 'Community Goals', href: '/admin/community-goals', icon: Target },
     { name: 'Community Posts', href: '/admin/community', icon: MessageSquare },
-    { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
