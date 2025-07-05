@@ -25,6 +25,11 @@ serve(async (req) => {
   try {
     console.log('Bulk email function called')
     
+    // Validate Resend API key
+    if (!Deno.env.get('RESEND_API_KEY')) {
+      throw new Error('RESEND_API_KEY is not configured')
+    }
+    
     // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -34,7 +39,18 @@ serve(async (req) => {
     // Get the request body
     const { subject, message, fromName = 'Raw Smith Coffee' }: BulkEmailRequest = await req.json()
     
-    console.log('Email request:', { subject, fromName })
+    // Validate request data
+    if (!subject?.trim()) {
+      throw new Error('Subject is required')
+    }
+    if (!message?.trim()) {
+      throw new Error('Message is required')
+    }
+    if (!fromName?.trim()) {
+      throw new Error('From name is required')
+    }
+    
+    console.log('Email request:', { subject, fromName, messageLength: message.length })
 
     // Get all users from the database
     const { data: profiles, error: profilesError } = await supabaseClient
@@ -68,31 +84,36 @@ serve(async (req) => {
 
       const batchPromises = batch.map(async (profile) => {
         try {
-          const personalizedMessage = message.replace('{firstName}', profile.first_name || 'Valued Customer')
+          // Validate profile data
+          if (!profile.email) {
+            return { email: 'invalid', success: false, error: 'Missing email address' }
+          }
+          
+          const personalizedMessage = message.replace(/\{firstName\}/g, profile.first_name || 'Valued Customer')
           
           const { data, error } = await resend.emails.send({
             from: `${fromName} <noreply@raw-smith-loyalty.com>`,
             to: [profile.email],
             subject: subject,
             html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 20px; text-align: center;">
-                  <h1 style="color: white; margin: 0;">Raw Smith Coffee</h1>
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb;">
+                <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 30px; text-align: center;">
+                  <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">Raw Smith Coffee</h1>
                 </div>
-                <div style="padding: 20px; background: #fff;">
-                  <h2 style="color: #92400e;">Hello ${profile.first_name || 'Valued Customer'}!</h2>
-                  <div style="color: #374151; line-height: 1.6;">
+                <div style="padding: 30px; background: #fff;">
+                  <h2 style="color: #92400e; margin-top: 0; font-size: 24px;">Hello ${profile.first_name || 'Valued Customer'}!</h2>
+                  <div style="color: #374151; line-height: 1.8; font-size: 16px; margin: 20px 0;">
                     ${personalizedMessage.replace(/\n/g, '<br>')}
                   </div>
-                  <div style="margin-top: 30px; padding: 20px; background: #fef3c7; border-radius: 8px; text-align: center;">
-                    <p style="margin: 0; color: #92400e;">
+                  <div style="margin-top: 40px; padding: 25px; background: #fef3c7; border-radius: 8px; text-align: center; border-left: 4px solid #f59e0b;">
+                    <p style="margin: 0; color: #92400e; font-size: 16px;">
                       <strong>Thank you for being part of the Raw Smith Coffee community!</strong>
                     </p>
                   </div>
                 </div>
-                <div style="background: #f9fafb; padding: 15px; text-align: center; color: #6b7280; font-size: 14px;">
-                  <p>Raw Smith Coffee Loyalty Program</p>
-                  <p>Visit us at raw-smith-loyalty.com</p>
+                <div style="background: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; border-top: 1px solid #e5e7eb;">
+                  <p style="margin: 5px 0;">Raw Smith Coffee Loyalty Program</p>
+                  <p style="margin: 5px 0;">Visit us at raw-smith-loyalty.com</p>
                 </div>
               </div>
             `,
@@ -100,14 +121,18 @@ serve(async (req) => {
 
           if (error) {
             console.error(`Failed to send email to ${profile.email}:`, error)
-            return { email: profile.email, success: false, error: error.message }
+            return { email: profile.email, success: false, error: error.message || 'Email sending failed' }
           }
 
           console.log(`Email sent successfully to ${profile.email}`)
           return { email: profile.email, success: true, messageId: data?.id }
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Exception sending email to ${profile.email}:`, error)
-          return { email: profile.email, success: false, error: error.message }
+          return { 
+            email: profile.email || 'unknown', 
+            success: false, 
+            error: error.message || 'Unknown error occurred'
+          }
         }
       })
 
