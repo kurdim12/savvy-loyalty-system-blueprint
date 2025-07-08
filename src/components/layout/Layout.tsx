@@ -53,14 +53,6 @@ export default function Layout({
         <Header />
         <main className="flex-1 p-4 md:p-6 container mx-auto">
           <DashboardSkeleton />
-          
-          <div className="mt-6 p-4 bg-[#f0f0f0] rounded text-left text-sm">
-            <p className="font-semibold mb-2">Debug Info:</p>
-            <p>Auth Loading: {loading ? 'Yes' : 'No'}</p>
-            <p>User: {user ? 'Yes' : 'No'}</p>
-            <p>Page Ready: {pageReady ? 'Yes' : 'No'}</p>
-            <p>Time: {new Date().toLocaleTimeString()}</p>
-          </div>
         </main>
         <footer className="py-4 px-6 text-center text-sm text-[#6F4E37] border-t border-[#8B4513]/10">
           &copy; {new Date().getFullYear()} Raw Smith Coffee Loyalty Program
