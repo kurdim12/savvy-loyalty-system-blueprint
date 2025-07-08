@@ -106,7 +106,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         console.log('AuthContext: Initializing authentication...');
         
-        // Get initial session
+        // Set up auth state listener FIRST to avoid missing events
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          (event, newSession) => {
+            console.log('AuthContext: Auth event:', event);
+            
+            if (!mounted) return;
+            
+            // Update session and user immediately (synchronous operations only)
+            setSession(newSession);
+            setUser(newSession?.user ?? null);
+
+            // Handle specific events with deferred async operations
+            if (event === 'SIGNED_IN' && newSession?.user) {
+              console.log('AuthContext: User signed in, fetching profile');
+              // Defer profile fetch to prevent deadlock
+              setTimeout(() => {
+                if (mounted) {
+                  fetchUserProfile(newSession.user.id);
+                }
+              }, 0);
+            } else if (event === 'SIGNED_OUT') {
+              console.log('AuthContext: User signed out, clearing profile');
+              setProfile(null);
+            }
+          }
+        );
+        
+        // THEN get initial session
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
         if (error && !error.message.includes('session_not_found')) {
@@ -121,37 +148,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
         
-        // Fetch profile if user exists
+        // Fetch profile if user exists (deferred to avoid blocking)
         if (initialSession?.user) {
-          await fetchUserProfile(initialSession.user.id);
-        }
-        
-        // Set up auth state listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, newSession) => {
-            console.log('AuthContext: Auth event:', event);
-            
-            if (!mounted) return;
-            
-            // Update session and user immediately
-            setSession(newSession);
-            setUser(newSession?.user ?? null);
-
-            // Handle specific events
-            if (event === 'SIGNED_IN' && newSession?.user) {
-              console.log('AuthContext: User signed in, fetching profile');
-              // Defer profile fetch to avoid potential issues
-              setTimeout(() => {
-                if (mounted) {
-                  fetchUserProfile(newSession.user.id);
-                }
-              }, 100);
-            } else if (event === 'SIGNED_OUT') {
-              console.log('AuthContext: User signed out, clearing profile');
-              setProfile(null);
+          setTimeout(() => {
+            if (mounted) {
+              fetchUserProfile(initialSession.user.id);
             }
-          }
-        );
+          }, 0);
+        }
 
         setInitialized(true);
         setLoading(false);

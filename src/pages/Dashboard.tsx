@@ -12,6 +12,7 @@ import ReferFriend from '@/components/loyalty/ReferFriend';
 import RankBenefits from '@/components/loyalty/RankBenefits';
 import { getDiscountRate } from '@/integrations/supabase/functions';
 import { toast } from 'sonner';
+import { AuthTest } from '@/components/auth/AuthTest';
 
 const Dashboard = () => {
   const { profile } = useAuth();
@@ -88,6 +89,9 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className="space-y-6">
+        {/* Auth Test Component - Temporary */}
+        <AuthTest />
+        
         {/* Welcome Header with Enhanced Design */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-100 via-amber-50 to-orange-100 border border-amber-200">
           <div className="absolute inset-0 opacity-30"></div>
