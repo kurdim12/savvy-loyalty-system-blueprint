@@ -44,6 +44,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'User Management', href: '/admin/users', icon: Users },
     { name: 'Rewards Management', href: '/admin/rewards', icon: Trophy },
+    { name: 'Redemptions', href: '/admin/redemptions', icon: BarChart3 },
     { name: 'Drinks Management', href: '/admin/drinks', icon: Package },
     { name: 'Transactions', href: '/admin/transactions', icon: CreditCard },
     { name: 'Bulk Email', href: '/admin/bulk-email', icon: Mail },
