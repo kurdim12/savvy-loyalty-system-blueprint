@@ -24,11 +24,11 @@ const Index = () => {
   useEffect(() => {
     console.log('Index - Setting up image carousel');
     const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+      setCurrentImageIndex((prev) => (prev + 1) % 4);
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [heroImages.length]);
+  }, []); // Fixed: removed heroImages.length dependency
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-concrete/10 via-white to-concrete/20">
