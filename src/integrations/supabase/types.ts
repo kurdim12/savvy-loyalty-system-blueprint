@@ -701,8 +701,10 @@ export type Database = {
           completed_at: string | null
           created_at: string
           id: string
+          referee_email: string | null
           referee_id: string
           referrer_id: string
+          status: string | null
         }
         Insert: {
           bonus_points?: number
@@ -711,8 +713,10 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           id?: string
+          referee_email?: string | null
           referee_id: string
           referrer_id: string
+          status?: string | null
         }
         Update: {
           bonus_points?: number
@@ -721,8 +725,10 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           id?: string
+          referee_email?: string | null
           referee_id?: string
           referrer_id?: string
+          status?: string | null
         }
         Relationships: [
           {

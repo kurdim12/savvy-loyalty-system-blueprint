@@ -53,10 +53,11 @@ export default function ReferFriend() {
       // Create a referral record
       const referralData = {
         referrer_id: user.id,
+        referee_id: user.id, // Temporary, will be updated when friend signs up
         referee_email: sanitizedEmail,
-        bonus_points: 15, // Points the referrer will get
+        bonus_points: 15,
         status: 'pending'
-      } as unknown as Database['public']['Tables']['referrals']['Insert'];
+      };
 
       const { error: referralError } = await supabase
         .from('referrals')
@@ -94,10 +95,11 @@ export default function ReferFriend() {
       // Generate a unique referral code
       const referralData = {
         referrer_id: user.id,
-        referee_email: null, // No specific email
+        referee_id: user.id, // Temporary
+        referee_email: null,
         bonus_points: 15,
         status: 'pending'
-      } as unknown as Database['public']['Tables']['referrals']['Insert'];
+      };
 
       const { data: referral, error: referralError } = await supabase
         .from('referrals')
