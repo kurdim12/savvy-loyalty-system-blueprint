@@ -38,12 +38,16 @@ export const SpotifyIntegration = () => {
 
     if (error) {
       toast.error('Spotify authentication failed');
-      // Clear URL params
-      window.history.replaceState({}, document.title, window.location.pathname);
+      // Clear URL params with throttling
+      setTimeout(() => {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }, 100);
     } else if (code && !isAuthenticated) {
       handleCallback(code);
-      // Clear URL params
-      window.history.replaceState({}, document.title, window.location.pathname);
+      // Clear URL params with throttling
+      setTimeout(() => {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }, 100);
     }
   }, [isAuthenticated, handleCallback]);
 

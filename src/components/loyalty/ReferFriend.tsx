@@ -51,21 +51,21 @@ export default function ReferFriend() {
       }
       
       // Create a referral record
-      const referralData = {
-        referrer_id: user.id,
-        referee_id: user.id, // Temporary, will be updated when friend signs up
-        referee_email: sanitizedEmail,
-        bonus_points: 15,
-        status: 'pending'
-      };
-
-      const { error: referralError } = await supabase
+      const { data: referral, error: referralError } = await supabase
         .from('referrals')
-        .insert(referralData);
+        .insert({
+          referrer_id: user.id,
+          referee_id: user.id, // Temporary, will be updated when friend signs up
+          referee_email: sanitizedEmail,
+          bonus_points: 15,
+          status: 'pending'
+        })
+        .select('id')
+        .single();
         
       if (referralError) throw referralError;
       
-      // Send email invitation (this would be implemented in a Supabase edge function)
+      // Send email invitation
       const { error: inviteError } = await supabase.functions.invoke('send-referral-invitation', {
         body: {
           referrerUserId: user.id,
@@ -73,7 +73,11 @@ export default function ReferFriend() {
         }
       });
       
-      if (inviteError) throw inviteError;
+      if (inviteError) {
+        console.error('Email invitation failed:', inviteError);
+        // Don't throw here - referral is still created, just email failed
+        toast.warning("Referral created but email failed to send. You can share your link manually.");
+      }
       
       toast.success("Invitation sent to your friend! You'll receive 15 points when they sign up.");
       setEmail('');
@@ -92,25 +96,19 @@ export default function ReferFriend() {
     }
     
     try {
-      // Generate a unique referral code
-      const referralData = {
-        referrer_id: user.id,
-        referee_id: user.id, // Temporary
-        referee_email: null,
-        bonus_points: 15,
-        status: 'pending'
-      };
-
-      const { data: referral, error: referralError } = await supabase
-        .from('referrals')
-        .insert(referralData)
-        .select('id')
+      // Generate a unique referral code using user's referral code
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('referral_code')
+        .eq('id', user.id)
         .single();
-        
-      if (referralError) throw referralError;
       
-      // Create a shareable URL with the referral code
-      const referralLink = `${window.location.origin}/signup?ref=${(referral as any).id}`;
+      if (!userProfile?.referral_code) {
+        throw new Error('User referral code not found');
+      }
+      
+      // Create a shareable URL with the user's referral code
+      const referralLink = `${window.location.origin}/auth?ref=${userProfile.referral_code}`;
       
       // Try to use the Web Share API if available
       if (navigator.share) {

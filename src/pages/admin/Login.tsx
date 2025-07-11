@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase, cleanupAuthState } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useThrottledNavigate } from '@/hooks/useThrottledNavigate';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -25,11 +26,13 @@ const ADMIN_PASSWORD = "rawsmith123";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
+  const throttledNavigate = useThrottledNavigate(500);
   const { user, isAdmin, refreshProfile } = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [accountCreated, setAccountCreated] = useState<boolean>(false);
   const [authCheckComplete, setAuthCheckComplete] = useState<boolean>(false);
+  const hasRedirected = useRef(false);
 
   // Form definition
   const form = useForm<z.infer<typeof loginFormSchema>>({
@@ -40,18 +43,24 @@ const AdminLogin = () => {
     },
   });
 
-  // Check authentication status once
+  // Check authentication status once with throttling
   useEffect(() => {
     console.log('AdminLogin: Checking auth status', { user, isAdmin });
     
     const checkAuth = async () => {
-      if (user && isAdmin) {
+      if (user && isAdmin && !hasRedirected.current) {
         console.log('AdminLogin: User is already logged in as admin, redirecting to admin dashboard');
-        navigate('/admin', { replace: true });
+        hasRedirected.current = true;
+        throttledNavigate('/admin', { replace: true });
       } else {
         setAuthCheckComplete(true);
       }
     };
+    
+    // Reset redirect flag when user changes
+    if (!user) {
+      hasRedirected.current = false;
+    }
     
     // Set a timeout to ensure we don't block indefinitely
     const timeoutId = setTimeout(() => {
@@ -62,7 +71,7 @@ const AdminLogin = () => {
     checkAuth();
     
     return () => clearTimeout(timeoutId);
-  }, [user, isAdmin, navigate]);
+  }, [user, isAdmin, throttledNavigate]);
 
   const handleCreateAdmin = async () => {
     if (loading) return;

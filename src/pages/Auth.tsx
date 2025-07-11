@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,9 +11,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { User, Mail, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useThrottledNavigate } from '@/hooks/useThrottledNavigate';
 
 const Auth = () => {
   const navigate = useNavigate();
+  const throttledNavigate = useThrottledNavigate(500);
   const location = useLocation();
   const { user, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -26,19 +28,31 @@ const Auth = () => {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   
+  // Get referral code from URL params
+  const urlParams = new URLSearchParams(location.search);
+  const referralCode = urlParams.get('ref');
+  
   console.log('Auth page rendering', { 
     user: user ? 'exists' : 'null', 
     pathname: location.pathname,
     loading 
   });
   
-  // Redirect if user is already logged in
+  // Redirect if user is already logged in - throttled to prevent infinite loops
+  const hasRedirected = useRef(false);
+  
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !loading && !hasRedirected.current) {
       console.log("Auth: User already authenticated, redirecting to dashboard");
-      navigate('/dashboard', { replace: true });
+      hasRedirected.current = true;
+      throttledNavigate('/dashboard', { replace: true });
     }
-  }, [user, loading, navigate]);
+    
+    // Reset redirect flag when user changes
+    if (!user) {
+      hasRedirected.current = false;
+    }
+  }, [user, loading, throttledNavigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,6 +141,64 @@ const Auth = () => {
         throw new Error("No user returned from sign up");
       }
       
+      // Process referral code if provided
+      if (referralCode) {
+        try {
+          console.log("Processing referral code:", referralCode);
+          
+          // Find the referrer by referral code
+          const { data: referrer, error: referrerError } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name')
+            .eq('referral_code', referralCode)
+            .single();
+          
+          if (referrerError || !referrer) {
+            console.log("Referral code not found or error:", referrerError);
+          } else {
+            // Create referral record
+            const { error: referralError } = await supabase
+              .from('referrals')
+              .insert({
+                referrer_id: referrer.id,
+                referee_id: data.user.id,
+                referee_email: email.trim(),
+                bonus_points: 15,
+                completed: true,
+                completed_at: new Date().toISOString(),
+                status: 'completed'
+              });
+            
+            if (referralError) {
+              console.error("Failed to create referral record:", referralError);
+            } else {
+              // Award points to referrer
+              await supabase.functions.invoke('earn-points', {
+                body: {
+                  uid: referrer.id,
+                  points: 15,
+                  notes: `Referral bonus for inviting ${firstName} ${lastName}`
+                }
+              });
+              
+              // Award welcome bonus to new user
+              await supabase.functions.invoke('earn-points', {
+                body: {
+                  uid: data.user.id,
+                  points: 10,
+                  notes: `Welcome bonus (referred by ${referrer.first_name})`
+                }
+              });
+              
+              console.log("Referral processed successfully");
+            }
+          }
+        } catch (error) {
+          console.error("Error processing referral:", error);
+          // Don't fail signup if referral processing fails
+        }
+      }
+      
       console.log("Auth: Sign up successful");
       toast.success("Account created successfully! Please check your email to verify your account.");
       
@@ -211,7 +283,16 @@ const Auth = () => {
             />
           </div>
           <CardTitle className="text-2xl font-bold text-[#8B4513]">Raw Smith Coffee</CardTitle>
-          <CardDescription>Loyalty program sign in</CardDescription>
+          <CardDescription>
+            {referralCode ? "Join via referral - You'll earn bonus points!" : "Loyalty program sign in"}
+          </CardDescription>
+          {referralCode && (
+            <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-sm text-green-800">
+                🎉 Referral code detected! Sign up to earn welcome bonus points.
+              </p>
+            </div>
+          )}
         </CardHeader>
 
         {showForgotPassword ? (
