@@ -52,6 +52,14 @@ export const rewardsData: RewardDefinition[] = [
   
   // Gold Rewards
   {
+    name: "A Drop of Science 87+",
+    description: "Premium Yellow Bourbon from Cerrado, Brazil. Natural process, grown at 1,200 masl. Notes of Chocolate and Dried Apricot. Perfect for pour-over or espresso brewing.",
+    points: 550,
+    category: "beans",
+    membership_required: "gold",
+    cuppingScore: 87
+  },
+  {
     name: "150g Premium Coffee Bean Bag (87+ Score)",
     description: "150 grams of our premium coffee beans with a cupping score of 87+",
     points: 500,
