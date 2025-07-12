@@ -11,7 +11,7 @@ export const LivePointsDisplay = () => {
   const [realtimePoints, setRealtimePoints] = useState<number | null>(null);
 
   // Fetch user profile data
-  const { data: profile } = useQuery({
+  const { data: profile, refetch } = useQuery({
     queryKey: ['user-profile', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -26,7 +26,7 @@ export const LivePointsDisplay = () => {
       return data;
     },
     enabled: !!user?.id,
-    refetchInterval: 10000, // Refetch every 10 seconds as backup
+    refetchInterval: 30000, // Refetch every 30 seconds as backup
   });
 
   // Set up real-time subscription for points updates
@@ -34,7 +34,7 @@ export const LivePointsDisplay = () => {
     if (!user?.id) return;
 
     const channel = supabase
-      .channel('user-transactions')
+      .channel('user-points-updates')
       .on(
         'postgres_changes',
         {
@@ -43,9 +43,27 @@ export const LivePointsDisplay = () => {
           table: 'transactions',
           filter: `user_id=eq.${user.id}`
         },
-        () => {
-          // Refetch profile when new transaction is added
-          console.log('🔄 New transaction detected, refreshing points...');
+        (payload) => {
+          console.log('🔄 New transaction detected, refreshing points...', payload);
+          // Trigger refetch when transaction is added
+          refetch();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 Profile updated, refreshing points...', payload);
+          // Update real-time points when profile changes
+          if (payload.new && typeof payload.new.current_points === 'number') {
+            setRealtimePoints(payload.new.current_points);
+          }
+          refetch();
         }
       )
       .subscribe();
@@ -53,7 +71,7 @@ export const LivePointsDisplay = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user?.id, refetch]);
 
   if (!profile) return null;
 
