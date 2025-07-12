@@ -1,15 +1,14 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Layout from '@/components/layout/Layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Award, Star, Gift, Clock, Trophy, Lock } from 'lucide-react';
-import { RewardImage } from '@/components/rewards/RewardImage';
+import { RewardsHeader } from '@/components/rewards/RewardsHeader';
+import { TierFilters } from '@/components/rewards/TierFilters';
+import { RewardsGrid } from '@/components/rewards/RewardsGrid';
+import { RewardDetailSheet } from '@/components/rewards/RewardDetailSheet';
+import { RewardData } from '@/components/rewards/RewardCard';
 import {
   Dialog,
   DialogContent,
@@ -18,17 +17,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-
-interface Reward {
-  id: string;
-  name: string;
-  description?: string;
-  points_required: number;
-  membership_required?: string;
-  inventory?: number;
-  active: boolean;
-  image_url?: string;
-}
+import { Button } from '@/components/ui/button';
 
 interface Redemption {
   id: string;
@@ -43,8 +32,13 @@ interface Redemption {
 const Rewards = () => {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
+  
+  // State management
+  const [selectedTier, setSelectedTier] = useState<'all' | 'bronze' | 'silver' | 'gold'>('all');
+  const [selectedReward, setSelectedReward] = useState<RewardData | null>(null);
+  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
   const [isRedeemDialogOpen, setIsRedeemDialogOpen] = useState(false);
+  const [rewardToRedeem, setRewardToRedeem] = useState<RewardData | null>(null);
 
   // Helper function to check if user can access a reward tier
   const canAccessTier = (rewardTier?: string) => {
@@ -57,7 +51,7 @@ const Rewards = () => {
            tierHierarchy[rewardTier as keyof typeof tierHierarchy];
   };
 
-  // Fetch ALL available rewards (not filtered by tier)
+  // Fetch ALL available rewards
   const { data: rewards, isLoading, error } = useQuery({
     queryKey: ['rewards'],
     queryFn: async () => {
@@ -72,7 +66,7 @@ const Rewards = () => {
         throw error;
       }
       
-      return data as Reward[];
+      return data as RewardData[];
     },
     enabled: !!profile,
     retry: 3,
@@ -107,6 +101,36 @@ const Rewards = () => {
     enabled: !!user,
     retry: 2
   });
+
+  // Filter rewards based on selected tier
+  const filteredRewards = rewards?.filter(reward => {
+    if (selectedTier === 'all') return true;
+    return (reward.membership_required || 'bronze') === selectedTier;
+  }) || [];
+
+  // Calculate reward counts for each tier
+  const rewardCounts = {
+    all: rewards?.length || 0,
+    bronze: rewards?.filter(r => (r.membership_required || 'bronze') === 'bronze').length || 0,
+    silver: rewards?.filter(r => r.membership_required === 'silver').length || 0,
+    gold: rewards?.filter(r => r.membership_required === 'gold').length || 0,
+  };
+
+  // Get reward state
+  const getRewardState = (reward: RewardData): 'redeemable' | 'pending' | 'locked' | 'insufficient' => {
+    if (!user || !profile) return 'locked';
+    
+    const hasActivePendingRedemption = pendingRedemptions?.some(r => r.reward_id === reward.id);
+    if (hasActivePendingRedemption) return 'pending';
+    
+    const hasTierAccess = canAccessTier(reward.membership_required);
+    if (!hasTierAccess) return 'locked';
+    
+    const hasEnoughPoints = profile.current_points >= reward.points_required;
+    if (!hasEnoughPoints) return 'insufficient';
+    
+    return reward.active ? 'redeemable' : 'locked';
+  };
 
   // Redeem reward mutation
   const redeemReward = useMutation({
@@ -170,6 +194,8 @@ const Rewards = () => {
       queryClient.invalidateQueries({ queryKey: ['user-redemptions'] });
       toast.success('🎉 Reward redemption submitted! Your request is pending admin approval - we\'ll notify you once it\'s processed.');
       setIsRedeemDialogOpen(false);
+      setIsDetailSheetOpen(false);
+      setRewardToRedeem(null);
       setSelectedReward(null);
     },
     onError: (error: any) => {
@@ -178,57 +204,51 @@ const Rewards = () => {
     }
   });
 
-  const handleRedeemClick = (reward: Reward) => {
+  // Event handlers
+  const handleOpenDetails = (reward: RewardData) => {
     setSelectedReward(reward);
+    setIsDetailSheetOpen(true);
+  };
+
+  const handleRedeem = (reward: RewardData) => {
+    setRewardToRedeem(reward);
     setIsRedeemDialogOpen(true);
   };
 
   const handleConfirmRedeem = () => {
-    if (selectedReward) {
-      redeemReward.mutate(selectedReward.id);
+    if (rewardToRedeem) {
+      redeemReward.mutate(rewardToRedeem.id);
     }
   };
 
-  const canRedeem = (reward: Reward) => {
-    if (!user || !profile) return false;
-    
-    const hasEnoughPoints = profile.current_points >= reward.points_required;
-    const hasActivePendingRedemption = pendingRedemptions?.some(r => r.reward_id === reward.id);
-    const hasTierAccess = canAccessTier(reward.membership_required);
-    
-    return hasEnoughPoints && reward.active && !hasActivePendingRedemption && hasTierAccess;
-  };
-
-  const getRedemptionStatus = (reward: Reward) => {
-    const pendingRedemption = pendingRedemptions?.find(r => r.reward_id === reward.id);
-    if (pendingRedemption) {
-      return 'pending';
-    }
-    return null;
-  };
-
-  const getButtonText = (reward: Reward) => {
-    const redemptionStatus = getRedemptionStatus(reward);
-    if (redemptionStatus === 'pending') return 'Awaiting Approval';
-    if (!canAccessTier(reward.membership_required)) return 'Tier Locked';
-    if (profile && profile.current_points < reward.points_required) return 'Not Enough Points';
-    return 'Redeem Now';
-  };
-
-  const getButtonIcon = (reward: Reward) => {
-    if (!canAccessTier(reward.membership_required)) return <Lock className="h-4 w-4 mr-2" />;
-    if (getRedemptionStatus(reward) === 'pending') return <Clock className="h-4 w-4 mr-2" />;
-    return <Gift className="h-4 w-4 mr-2" />;
+  const handleSheetRedeem = (reward: RewardData) => {
+    setIsDetailSheetOpen(false);
+    setRewardToRedeem(reward);
+    setIsRedeemDialogOpen(true);
   };
 
   if (isLoading) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-6 max-w-6xl">
+        <div className="container mx-auto px-4 py-6 max-w-7xl">
           <div className="space-y-6">
             <div className="text-center">
-              <h1 className="text-2xl md:text-3xl font-bold text-black">Rewards</h1>
-              <p className="text-[#95A5A6] mt-2">Loading available rewards...</p>
+              <h1 className="text-3xl font-bold text-gray-900">Rewards</h1>
+              <p className="text-gray-600 mt-2">Loading available rewards...</p>
+            </div>
+            
+            {/* Loading skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-pulse">
+                  <div className="w-full aspect-square bg-gray-200" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+                    <div className="h-8 bg-gray-200 rounded w-full mt-3" />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -239,22 +259,20 @@ const Rewards = () => {
   if (error) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-6 max-w-6xl">
+        <div className="container mx-auto px-4 py-6 max-w-7xl">
           <div className="space-y-6">
             <div className="text-center">
-              <h1 className="text-2xl md:text-3xl font-bold text-black">Rewards</h1>
-              <Card className="border-red-200 bg-red-50 max-w-md mx-auto">
-                <CardContent className="p-6 text-center">
-                  <p className="text-red-600">Failed to load rewards. Please try again later.</p>
-                  <Button 
-                    variant="outline" 
-                    className="mt-4"
-                    onClick={() => window.location.reload()}
-                  >
-                    Retry
-                  </Button>
-                </CardContent>
-              </Card>
+              <h1 className="text-3xl font-bold text-gray-900">Rewards</h1>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto mt-8">
+                <p className="text-red-600 text-center">Failed to load rewards. Please try again later.</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4 w-full"
+                  onClick={() => window.location.reload()}
+                >
+                  Retry
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -264,188 +282,82 @@ const Rewards = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="text-center">
-            <h1 className="text-2xl md:text-3xl font-bold text-black">Rewards Catalog</h1>
-            <p className="text-[#95A5A6] mt-2">Explore all available rewards across all tiers</p>
-            <p className="text-sm text-[#95A5A6] mt-1">
-              Your tier: {profile?.membership_tier} - Some rewards may require higher tiers
-            </p>
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <div className="space-y-8">
+          {/* Header with Progress */}
+          <RewardsHeader
+            currentPoints={profile?.current_points || 0}
+            membershipTier={profile?.membership_tier || 'bronze'}
+            pendingRedemptions={pendingRedemptions?.length || 0}
+          />
+
+          {/* Tier Filters */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Available Rewards</h2>
+              <p className="text-gray-600 text-sm">
+                Choose from our curated selection of premium coffee rewards
+              </p>
+            </div>
+            
+            <TierFilters
+              selectedTier={selectedTier}
+              onTierChange={setSelectedTier}
+              rewardCounts={rewardCounts}
+            />
           </div>
 
-          {/* User Points Display */}
-          <Card className="bg-gradient-to-r from-[#95A5A6]/10 to-[#95A5A6]/20 border-[#95A5A6]">
-            <CardContent className="p-4 md:p-6">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-[#95A5A6] rounded-full">
-                    <Award className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="text-center sm:text-left">
-                    <h3 className="font-semibold text-black">Your Balance</h3>
-                    <p className="text-2xl font-bold text-black">{profile?.current_points || 0} Points</p>
-                  </div>
-                </div>
-                <div className="text-center sm:text-right">
-                  <Badge variant="secondary" className="capitalize bg-[#95A5A6] text-white">
-                    {profile?.membership_tier || 'Bronze'} Member
-                  </Badge>
-                  {pendingRedemptions && pendingRedemptions.length > 0 && (
-                    <div className="mt-2">
-                      <Badge variant="outline" className="text-black border-[#95A5A6]">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {pendingRedemptions.length} Pending Approval
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Tier Info */}
-          <Card className="border-[#95A5A6] bg-gradient-to-r from-[#95A5A6]/5 to-[#95A5A6]/10">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Trophy className="h-5 w-5 text-[#95A5A6]" />
-                <div>
-                  <h3 className="font-semibold text-black">Tier Benefits</h3>
-                  <p className="text-sm text-[#95A5A6]">
-                    You can redeem rewards for your tier ({profile?.membership_tier}) and below. 
-                    Higher tier rewards are shown but require tier upgrades.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Rewards Grid - Now shows ALL rewards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {rewards?.map((reward) => {
-              const redemptionStatus = getRedemptionStatus(reward);
-              const tierLocked = !canAccessTier(reward.membership_required);
-              
-              return (
-                <Card key={reward.id} className={`overflow-hidden hover:shadow-lg transition-shadow border-[#95A5A6] bg-white shadow-md ${tierLocked ? 'opacity-75' : ''}`}>
-                  <div className="aspect-video relative bg-gradient-to-br from-[#95A5A6]/10 to-[#95A5A6]/20">
-                    <RewardImage
-                      src={reward.image_url}
-                      alt={reward.name}
-                      className="absolute inset-0 w-full h-full rounded-t-lg object-cover"
-                    />
-                    {reward.inventory !== null && reward.inventory <= 5 && (
-                      <Badge 
-                        variant="destructive" 
-                        className="absolute top-2 left-2"
-                      >
-                        Only {reward.inventory} left
-                      </Badge>
-                    )}
-                    {redemptionStatus === 'pending' && (
-                      <Badge 
-                        variant="outline" 
-                        className="absolute top-2 right-2 bg-[#95A5A6]/20 text-black border-[#95A5A6]"
-                      >
-                        <Clock className="h-3 w-3 mr-1" />
-                        Pending Approval
-                      </Badge>
-                    )}
-                    {reward.membership_required && (
-                      <Badge 
-                        variant="secondary" 
-                        className={`absolute bottom-2 left-2 capitalize ${
-                          tierLocked ? 'bg-red-500 text-white' : 'bg-[#95A5A6] text-white'
-                        }`}
-                      >
-                        {tierLocked && <Lock className="h-3 w-3 mr-1" />}
-                        {reward.membership_required} Tier
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className={`text-lg leading-tight ${tierLocked ? 'text-gray-500' : 'text-black'}`}>
-                        {reward.name}
-                      </CardTitle>
-                      <div className={`flex items-center gap-1 shrink-0 ${tierLocked ? 'text-gray-400' : 'text-[#95A5A6]'}`}>
-                        <Star className="h-4 w-4 fill-current" />
-                        <span className="font-bold">{reward.points_required}</span>
-                      </div>
-                    </div>
-                    {reward.description && (
-                      <CardDescription className={`text-sm line-clamp-2 ${tierLocked ? 'text-gray-400' : 'text-[#95A5A6]'}`}>
-                        {reward.description}
-                      </CardDescription>
-                    )}
-                  </CardHeader>
-                  
-                  <CardContent className="pt-0">
-                    <Button
-                      onClick={() => handleRedeemClick(reward)}
-                      disabled={!canRedeem(reward) || redemptionStatus === 'pending'}
-                      className={`w-full text-white disabled:opacity-50 ${
-                        tierLocked ? 'bg-red-500 hover:bg-red-600' : 'bg-black hover:bg-[#95A5A6]'
-                      }`}
-                    >
-                      {getButtonIcon(reward)}
-                      {getButtonText(reward)}
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          {!rewards || rewards.length === 0 && (
-            <Card className="border-[#95A5A6]">
-              <CardContent className="p-8 text-center">
-                <Gift className="h-12 w-12 text-[#95A5A6] mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-black mb-2">No rewards available</h3>
-                <p className="text-[#95A5A6]">
-                  Check back soon for new rewards!
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          {/* Rewards Grid */}
+          <RewardsGrid
+            rewards={filteredRewards}
+            onOpenDetails={handleOpenDetails}
+            onRedeem={handleRedeem}
+            getRewardState={getRewardState}
+            canAccessTier={canAccessTier}
+          />
         </div>
       </div>
+
+      {/* Reward Detail Sheet */}
+      <RewardDetailSheet
+        reward={selectedReward}
+        isOpen={isDetailSheetOpen}
+        onClose={() => setIsDetailSheetOpen(false)}
+        onRedeem={handleSheetRedeem}
+        state={selectedReward ? getRewardState(selectedReward) : 'locked'}
+        userPoints={profile?.current_points || 0}
+        canAccessTier={selectedReward ? canAccessTier(selectedReward.membership_required) : false}
+      />
 
       {/* Redeem Confirmation Dialog */}
       <Dialog open={isRedeemDialogOpen} onOpenChange={setIsRedeemDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-black">Confirm Redemption Request</DialogTitle>
-            <DialogDescription className="text-[#95A5A6]">
-              Submit a redemption request for "{selectedReward?.name}" for {selectedReward?.points_required} points?
+            <DialogTitle className="text-gray-900">Confirm Redemption</DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Are you sure you want to redeem "{rewardToRedeem?.name}" for {rewardToRedeem?.points_required} points?
             </DialogDescription>
           </DialogHeader>
           
-          {selectedReward && (
+          {rewardToRedeem && (
             <div className="space-y-4">
-              <div className="aspect-video relative bg-[#95A5A6]/10 rounded-lg overflow-hidden">
-                <RewardImage
-                  src={selectedReward.image_url}
-                  alt={selectedReward.name}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              </div>
-              
-              <div className="bg-[#95A5A6]/10 p-3 rounded-lg border border-[#95A5A6]">
-                <div className="flex items-center gap-2 text-black">
-                  <Clock className="h-4 w-4" />
-                  <span className="text-sm font-medium">Requires Admin Approval</span>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Your current balance</span>
+                  <span className="font-medium text-gray-900">{profile?.current_points || 0} points</span>
                 </div>
-                <p className="text-xs text-[#95A5A6] mt-1">
-                  Your redemption request will be pending until an admin reviews and approves it. You'll receive a notification once it's processed!
-                </p>
+                <div className="flex items-center justify-between text-sm mt-1">
+                  <span className="text-gray-600">After redemption</span>
+                  <span className="font-medium text-green-600">
+                    {(profile?.current_points || 0) - rewardToRedeem.points_required} points
+                  </span>
+                </div>
               </div>
               
-              <div className="text-center">
-                <p className="text-sm text-[#95A5A6]">
-                  Your remaining balance will be: <strong className="text-black">{(profile?.current_points || 0) - selectedReward.points_required} points</strong>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-blue-800 text-sm">
+                  <strong>Note:</strong> Your redemption request will be pending admin approval. 
+                  You'll receive a notification once it's processed.
                 </p>
               </div>
             </div>
@@ -455,16 +367,16 @@ const Rewards = () => {
             <Button 
               variant="outline" 
               onClick={() => setIsRedeemDialogOpen(false)}
-              className="w-full sm:w-auto border-[#95A5A6] text-black hover:bg-[#95A5A6]/20"
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button 
               onClick={handleConfirmRedeem}
               disabled={redeemReward.isPending}
-              className="w-full sm:w-auto bg-black hover:bg-[#95A5A6] text-white"
+              className="w-full sm:w-auto bg-black text-white hover:bg-black/80"
             >
-              {redeemReward.isPending ? 'Submitting Request...' : 'Submit Request'}
+              {redeemReward.isPending ? 'Processing...' : 'Confirm Redemption'}
             </Button>
           </DialogFooter>
         </DialogContent>
