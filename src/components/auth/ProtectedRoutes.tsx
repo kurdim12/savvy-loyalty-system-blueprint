@@ -36,14 +36,17 @@ export function UserRoute({ children }: { children: ReactNode }) {
     return <>{children}</>;
   }
 
-  // Fallback - wait a moment for profile to load before redirecting
-  setTimeout(() => {
-    if (!isUser && !isAdmin) {
-      return <Navigate to="/auth" replace />;
-    }
-  }, 500);
-  
-  return <>{children}</>;
+  // If user exists but no role is determined yet, show loading
+  // This prevents the "Access denied" flash while profile loads
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100">
+      <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-amber-200">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent mx-auto mb-6"></div>
+        <p className="text-amber-800 text-lg font-medium">Loading profile...</p>
+        <p className="text-amber-600 text-sm mt-2">Please wait while we set up your account</p>
+      </div>
+    </div>
+  );
 }
 
 // Component for routes that require admin authentication
