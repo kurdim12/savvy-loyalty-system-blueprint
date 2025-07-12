@@ -24,6 +24,11 @@ export const RewardImage = ({ src, alt, className = "" }: RewardImageProps) => {
       return imagePath;
     }
     
+    // If it starts with /lovable-uploads/, it's a public file
+    if (imagePath.startsWith('/lovable-uploads/')) {
+      return imagePath;
+    }
+    
     // If it's a storage path, get the public URL
     const { data } = supabase.storage
       .from('reward-images')
