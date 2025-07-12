@@ -9,8 +9,20 @@ export const usePWA = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
+    // Check if device is iOS
+    const checkIOS = () => {
+      const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      setIsIOS(isIOSDevice);
+      
+      // On iOS, show install prompt if not in standalone mode
+      if (isIOSDevice && !window.matchMedia('(display-mode: standalone)').matches) {
+        setIsInstallable(true);
+      }
+    };
+
     // Check if app is already installed
     const checkInstalled = () => {
       if (window.matchMedia('(display-mode: standalone)').matches) {
@@ -18,6 +30,7 @@ export const usePWA = () => {
       }
     };
 
+    checkIOS();
     checkInstalled();
 
     // Listen for beforeinstallprompt event
@@ -65,6 +78,7 @@ export const usePWA = () => {
   return {
     isInstallable,
     isInstalled,
+    isIOS,
     installApp
   };
 };

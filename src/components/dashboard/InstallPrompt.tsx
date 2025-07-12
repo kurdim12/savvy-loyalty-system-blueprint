@@ -6,7 +6,7 @@ import { usePWA } from '@/hooks/usePWA';
 import { toast } from 'sonner';
 
 export const InstallPrompt = () => {
-  const { isInstallable, isInstalled, installApp } = usePWA();
+  const { isInstallable, isInstalled, isIOS, installApp } = usePWA();
   const [isDismissed, setIsDismissed] = useState(false);
 
   if (!isInstallable || isInstalled || isDismissed) {
@@ -14,9 +14,14 @@ export const InstallPrompt = () => {
   }
 
   const handleInstall = async () => {
+    if (isIOS) {
+      toast.info('To install on iPhone/iPad: Tap the Share button in Safari, then "Add to Home Screen"');
+      return;
+    }
+    
     const success = await installApp();
     if (success) {
-      toast.success('🎉 App installed successfully! You can now access Raw Smith from your desktop.');
+      toast.success('🎉 App installed successfully! You can now access Raw Smith from your device.');
     } else {
       toast.error('Installation was cancelled or failed.');
     }
