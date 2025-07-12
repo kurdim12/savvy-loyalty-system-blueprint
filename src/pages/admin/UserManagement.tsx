@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import CustomersList from '@/components/admin/CustomersList';
 import ManagePointsDialog from '@/components/admin/ManagePointsDialog';
+import UserActions from '@/components/admin/UserActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,15 +57,23 @@ const UserManagement = () => {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Customer Management</h1>
-          <p className="text-gray-600 mt-2">View and manage all customers, their profiles, points, and membership tiers.</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">User Management</h1>
+          <p className="text-gray-600 mt-2">Manage customers, profiles, points, membership tiers, and user actions.</p>
         </div>
       </div>
       
-      <CustomersList 
-        onManagePoints={handleManagePoints} 
-        onRankChange={handleRankChange}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <CustomersList 
+            onManagePoints={handleManagePoints} 
+            onRankChange={handleRankChange}
+          />
+        </div>
+        
+        <div>
+          <UserActions />
+        </div>
+      </div>
       
       {selectedCustomer && (
         <ManagePointsDialog
