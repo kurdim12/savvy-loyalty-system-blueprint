@@ -609,6 +609,56 @@ export type Database = {
         }
         Relationships: []
       }
+      qa_errors_log: {
+        Row: {
+          created_at: string
+          element: string
+          error_type: string
+          id: string
+          message: string
+          page_name: string
+          reported_by: string | null
+          severity: string | null
+          status: string | null
+          suggested_fix: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          element: string
+          error_type: string
+          id?: string
+          message: string
+          page_name: string
+          reported_by?: string | null
+          severity?: string | null
+          status?: string | null
+          suggested_fix?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          element?: string
+          error_type?: string
+          id?: string
+          message?: string
+          page_name?: string
+          reported_by?: string | null
+          severity?: string | null
+          status?: string | null
+          suggested_fix?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_errors_log_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       redemptions: {
         Row: {
           created_at: string

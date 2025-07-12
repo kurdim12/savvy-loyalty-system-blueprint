@@ -14,7 +14,8 @@ import {
   BarChart3,
   Target,
   MessageSquare,
-  Mail
+  Mail,
+  Bug
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -51,6 +52,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { name: 'Community Hub', href: '/admin/community-hub', icon: Target },
     { name: 'Community Goals', href: '/admin/community-goals', icon: Target },
     { name: 'Community Posts', href: '/admin/community', icon: MessageSquare },
+    { name: 'QA Inspector', href: '/admin/qa-inspector', icon: Bug },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 

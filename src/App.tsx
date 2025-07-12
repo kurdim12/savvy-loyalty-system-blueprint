@@ -31,6 +31,7 @@ import CommunityHubManagement from "./pages/admin/CommunityHubManagement";
 import AdminCommunityHub from "./pages/AdminCommunityHub";
 import AdminLayout from "./components/admin/AdminLayout";
 import BulkEmailManagement from "./pages/admin/BulkEmailManagement";
+import QAInspectorAgent from "./pages/admin/QAInspectorAgent";
 
 console.log('App component loading...');
 
@@ -171,6 +172,14 @@ const App = () => {
               <AdminRoute>
                 <AdminLayout>
                   <BulkEmailManagement />
+                </AdminLayout>
+              </AdminRoute>
+            } />
+            
+            <Route path="/admin/qa-inspector" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <QAInspectorAgent />
                 </AdminLayout>
               </AdminRoute>
             } />
