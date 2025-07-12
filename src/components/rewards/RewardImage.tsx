@@ -60,8 +60,12 @@ export const RewardImage = ({ src, alt, className = "" }: RewardImageProps) => {
         src={imageUrl}
         alt={alt}
         className={`w-full h-full object-cover ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
-        onLoad={() => setIsLoading(false)}
-        onError={() => {
+        onLoad={() => {
+          console.log('Image loaded successfully:', imageUrl);
+          setIsLoading(false);
+        }}
+        onError={(e) => {
+          console.error('Image failed to load:', imageUrl, e);
           setHasError(true);
           setIsLoading(false);
         }}
