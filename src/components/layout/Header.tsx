@@ -51,12 +51,15 @@ const Header = () => {
                 alt="Raw Smith Coffee" 
                 className="h-10 w-auto"
                 onError={() => {
-                  console.log('Logo failed to load, using fallback');
                   setLogoError(true);
                 }}
+                onLoad={() => setLogoError(false)}
               />
             ) : (
-              <div className="text-xl font-bold text-black">Raw Smith Coffee</div>
+              <div className="flex items-center space-x-2">
+                <Coffee className="h-8 w-8 text-black" />
+                <div className="text-xl font-bold text-black">Raw Smith Coffee</div>
+              </div>
             )}
           </Link>
 

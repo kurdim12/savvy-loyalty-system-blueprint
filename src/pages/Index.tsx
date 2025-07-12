@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,28 +7,24 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Coffee, Award, Users, Star, ArrowRight, Gift, Heart, Sparkles, Trophy, Camera, Share2 } from 'lucide-react';
 
-const Index = () => {
-  console.log('Index page rendering...');
+const Index = memo(() => {
   const { user, profile } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  console.log('Index - Auth state:', { user: user ? 'logged in' : 'not logged in', profile });
-
-  const heroImages = [
+  const heroImages = useMemo(() => [
     '/lovable-uploads/e2fc2611-a942-411c-a3e2-676b7cf86455.png',
     '/lovable-uploads/5404e14c-b49d-4de3-b6c1-4d58b8ec620f.png',
     '/lovable-uploads/e14bae4b-002f-43c3-afc6-604e5d3976a7.png',
     '/lovable-uploads/b8f1af39-0790-44a9-aaad-8883e0af6666.png'
-  ];
+  ], []);
 
   useEffect(() => {
-    console.log('Index - Setting up image carousel');
     const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % 4);
+      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
     }, 5000);
 
     return () => clearInterval(interval);
-  }, []); // Fixed: removed heroImages.length dependency
+  }, [heroImages.length]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-concrete/10 via-white to-concrete/20">
@@ -305,5 +301,7 @@ const Index = () => {
     </div>
   );
 };
+
+});
 
 export default Index;

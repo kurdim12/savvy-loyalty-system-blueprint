@@ -35,12 +35,28 @@ export function Nav({ className }: { className?: string }) {
 
   if (!user) return null;
 
+  const navItems = [
+    { to: "/profile", label: "Profile Hub", icon: <User size={16} /> },
+    { to: "/dashboard", label: "Dashboard", icon: <Home size={16} /> },
+    { to: "/rewards", label: "Rewards", icon: <Award size={16} /> },
+    { to: "/community", label: "Community", icon: <Users size={16} /> },
+  ];
+
+  const adminItems = [
+    { to: "/admin", label: "Admin Dashboard", icon: <Settings size={16} /> },
+    { to: "/admin/users", label: "Manage Users", icon: <Users size={16} /> },
+    { to: "/admin/rewards", label: "Manage Rewards", icon: <Gift size={16} /> },
+    { to: "/admin/drinks", label: "Manage Drinks", icon: <Coffee size={16} /> },
+    { to: "/admin/community-goals", label: "Community Goals", icon: <Target size={16} /> },
+    { to: "/admin/community", label: "Community Posts", icon: <MessageSquare size={16} /> },
+    { to: "/admin/redemptions", label: "Redemptions", icon: <Gift size={16} /> },
+  ];
+
   return (
     <nav className={cn("space-y-1", className)}>
-      <UserLink to="/profile" label="Profile Hub" icon={<User size={16} />} />
-      <UserLink to="/dashboard" label="Dashboard" icon={<Home size={16} />} />
-      <UserLink to="/rewards" label="Rewards" icon={<Award size={16} />} />
-      <UserLink to="/community" label="Community" icon={<Users size={16} />} />
+      {navItems.map((item) => (
+        <UserLink key={item.to} to={item.to} label={item.label} icon={item.icon} />
+      ))}
       
       {isAdmin && (
         <>
@@ -48,13 +64,9 @@ export function Nav({ className }: { className?: string }) {
           <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
             Admin Controls
           </p>
-          <UserLink to="/admin/dashboard" label="Admin Dashboard" icon={<Settings size={16} />} />
-          <UserLink to="/admin/users" label="Manage Users" icon={<Users size={16} />} />
-          <UserLink to="/admin/rewards" label="Manage Rewards" icon={<Gift size={16} />} />
-          <UserLink to="/admin/drinks" label="Manage Drinks" icon={<Coffee size={16} />} />
-          <UserLink to="/admin/community-goals" label="Community Goals" icon={<Target size={16} />} />
-          <UserLink to="/admin/community" label="Community Posts" icon={<MessageSquare size={16} />} />
-          <UserLink to="/admin/redemptions" label="Redemptions" icon={<Gift size={16} />} />
+          {adminItems.map((item) => (
+            <UserLink key={item.to} to={item.to} label={item.label} icon={item.icon} />
+          ))}
         </>
       )}
     </nav>

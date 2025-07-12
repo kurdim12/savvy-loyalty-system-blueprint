@@ -101,16 +101,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Initialize authentication
   useEffect(() => {
     let mounted = true;
+    let subscription: any = null;
 
     const initializeAuth = async () => {
       try {
-        console.log('AuthContext: Initializing authentication...');
-        
         // Set up auth state listener FIRST to avoid missing events
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        const { data: authListener } = supabase.auth.onAuthStateChange(
           (event, newSession) => {
-            console.log('AuthContext: Auth event:', event);
-            
             if (!mounted) return;
             
             // Update session and user immediately (synchronous operations only)
@@ -119,19 +116,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             // Handle specific events with deferred async operations
             if (event === 'SIGNED_IN' && newSession?.user) {
-              console.log('AuthContext: User signed in, fetching profile');
               // Defer profile fetch to prevent deadlock
               setTimeout(() => {
                 if (mounted) {
                   fetchUserProfile(newSession.user.id);
                 }
-              }, 0);
+              }, 100);
             } else if (event === 'SIGNED_OUT') {
-              console.log('AuthContext: User signed out, clearing profile');
               setProfile(null);
             }
           }
         );
+        
+        subscription = authListener.subscription;
         
         // THEN get initial session
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
@@ -141,8 +138,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         
         if (!mounted) return;
-        
-        console.log('AuthContext: Initial session:', initialSession ? 'Found' : 'None');
         
         // Set initial state
         setSession(initialSession);
@@ -154,16 +149,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (mounted) {
               fetchUserProfile(initialSession.user.id);
             }
-          }, 0);
+          }, 100);
         }
 
         setInitialized(true);
         setLoading(false);
-
-        return () => {
-          mounted = false;
-          subscription?.unsubscribe();
-        };
       } catch (error) {
         console.error('AuthContext: Error initializing auth:', error);
         if (mounted) {
@@ -177,6 +167,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mounted = false;
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, []);
 

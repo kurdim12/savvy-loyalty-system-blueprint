@@ -16,8 +16,8 @@ import { toast } from 'sonner';
 const Dashboard = () => {
   const { profile } = useAuth();
   
-  const { data: recentTransactions } = useQuery({
-    queryKey: ['recentTransactions'],
+  const { data: recentTransactions, isLoading: transactionsLoading } = useQuery({
+    queryKey: ['recentTransactions', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
       const { data, error } = await supabase
@@ -31,10 +31,11 @@ const Dashboard = () => {
       return data;
     },
     enabled: !!profile?.id,
+    staleTime: 30000, // 30 seconds
   });
 
-  const { data: activeRedemptions } = useQuery({
-    queryKey: ['activeRedemptions'],
+  const { data: activeRedemptions, isLoading: redemptionsLoading } = useQuery({
+    queryKey: ['activeRedemptions', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
       const { data, error } = await supabase
@@ -48,6 +49,7 @@ const Dashboard = () => {
       return data;
     },
     enabled: !!profile?.id,
+    staleTime: 30000, // 30 seconds
   });
 
   // Calculate next tier progress
@@ -219,7 +221,12 @@ const Dashboard = () => {
               <CardDescription>Your latest transactions</CardDescription>
             </CardHeader>
             <CardContent>
-              {recentTransactions && recentTransactions.length > 0 ? (
+              {transactionsLoading ? (
+                <div className="text-center py-8">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent mx-auto mb-3"></div>
+                  <p className="text-sm text-gray-600">Loading transactions...</p>
+                </div>
+              ) : recentTransactions && recentTransactions.length > 0 ? (
                 <div className="space-y-3">
                   {recentTransactions.map((transaction: any) => (
                     <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -257,7 +264,12 @@ const Dashboard = () => {
               <CardDescription>Your pending redemptions</CardDescription>
             </CardHeader>
             <CardContent>
-              {activeRedemptions && activeRedemptions.length > 0 ? (
+              {redemptionsLoading ? (
+                <div className="text-center py-8">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent mx-auto mb-3"></div>
+                  <p className="text-sm text-gray-600">Loading redemptions...</p>
+                </div>
+              ) : activeRedemptions && activeRedemptions.length > 0 ? (
                 <div className="space-y-3">
                   {activeRedemptions.map((redemption: any) => (
                     <div key={redemption.id} className="p-3 bg-amber-50 rounded-lg border border-amber-200">

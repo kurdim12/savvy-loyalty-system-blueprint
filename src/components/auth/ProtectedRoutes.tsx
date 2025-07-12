@@ -8,22 +8,15 @@ import { toast } from 'sonner';
 export function UserRoute({ children }: { children: ReactNode }) {
   const { user, loading, isUser, isAdmin } = useAuth();
   const location = useLocation();
-  
-  console.log("UserRoute: Auth state:", { 
-    user: user ? 'exists' : 'null', 
-    loading, 
-    isUser, 
-    isAdmin,
-    pathname: location.pathname
-  });
 
-  // Show loading state
+  // Show loading state with enhanced UI
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FAF6F0]">
-        <div className="text-center p-6">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8B4513] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-[#8B4513] text-sm">Loading...</p>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100">
+        <div className="text-center p-8 bg-white rounded-2xl shadow-lg border border-amber-200">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent mx-auto mb-6"></div>
+          <p className="text-amber-800 text-lg font-medium">Authenticating...</p>
+          <p className="text-amber-600 text-sm mt-2">Please wait while we verify your access</p>
         </div>
       </div>
     );
@@ -31,19 +24,26 @@ export function UserRoute({ children }: { children: ReactNode }) {
 
   // Not authenticated - redirect to auth
   if (!user) {
-    console.log('UserRoute: No user found, redirecting to auth');
+    // Prevent auth redirect loop by checking current path
+    if (location.pathname === '/auth') {
+      return <>{children}</>;
+    }
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   // User is authenticated and has proper role
   if (isUser || isAdmin) {
-    console.log('UserRoute: Access granted to', location.pathname);
     return <>{children}</>;
   }
 
-  // Fallback
-  console.log('UserRoute: No valid role found, redirecting to auth');
-  return <Navigate to="/auth" replace />;
+  // Fallback - wait a moment for profile to load before redirecting
+  setTimeout(() => {
+    if (!isUser && !isAdmin) {
+      return <Navigate to="/auth" replace />;
+    }
+  }, 500);
+  
+  return <>{children}</>;
 }
 
 // Component for routes that require admin authentication

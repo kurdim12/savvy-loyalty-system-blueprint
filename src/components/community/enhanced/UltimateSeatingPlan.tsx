@@ -13,7 +13,7 @@ import { VirtualCoffeeOrdering } from './VirtualCoffeeOrdering';
 import { ProximityInteractions } from './ProximityInteractions';
 import { DynamicEnvironment } from './DynamicEnvironment';
 import { PersonalWorkspace } from './PersonalWorkspace';
-import { CommunityFeatures } from './CommunityFeatures';
+import { SimpleCommunityFeatures } from '../SimpleCommunityFeatures';
 
 // Clean Coffee Bean Icon Component
 const CoffeeBean = ({ isOccupied, isSelected, isHovered, size = 24, seatType }: { 
@@ -665,7 +665,7 @@ export const UltimateSeatingPlan: React.FC<UltimateSeatingPlanProps> = ({
             />
           )}
           {activePanel === 'community' && (
-            <CommunityFeatures
+            <SimpleCommunityFeatures
               currentUser={{
                 id: 'current-user',
                 name: 'You',

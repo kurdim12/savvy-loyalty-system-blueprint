@@ -1,7 +1,12 @@
+/**
+ * Authentication utilities for handling auth state cleanup and management
+ */
 
+/**
+ * Cleans up all authentication-related storage keys
+ * This prevents auth limbo states and ensures clean logout
+ */
 export const cleanupAuthState = () => {
-  console.log('Cleaning up auth state...');
-  
   // Remove standard auth tokens
   localStorage.removeItem('supabase.auth.token');
   
@@ -18,6 +23,26 @@ export const cleanupAuthState = () => {
       sessionStorage.removeItem(key);
     }
   });
-  
-  console.log('Auth state cleanup complete');
+};
+
+/**
+ * Validates email format
+ */
+export const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+/**
+ * Validates password strength
+ */
+export const isValidPassword = (password: string): boolean => {
+  return password.length >= 6;
+};
+
+/**
+ * Sanitizes user input
+ */
+export const sanitizeInput = (input: string): string => {
+  return input.trim().replace(/[<>]/g, '');
 };

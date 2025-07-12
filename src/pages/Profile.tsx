@@ -29,14 +29,26 @@ const Profile = () => {
 
   const handleUpdateBasicInfo = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Basic validation
+    if (!firstName.trim() || !lastName.trim()) {
+      toast.error('First name and last name are required');
+      return;
+    }
+    
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+    
     setIsUpdating(true);
     
     try {
       await updateProfile({
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        bio,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        email: email.trim(),
+        bio: bio.trim(),
       });
       toast.success('Profile updated successfully!');
     } catch (error) {
