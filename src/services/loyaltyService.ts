@@ -262,9 +262,6 @@ class LoyaltyService {
 
   async checkTierProgression(userId: string): Promise<void> {
     try {
-      // Note: Tier progression is now handled automatically by the database trigger
-      // when transactions are inserted. This method is kept for manual checks.
-      
       const { data: profile } = await supabase
         .from('profiles')
         .select('current_points, membership_tier')
@@ -273,29 +270,38 @@ class LoyaltyService {
 
       if (!profile) return;
 
-      // Get rank thresholds from settings
-      const { data: settings } = await supabase
-        .from('settings')
-        .select('setting_value')
-        .eq('setting_name', 'rank_thresholds')
-        .single();
-
-      const defaultThresholds = { silver: 200, gold: 550 };
-      const thresholds = (settings?.setting_value as any) || defaultThresholds;
       const currentPoints = profile.current_points;
       let newTier = profile.membership_tier;
 
-      if (currentPoints >= (thresholds.gold || 550) && profile.membership_tier !== 'gold') {
+      if (currentPoints >= 550 && profile.membership_tier !== 'gold') {
         newTier = 'gold';
-      } else if (currentPoints >= (thresholds.silver || 200) && profile.membership_tier === 'bronze') {
+      } else if (currentPoints >= 200 && profile.membership_tier === 'bronze') {
         newTier = 'silver';
       }
 
       if (newTier !== profile.membership_tier) {
-        // Award tier achievement if available
-        const tierAchievement = ACHIEVEMENTS.find(a => a.tier_required === newTier);
-        if (tierAchievement) {
-          await this.awardAchievement(userId, tierAchievement);
+        const { error } = await supabase.rpc('set_user_tier', {
+          uid: userId,
+          new_tier: newTier
+        });
+
+        if (!error) {
+          await supabase
+            .from('notifications')
+            .insert({
+              user_id: userId,
+              title: `🎉 ${newTier.toUpperCase()} Member!`,
+              message: `Congratulations! You've been promoted to ${newTier} membership tier with exclusive benefits!`,
+              type: 'tier_upgrade'
+            });
+
+          toast.success(`🎉 Promoted to ${newTier.toUpperCase()} tier!`);
+          
+          // Award tier achievement
+          const tierAchievement = ACHIEVEMENTS.find(a => a.tier_required === newTier);
+          if (tierAchievement) {
+            await this.awardAchievement(userId, tierAchievement);
+          }
         }
       }
     } catch (error) {
