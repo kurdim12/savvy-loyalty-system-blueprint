@@ -53,13 +53,6 @@ export function UserRoute({ children }: { children: ReactNode }) {
 export function AdminRoute({ children }: { children: ReactNode }) {
   const { user, loading, isAdmin } = useAuth();
   const location = useLocation();
-  
-  console.log("AdminRoute: Auth state:", { 
-    user: user ? 'exists' : 'null',
-    loading, 
-    isAdmin,
-    pathname: location.pathname
-  });
 
   // Show loading state
   if (loading) {
@@ -75,17 +68,14 @@ export function AdminRoute({ children }: { children: ReactNode }) {
 
   // Not authenticated
   if (!user) {
-    console.log('AdminRoute: No user found, redirecting to admin login');
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
   // Only allow admins
   if (!isAdmin) {
-    console.log('AdminRoute: User is not an admin, access denied');
     toast.error('Access denied. You do not have admin privileges.');
     return <Navigate to="/auth" replace />;
   }
 
-  console.log('AdminRoute: Admin access granted to', location.pathname);
   return <>{children}</>;
 }
