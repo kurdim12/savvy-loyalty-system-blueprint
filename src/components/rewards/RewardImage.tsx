@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Coffee } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import placeholderImage from '@/assets/coffee-placeholder-icon.jpg';
 
 interface RewardImageProps {
   src?: string | null;
@@ -35,8 +36,12 @@ export const RewardImage = ({ src, alt, className = "" }: RewardImageProps) => {
 
   if (!imageUrl || hasError) {
     return (
-      <div className={`bg-gradient-to-br from-concrete/20 to-concrete/40 flex items-center justify-center ${className}`}>
-        <Coffee className="h-8 w-8 text-concrete" />
+      <div className={`relative ${className}`}>
+        <img
+          src={placeholderImage}
+          alt="Coffee placeholder"
+          className="w-full h-full object-cover"
+        />
       </div>
     );
   }
