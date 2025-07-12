@@ -51,7 +51,7 @@ export default function Layout({
     return (
       <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
         <Header />
-        <main className="flex-1 p-4 md:p-6 container mx-auto">
+        <main className="flex-1 p-3 sm:p-4 lg:p-6 container mx-auto max-w-7xl">
           <DashboardSkeleton />
         </main>
         <footer className="py-4 px-6 text-center text-sm text-[#6F4E37] border-t border-[#8B4513]/10">
@@ -126,10 +126,10 @@ export default function Layout({
   return (
     <div className="flex min-h-screen flex-col bg-[#FAF6F0]">
       <Header />
-      <main className="flex-1 p-4 md:p-6 container mx-auto">
+      <main className="flex-1 p-3 sm:p-4 lg:p-6 container mx-auto max-w-7xl">
         {children}
       </main>
-      <footer className="py-4 px-6 text-center text-sm text-[#6F4E37] border-t border-[#8B4513]/10">
+      <footer className="py-3 sm:py-4 px-4 sm:px-6 text-center text-xs sm:text-sm text-[#6F4E37] border-t border-[#8B4513]/10">
         &copy; {new Date().getFullYear()} Raw Smith Coffee Loyalty Program
       </footer>
     </div>

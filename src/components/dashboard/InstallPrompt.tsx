@@ -42,40 +42,40 @@ export const InstallPrompt = () => {
         <X className="h-4 w-4" />
       </Button>
       
-      <CardContent className="p-6">
-        <div className="flex items-start gap-4">
-          <div className="flex gap-2">
-            <div className="p-2 bg-amber-200 rounded-lg">
-              <Monitor className="h-5 w-5 text-amber-700" />
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex items-start gap-3 sm:gap-4">
+          <div className="flex gap-2 flex-shrink-0">
+            <div className="p-1.5 sm:p-2 bg-amber-200 rounded-lg">
+              <Monitor className="h-4 w-4 sm:h-5 sm:w-5 text-amber-700" />
             </div>
-            <div className="p-2 bg-amber-200 rounded-lg">
-              <Smartphone className="h-5 w-5 text-amber-700" />
+            <div className="p-1.5 sm:p-2 bg-amber-200 rounded-lg">
+              <Smartphone className="h-4 w-4 sm:h-5 sm:w-5 text-amber-700" />
             </div>
           </div>
           
-          <div className="flex-1">
-            <h3 className="font-semibold text-amber-900 mb-2">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-amber-900 mb-2 text-sm sm:text-base">
               Install Raw Smith Coffee App
             </h3>
-            <p className="text-sm text-amber-700 mb-4">
+            <p className="text-xs sm:text-sm text-amber-700 mb-3 sm:mb-4 leading-relaxed">
               Add our app to your home screen for quick access to your loyalty rewards, 
               points, and exclusive coffee deals. Works offline too!
             </p>
             
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button 
                 onClick={handleInstall}
-                className="bg-amber-600 hover:bg-amber-700 text-white"
+                className="bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm"
                 size="sm"
               >
-                <Download className="h-4 w-4 mr-2" />
+                <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 Install App
               </Button>
               <Button 
                 variant="outline" 
                 onClick={handleDismiss}
                 size="sm"
-                className="border-amber-300 text-amber-700 hover:bg-amber-100"
+                className="border-amber-300 text-amber-700 hover:bg-amber-100 text-xs sm:text-sm"
               >
                 Maybe Later
               </Button>

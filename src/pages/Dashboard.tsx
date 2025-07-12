@@ -110,7 +110,7 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="space-y-6 md:space-y-8">
+      <div className="space-y-4 sm:space-y-6 lg:space-y-8 px-2 sm:px-0">
         {/* Install Prompt */}
         <InstallPrompt />
 
@@ -136,7 +136,7 @@ const Dashboard = () => {
         />
 
         {/* Quick Actions */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {quickActions.map((action, index) => {
             const Icon = action.icon;
             return (
@@ -168,7 +168,7 @@ const Dashboard = () => {
         </div>
 
         {/* Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
           {/* Recent Activity */}
           <Card className="shadow-lg border-0">
             <CardHeader className="pb-4">
@@ -309,7 +309,7 @@ const Dashboard = () => {
         </div>
         
         {/* Loyalty Features */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
           <RankBenefits 
             currentPoints={currentPoints}
             membershipTier={membershipTier}

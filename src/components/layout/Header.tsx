@@ -41,15 +41,15 @@ const Header = () => {
 
   return (
     <header className="bg-white border-b border-[#95A5A6]/20 sticky top-0 z-50">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-6 max-w-7xl">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             {!logoError ? (
               <img 
-                src="/logo.png" 
+                src="/lovable-uploads/80cfd8a3-ec74-47a4-9dad-9555f9a67966.png" 
                 alt="Raw Smith Coffee" 
-                className="h-10 w-auto"
+                className="h-8 md:h-10 w-auto"
                 onError={() => {
                   setLogoError(true);
                 }}
@@ -57,8 +57,8 @@ const Header = () => {
               />
             ) : (
               <div className="flex items-center space-x-2">
-                <Coffee className="h-8 w-8 text-black" />
-                <div className="text-xl font-bold text-black">Raw Smith Coffee</div>
+                <Coffee className="h-6 md:h-8 w-6 md:w-8 text-black" />
+                <div className="text-lg md:text-xl font-bold text-black hidden sm:block">Raw Smith</div>
               </div>
             )}
           </Link>
