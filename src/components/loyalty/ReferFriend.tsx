@@ -110,17 +110,43 @@ export default function ReferFriend() {
       // Create a shareable URL with the user's referral code
       const referralLink = `${window.location.origin}/auth?ref=${userProfile.referral_code}`;
       
-      // Try to use the Web Share API if available
-      if (navigator.share) {
-        await navigator.share({
-          title: 'Join Raw Smith Coffee Loyalty Program',
-          text: 'Sign up for Raw Smith Coffee and we both earn loyalty points!',
-          url: referralLink
-        });
-      } else {
-        // Fallback to copying to clipboard
+      // Try to use the Web Share API if available and supported
+      if (navigator.share && navigator.canShare) {
+        try {
+          await navigator.share({
+            title: 'Join Raw Smith Coffee Loyalty Program',
+            text: 'Sign up for Raw Smith Coffee and we both earn loyalty points!',
+            url: referralLink
+          });
+          return; // Successfully shared
+        } catch (shareError) {
+          // Web Share failed, fall back to clipboard
+          console.log('Web Share failed, falling back to clipboard:', shareError);
+        }
+      }
+      
+      // Fallback to copying to clipboard
+      try {
         await navigator.clipboard.writeText(referralLink);
         toast.success("Referral link copied to clipboard!");
+      } catch (clipboardError) {
+        // If clipboard API fails, create a text input and select it
+        const textArea = document.createElement('textarea');
+        textArea.value = referralLink;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          document.execCommand('copy');
+          toast.success("Referral link copied to clipboard!");
+        } catch (copyError) {
+          toast.error("Unable to copy link. Please try again.");
+        }
+        
+        document.body.removeChild(textArea);
       }
     } catch (error) {
       console.error('Error generating sharing link:', error);
