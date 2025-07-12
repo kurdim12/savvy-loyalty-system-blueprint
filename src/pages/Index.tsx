@@ -300,8 +300,6 @@ const Index = memo(() => {
       </div>
     </div>
   );
-};
-
 });
 
 export default Index;
