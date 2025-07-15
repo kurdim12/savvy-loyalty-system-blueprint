@@ -255,7 +255,7 @@ const Auth = () => {
             first_name: firstName.trim(),
             last_name: lastName.trim(),
           },
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}/auth`,
         },
       });
       
@@ -376,12 +376,12 @@ const Auth = () => {
     try {
       console.log('Sending password reset email to:', forgotPasswordEmail.trim());
       
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        forgotPasswordEmail.trim(),
-        {
-          redirectTo: `${window.location.origin}/auth`,
+      // Use the custom edge function for better email delivery
+      const { error } = await supabase.functions.invoke('send-password-reset', {
+        body: {
+          email: forgotPasswordEmail.trim()
         }
-      );
+      });
 
       if (error) {
         throw error;
