@@ -35,6 +35,12 @@ const Auth = () => {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   
+  // Password reset states
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  
   // Password validation
   const [passwordValidation, setPasswordValidation] = useState({
     length: false,
@@ -50,9 +56,51 @@ const Auth = () => {
   // Redirect tracking
   const hasRedirected = useRef(false);
   
+  // Check for password reset tokens on component mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const hash = location.hash;
+    
+    // Check URL params for recovery tokens
+    const accessToken = urlParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token');
+    const type = urlParams.get('type');
+    
+    // Check hash for recovery tokens (alternative format)
+    const hashParams = new URLSearchParams(hash.replace('#', ''));
+    const hashAccessToken = hashParams.get('access_token');
+    const hashRefreshToken = hashParams.get('refresh_token');
+    const hashType = hashParams.get('type');
+    
+    const isRecovery = type === 'recovery' || hashType === 'recovery';
+    const token = accessToken || hashAccessToken;
+    const refresh = refreshToken || hashRefreshToken;
+    
+    if (isRecovery && token && refresh) {
+      console.log('Password reset tokens detected');
+      setIsPasswordReset(true);
+      
+      // Set the session with recovery tokens
+      supabase.auth.setSession({
+        access_token: token,
+        refresh_token: refresh,
+      }).then(({ error }) => {
+        if (error) {
+          console.error('Error setting recovery session:', error);
+          setError('Invalid or expired reset link. Please request a new password reset.');
+          setIsPasswordReset(false);
+        } else {
+          console.log('Recovery session set successfully');
+          // Clear URL parameters
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      });
+    }
+  }, [location.search, location.hash]);
+
   // Redirect if user is already authenticated
   useEffect(() => {
-    if (user && !loading && !hasRedirected.current) {
+    if (user && !loading && !hasRedirected.current && !isPasswordReset) {
       console.log('Auth: User already authenticated, redirecting');
       hasRedirected.current = true;
       
@@ -64,7 +112,7 @@ const Auth = () => {
     if (!user) {
       hasRedirected.current = false;
     }
-  }, [user, loading, navigate, location.state]);
+  }, [user, loading, navigate, location.state, isPasswordReset]);
 
   // Password validation effect
   useEffect(() => {
@@ -359,6 +407,73 @@ const Auth = () => {
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newPassword.trim()) {
+      setError('Please enter a new password');
+      return;
+    }
+    
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+    
+    if (newPassword !== confirmNewPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    
+    setIsUpdatingPassword(true);
+    setError(null);
+    
+    try {
+      console.log('Updating password...');
+      
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      console.log('Password updated successfully');
+      toast.success('Password updated successfully! You can now sign in with your new password.');
+      setSuccess('Password updated successfully! Redirecting to dashboard...');
+      
+      // Clear password reset state
+      setIsPasswordReset(false);
+      setNewPassword('');
+      setConfirmNewPassword('');
+      
+      // Redirect to dashboard after a short delay
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 2000);
+      
+    } catch (error: any) {
+      console.error('Error updating password:', error);
+      
+      let errorMessage = 'Failed to update password. Please try again.';
+      
+      if (error.message?.includes('session_not_found')) {
+        errorMessage = 'Your password reset session has expired. Please request a new password reset link.';
+        setIsPasswordReset(false);
+      } else if (error.message?.includes('same_password')) {
+        errorMessage = 'Please choose a different password from your current one.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
   // Show loading state while auth is initializing
   if (loading) {
     return (
@@ -400,7 +515,116 @@ const Auth = () => {
             )}
           </CardHeader>
 
-          {showForgotPassword ? (
+          {isPasswordReset ? (
+            <form onSubmit={handlePasswordReset}>
+              <CardContent className="space-y-6">
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold text-amber-800 mb-2">Set New Password</h3>
+                  <p className="text-sm text-amber-600">
+                    Please enter your new password below.
+                  </p>
+                </div>
+                
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                {success && (
+                  <Alert className="border-green-200 bg-green-50">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800">{success}</AlertDescription>
+                  </Alert>
+                )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-5 w-5 text-amber-500" />
+                    <Input 
+                      id="newPassword" 
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your new password" 
+                      className="pl-11 pr-11 h-12 border-amber-200 focus:border-amber-400 focus:ring-amber-400"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      disabled={isUpdatingPassword}
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-3 text-amber-500 hover:text-amber-700"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-5 w-5 text-amber-500" />
+                    <Input 
+                      id="confirmNewPassword" 
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Confirm your new password" 
+                      className="pl-11 pr-11 h-12 border-amber-200 focus:border-amber-400 focus:ring-amber-400"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      required
+                      disabled={isUpdatingPassword}
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-3 text-amber-500 hover:text-amber-700"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                  {confirmNewPassword && newPassword !== confirmNewPassword && (
+                    <p className="text-sm text-red-600">Passwords do not match</p>
+                  )}
+                </div>
+              </CardContent>
+              <CardFooter className="flex flex-col space-y-3">
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-amber-600 hover:bg-amber-700 text-white font-medium"
+                  disabled={isUpdatingPassword}
+                >
+                  {isUpdatingPassword ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Updating Password...
+                    </>
+                  ) : (
+                    "Update Password"
+                  )}
+                </Button>
+                <Button 
+                  type="button"
+                  variant="outline"
+                  className="w-full h-12 border-amber-200 text-amber-700 hover:bg-amber-50"
+                  onClick={() => {
+                    setIsPasswordReset(false);
+                    setNewPassword('');
+                    setConfirmNewPassword('');
+                    setError(null);
+                    setSuccess(null);
+                  }}
+                  disabled={isUpdatingPassword}
+                >
+                  Cancel
+                </Button>
+              </CardFooter>
+            </form>
+          ) : showForgotPassword ? (
             <form onSubmit={handleForgotPassword}>
               <CardContent className="space-y-6">
                 <div className="text-center">
