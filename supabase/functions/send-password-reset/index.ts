@@ -107,7 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailHtml = PasswordResetEmailSimple({ resetLink, userEmail: email })
 
     const emailResponse = await resend.emails.send({
-      from: "Raw Smith Coffee <onboarding@resend.dev>",
+      from: "Raw Smith Coffee <noreply@rawsmithcoffee.com>",
       to: [email],
       subject: "Reset your Raw Smith Coffee password",
       html: emailHtml,
